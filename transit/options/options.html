@@ -75,10 +75,7 @@
     <section>
       <h2 data-i18n="options.engine.heading">翻譯設定</h2>
       <p class="muted" data-i18n-html="options.engine.intro.html">
-        翻譯本頁時先使用「主要翻譯」。主要翻譯無法使用（例如沒有設定 API Key、無法連線），或部分段落翻譯失敗時，會自動改用「Failback 翻譯」。Failback 建議選 Google Translate，不需要 API Key。
-        點右上方欄位後直接按下想要的組合鍵即可自訂快速鍵（需包含 <strong>⌥ Option</strong> 或 <strong>⌃ Control</strong>，按 <strong>ESC</strong> 取消）；內建預設鍵仍然有效。
-        已翻譯狀態下按快速鍵會還原原文；翻譯中按快速鍵會取消翻譯。
-        鍵位也可至 <a href="#" id="open-shortcuts" class="open-shortcuts-link">chrome://extensions/shortcuts</a> 變更
+        翻譯本頁時先使用「主要翻譯」。主要翻譯無法使用（例如沒有設定 API Key、無法連線），或部分段落翻譯失敗時，會自動改用「備援翻譯」。備援翻譯建議選 Google Translate，不需要 API Key。點右上方欄位後直接按下想要的組合鍵即可自訂快速鍵（需包含 <strong>⌥ Option</strong> 或 <strong>⌃ Control</strong>，按 <strong>ESC</strong> 取消）；內建預設鍵仍然有效。已翻譯狀態下按快速鍵會還原原文；翻譯中按快速鍵會取消翻譯。快速鍵也可以到 <a href="#" id="open-shortcuts" class="open-shortcuts-link">chrome://extensions/shortcuts</a> 變更
       </p>
       <div class="preset-cards">
         <div class="preset-card preset-card-primary" data-engine-slot="primary">
@@ -114,7 +111,7 @@
 
         <div class="preset-card" data-engine-slot="fallback">
           <div class="preset-card-header">
-            <strong data-i18n="options.engine.fallback">Failback 翻譯</strong>
+            <strong data-i18n="options.engine.fallback">備援翻譯</strong>
           </div>
           <label>
             <span data-i18n="options.preset.label">標籤</span>
@@ -159,7 +156,7 @@
               <option value="gemini-3.8-flash">gemini-3.8-flash（$0.75 / $3.75）</option>
             </select>
           </label>
-          <small class="muted" data-i18n="options.engine.docHint">文件翻譯（PDF、EPUB、DOCX、字幕檔）只支援 LLM（Gemini 或自訂模型），不支援 Google Translate，也不會自動改用 Failback。使用 Gemini 需要設定 API Key。</small>
+          <small class="muted" data-i18n="options.engine.docHint">文件翻譯（PDF、EPUB、DOCX、字幕檔）只支援 LLM（Gemini 或自訂模型），不支援 Google Translate，也不會自動改用備援翻譯。使用 Gemini 需要設定 API Key。</small>
         </div>
       </div>
       <div id="shortcut-hint"></div>
