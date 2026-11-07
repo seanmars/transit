@@ -54,6 +54,11 @@
     return 'other';
   };
 
+  // 目標語言對應的繁簡轉換方向; 非中文目標回傳 null.
+  SK.convertDirectionFor = function convertDirectionFor(target) {
+    return target === 'zh-TW' ? 'cn2twp' : (target === 'zh-CN' ? 'twp2cn' : null);
+  };
+
   const _SIMP_ONLY_RE = new RegExp('[' + Array.from(SIMPLIFIED_ONLY_CHARS).join('') + ']', 'u');
   const _ANY_CJK_RE = /[\u3400-\u4DBF\u4E00-\u9FFF]/u;
   SK.pageHasConvertibleSignal = function pageHasConvertibleSignal(direction, root) {
@@ -305,7 +310,7 @@
         const _role = cur.getAttribute && cur.getAttribute('role');
         if ((tag === 'FOOTER' || _role === 'contentinfo') && SK.isConvertibleVariant) {
           const _t = SK.STATE?.targetLanguage || 'zh-TW';
-          const _dir = _t === 'zh-TW' ? 'cn2twp' : (_t === 'zh-CN' ? 'twp2cn' : null);
+          const _dir = SK.convertDirectionFor(_t);
           if (_dir && SK.isConvertibleVariant((cur.textContent || '').slice(0, 400), _dir)) {
             cur = cur.parentElement;
             continue;
@@ -607,7 +612,7 @@
 
     {
       const _t = SK.STATE?.targetLanguage || 'zh-TW';
-      const _dir = _t === 'zh-TW' ? 'cn2twp' : (_t === 'zh-CN' ? 'twp2cn' : null);
+      const _dir = SK.convertDirectionFor(_t);
       if (_dir && SK.isConvertibleVariant) {
         let _staleCount = 0;
         const _reconcileScope = (scope) => {
@@ -644,6 +649,13 @@
 
     const results = [];
     const seen = new Set();
+    // fragment 加入結果, 並把 startNode..endNode 之間的元素標記為已處理.
+    const pushFragment = (f) => {
+      results.push(f);
+      seen.add(f.startNode);
+      let _n = f.startNode;
+      while (_n) { if (_n.nodeType === 1) seen.add(_n); if (_n === f.endNode) break; _n = _n.nextSibling; }
+    };
     const fragmentExtracted = new Set();
     const _foreignPage = (() => {
       const _langBackup = SK.STATE?.docLangBackup;
@@ -778,10 +790,7 @@
                 fragmentExtracted.add(el);
                 SK.snapshotOnce?.(el);
                 for (const f of frags) {
-                  results.push(f);
-                  seen.add(f.startNode);
-                  let _n = f.startNode;
-                  while (_n) { if (_n.nodeType === 1) seen.add(_n); if (_n === f.endNode) break; _n = _n.nextSibling; }
+                  pushFragment(f);
                   if (stats) stats.fragmentUnit = (stats.fragmentUnit || 0) + 1;
                 }
               }
@@ -801,10 +810,7 @@
                 fragmentExtracted.add(el);
                 SK.snapshotOnce?.(el);
                 for (const f of splitFrags) {
-                  results.push(f);
-                  seen.add(f.startNode);
-                  let _n = f.startNode;
-                  while (_n) { if (_n.nodeType === 1) seen.add(_n); if (_n === f.endNode) break; _n = _n.nextSibling; }
+                  pushFragment(f);
                   if (stats) stats.containerWithBrSplit = (stats.containerWithBrSplit || 0) + 1;
                 }
               } else {
@@ -824,10 +830,7 @@
               if (frags.length > 0) {
                 fragmentExtracted.add(el);
                 for (const f of frags) {
-                  results.push(f);
-                  seen.add(f.startNode);
-                  let _n = f.startNode;
-                  while (_n) { if (_n.nodeType === 1) seen.add(_n); if (_n === f.endNode) break; _n = _n.nextSibling; }
+                  pushFragment(f);
                   if (stats) stats.inlineMixedFragment = (stats.inlineMixedFragment || 0) + 1;
                 }
               }
@@ -851,10 +854,7 @@
               if (frags.length > 0) {
                 fragmentExtracted.add(el);
                 for (const f of frags) {
-                  results.push(f);
-                  seen.add(f.startNode);
-                  let _n = f.startNode;
-                  while (_n) { if (_n.nodeType === 1) seen.add(_n); if (_n === f.endNode) break; _n = _n.nextSibling; }
+                  pushFragment(f);
                   if (stats) stats.inlineMixedSpan = (stats.inlineMixedSpan || 0) + 1;
                 }
               }
@@ -929,10 +929,7 @@
                 if (frags.length === 0) continue;
                 fragmentExtracted.add(s);
                 for (const f of frags) {
-                  results.push(f);
-                  seen.add(f.startNode);
-                  let _n = f.startNode;
-                  while (_n) { if (_n.nodeType === 1) seen.add(_n); if (_n === f.endNode) break; _n = _n.nextSibling; }
+                  pushFragment(f);
                   if (stats) stats.multiSegmentWrapperFragment = (stats.multiSegmentWrapperFragment || 0) + 1;
                 }
               }
@@ -1004,10 +1001,7 @@
             if (frags.length > 0) {
               fragmentExtracted.add(el);
               for (const f of frags) {
-                results.push(f);
-                seen.add(f.startNode);
-                let _n = f.startNode;
-                while (_n) { if (_n.nodeType === 1) seen.add(_n); if (_n === f.endNode) break; _n = _n.nextSibling; }
+                pushFragment(f);
                 if (stats) stats.fragmentUnit = (stats.fragmentUnit || 0) + 1;
                 if (stats) stats.mediaCardDirectTextFragment = (stats.mediaCardDirectTextFragment || 0) + 1;
               }
@@ -1026,10 +1020,7 @@
             if (frags.length > 0) {
               fragmentExtracted.add(el);
               for (const f of frags) {
-                results.push(f);
-                seen.add(f.startNode);
-                let _n = f.startNode;
-                while (_n) { if (_n.nodeType === 1) seen.add(_n); if (_n === f.endNode) break; _n = _n.nextSibling; }
+                pushFragment(f);
                 if (stats) stats.fragmentUnit = (stats.fragmentUnit || 0) + 1;
               }
             }
@@ -1071,10 +1062,7 @@
           if (splitFrags.length >= 2) {
             SK.snapshotOnce?.(brTarget);
             for (const f of splitFrags) {
-              results.push(f);
-              seen.add(f.startNode);
-              let _n = f.startNode;
-              while (_n) { if (_n.nodeType === 1) seen.add(_n); if (_n === f.endNode) break; _n = _n.nextSibling; }
+              pushFragment(f);
               if (stats) stats.blockBrSplit = (stats.blockBrSplit || 0) + 1;
             }
             seen.add(node);

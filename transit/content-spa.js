@@ -759,20 +759,26 @@
     armSpaObserverRescan();
   }
 
-  function detectAndUnmarkExpandedDual(mutations) {
-    if (!STATE.translationCache || STATE.translationCache.size === 0) return false;
-    if (!STATE.originalText) return false;
-
+  // 每個 mutation target 往上找最近一個在 tracked map 裡的元素.
+  function collectTrackedAncestors(mutations, tracked) {
     const candidates = new Set();
     for (const m of mutations) {
       let t = m.target;
       if (!t) continue;
       if (t.nodeType !== Node.ELEMENT_NODE) t = t.parentElement;
       while (t && t.nodeType === Node.ELEMENT_NODE) {
-        if (STATE.translationCache.has(t)) { candidates.add(t); break; }
+        if (tracked.has(t)) { candidates.add(t); break; }
         t = t.parentElement;
       }
     }
+    return candidates;
+  }
+
+  function detectAndUnmarkExpandedDual(mutations) {
+    if (!STATE.translationCache || STATE.translationCache.size === 0) return false;
+    if (!STATE.originalText) return false;
+
+    const candidates = collectTrackedAncestors(mutations, STATE.translationCache);
     if (candidates.size === 0) return false;
 
     let unmarked = 0;
@@ -812,16 +818,7 @@
     if (!STATE.nodeValueMutateBackup || STATE.nodeValueMutateBackup.size === 0) return false;
     if (!STATE.originalText) return false;
 
-    const candidates = new Set();
-    for (const m of mutations) {
-      let t = m.target;
-      if (!t) continue;
-      if (t.nodeType !== Node.ELEMENT_NODE) t = t.parentElement;
-      while (t && t.nodeType === Node.ELEMENT_NODE) {
-        if (STATE.nodeValueMutateBackup.has(t)) { candidates.add(t); break; }
-        t = t.parentElement;
-      }
-    }
+    const candidates = collectTrackedAncestors(mutations, STATE.nodeValueMutateBackup);
     if (candidates.size === 0) {
       for (const [el] of STATE.nodeValueMutateBackup) {
         if (!el.isConnected) continue;

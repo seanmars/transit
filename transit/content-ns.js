@@ -164,7 +164,7 @@ if (window.__transit_loaded) {
 
   SK.isDevTailBuild = function isDevTailBuild() {
     try {
-      const rt = (typeof browser !== 'undefined' && browser.runtime) || (typeof chrome !== 'undefined' && chrome.runtime);
+      const rt = globalThis.browser?.runtime;
       const m = rt?.getManifest?.() || {};
       if (String(m.version || '').split('.').length >= 4) return true;
       return /\btest-build\b/.test(String(m.version_name || ''));

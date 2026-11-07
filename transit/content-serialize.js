@@ -232,7 +232,8 @@
     });
   };
 
-  SK.serializeFragmentForGoogleTranslate = function serializeFragmentForGoogleTranslate(unit) {
+  // fragment unit 從 startNode 到 endNode (含) 的兄弟節點.
+  function fragmentNodes(unit) {
     const nodes = [];
     let cur = unit.startNode;
     while (cur) {
@@ -240,6 +241,11 @@
       if (cur === unit.endNode) break;
       cur = cur.nextSibling;
     }
+    return nodes;
+  }
+
+  SK.serializeFragmentForGoogleTranslate = function serializeFragmentForGoogleTranslate(unit) {
+    const nodes = fragmentNodes(unit);
     const parent = unit.startNode && unit.startNode.parentElement;
     return serializeNodeIterableForGoogle(nodes, {
       preserveNewlines: shouldPreserveTextNewlines(parent),
@@ -267,13 +273,7 @@
   };
 
   SK.serializeFragmentWithPlaceholders = function serializeFragmentWithPlaceholders(unit) {
-    const nodes = [];
-    let cur = unit.startNode;
-    while (cur) {
-      nodes.push(cur);
-      if (cur === unit.endNode) break;
-      cur = cur.nextSibling;
-    }
+    const nodes = fragmentNodes(unit);
     const parent = unit.startNode && unit.startNode.parentElement;
     return serializeNodeIterable(nodes, {
       preserveNewlines: shouldPreserveTextNewlines(parent),

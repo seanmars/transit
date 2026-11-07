@@ -237,7 +237,7 @@
     }
     const plan = await SK.resolveTranslatePlan();
     const target = STATE.targetLanguage;
-    const convertDirection = target === 'zh-TW' ? 'cn2twp' : (target === 'zh-CN' ? 'twp2cn' : null);
+    const convertDirection = SK.convertDirectionFor(target);
     return async (units, signal) => {
       const r = await SK.translateUnitsWithEngine(units, plan.engine, { signal, convertDirection });
       const fb = await SK.retryFailuresWithFallback(r.failures, plan.fallback, { signal, convertDirection, silent: true });

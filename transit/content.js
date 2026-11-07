@@ -73,7 +73,7 @@
         segmentCount: STATE.originalHTML.size,
       };
       try {
-        const _rt = (typeof browser !== 'undefined' && browser.runtime) || (typeof chrome !== 'undefined' && chrome.runtime);
+        const _rt = globalThis.browser?.runtime;
         out.version = _rt?.getManifest?.().version || null;
       } catch (_) {
         out.version = null;
@@ -95,7 +95,7 @@
     } else if (action === 'GET_STORAGE') {
       const keys = (e.detail && e.detail.keys) || null;
       try {
-        const _storage = (typeof browser !== 'undefined' && browser.storage) || (typeof chrome !== 'undefined' && chrome.storage);
+        const _storage = globalThis.browser?.storage;
         if (!_storage || !_storage.sync) {
           respond({ ok: false, error: 'storage.sync unavailable in this context' });
         } else {
@@ -117,7 +117,7 @@
     } else if (action === 'SET_GLOSSARY_ENABLED') {
       const _enabled = !!(e.detail && e.detail.enabled);
       try {
-        const _storage = (typeof browser !== 'undefined' && browser.storage) || (typeof chrome !== 'undefined' && chrome.storage);
+        const _storage = globalThis.browser?.storage;
         if (!_storage || !_storage.sync) {
           respond({ ok: false, error: 'storage.sync unavailable in this context' });
         } else {
@@ -135,7 +135,7 @@
       }
     } else if (action === 'GET_CACHE_STATS') {
       try {
-        const _storage = (typeof browser !== 'undefined' && browser.storage) || (typeof chrome !== 'undefined' && chrome.storage);
+        const _storage = globalThis.browser?.storage;
         if (!_storage || !_storage.local) {
           respond({ ok: false, error: 'storage.local unavailable in this context' });
         } else {
@@ -176,7 +176,7 @@
       const _contains = String((e.detail && e.detail.contains) || '');
       const _limit = Math.max(1, Math.min(20, (e.detail && e.detail.limit) || 5));
       try {
-        const _storage = (typeof browser !== 'undefined' && browser.storage) || (typeof chrome !== 'undefined' && chrome.storage);
+        const _storage = globalThis.browser?.storage;
         if (!_storage || !_storage.local || !_contains) {
           respond({ ok: false, error: !_contains ? 'contains 必填' : 'storage.local unavailable in this context' });
         } else {
@@ -463,20 +463,7 @@
       }
       return SK.serializeWithPlaceholders(el);
     });
-    {
-      const _preFilter = units.length;
-      const _kept = [];
-      for (let i = 0; i < serialized.length; i++) {
-        if ((serialized[i].text || '').trim()) _kept.push(i);
-      }
-      if (_kept.length < _preFilter) {
-        units = _kept.map(i => units[i]);
-        serialized = _kept.map(i => serialized[i]);
-        SK.sendLog('warn', 'translate', 'empty-text units dropped before API', {
-          dropped: _preFilter - _kept.length, kept: _kept.length,
-        });
-      }
-    }
+    ({ units, serialized } = dropEmptyUnits(units, serialized, 'empty-text units dropped before API'));
     let total = units.length;
     const texts = serialized.map(s => s.text);
     const slotsList = serialized.map(s => s.slots);
@@ -793,9 +780,9 @@
         } else if (message.type === 'STREAMING_DONE') {
           const elapsed = Date.now() - t0;
           const usage = message.payload.usage || {};
-          const truncated = message.payload.finishReason === 'MAX_TOKENS';
-          if (message.payload.hadMismatch || truncated) {
-            SK.sendLog('warn', 'translate', `batch 1/${jobs.length} stream DONE with hadMismatch, triggering retry`, { elapsed, totalSegments: message.payload.totalSegments, injectedSoFar: batch0StreamDone, truncated, finishReason: message.payload.finishReason, _anomaly: true });
+          // background 已把 MAX_TOKENS 視為 hadMismatch.
+          if (message.payload.hadMismatch) {
+            SK.sendLog('warn', 'translate', `batch 1/${jobs.length} stream DONE with hadMismatch, triggering retry`, { elapsed, totalSegments: message.payload.totalSegments, injectedSoFar: batch0StreamDone, finishReason: message.payload.finishReason, _anomaly: true });
             _clearIdleWatchdog();
             browser.runtime.onMessage.removeListener(onMessage);
             firstChunkResolve(true);
@@ -961,14 +948,22 @@
     return { done, total, failures, pageUsage, convertedCount };
   };
 
+  // 移除序列化後沒有文字的 unit, 避免送空字串給 API.
+  function dropEmptyUnits(units, serialized, logMsg) {
+    const kept = [];
+    for (let i = 0; i < serialized.length; i++) {
+      if ((serialized[i].text || '').trim()) kept.push(i);
+    }
+    if (kept.length === units.length) return { units, serialized };
+    SK.sendLog('warn', 'translate', logMsg, {
+      dropped: units.length - kept.length, kept: kept.length,
+    });
+    return { units: kept.map(i => units[i]), serialized: kept.map(i => serialized[i]) };
+  }
+
   function isGoogleDocsEditorPage() {
     return location.hostname === 'docs.google.com'
       && /^\/document\/d\/[^/]+\/(edit|preview|view)/.test(location.pathname);
-  }
-
-  function isGoogleDocsMobileBasic() {
-    return location.hostname === 'docs.google.com'
-      && /^\/document\/d\/[^/]+\/mobilebasic/.test(location.pathname);
   }
 
   function getGoogleDocsMobileBasicUrl() {
@@ -1075,7 +1070,7 @@
 
     const TARGET = SK.applyTranslateDisplaySettings(settings);
 
-    const convertDirection = TARGET === 'zh-TW' ? 'cn2twp' : (TARGET === 'zh-CN' ? 'twp2cn' : null);
+    const convertDirection = SK.convertDirectionFor(TARGET);
     const convertOnly = !!options.convertOnly;
     if (convertOnly && !convertDirection) {
       SK.sendLog('info', 'translate', 'convertOnly: target not Chinese, skip', { target: TARGET });
@@ -1630,20 +1625,7 @@
       return SK.serializeForGoogleTranslate(unit.el);
     });
 
-    {
-      const _preFilter = units.length;
-      const _kept = [];
-      for (let i = 0; i < serialized.length; i++) {
-        if ((serialized[i].text || '').trim()) _kept.push(i);
-      }
-      if (_kept.length < _preFilter) {
-        units = _kept.map(i => units[i]);
-        serialized = _kept.map(i => serialized[i]);
-        SK.sendLog('warn', 'translate', 'empty-text units dropped before API (google)', {
-          dropped: _preFilter - _kept.length, kept: _kept.length,
-        });
-      }
-    }
+    ({ units, serialized } = dropEmptyUnits(units, serialized, 'empty-text units dropped before API (google)'));
     const total = units.length;
 
     const texts = serialized.map(s => s.text);
@@ -1986,7 +1968,7 @@
       _progressClosed = true;
 
       const _tl = STATE.targetLanguage;
-      const _convDir = _tl === 'zh-TW' ? 'cn2twp' : (_tl === 'zh-CN' ? 'twp2cn' : null);
+      const _convDir = SK.convertDirectionFor(_tl);
       const fallbackRun = await SK.retryFailuresWithFallback(failures, gtOptions.fallback, {
         signal: abortSignal,
         convertDirection: _convDir,
