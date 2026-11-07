@@ -160,13 +160,7 @@ function analyzePage(rawPage) {
     }
     for (const l of b._lines) {
       if (!l.plainText || !l.plainText.trim()) continue;
-      const lineBlock = buildBlockFromLines([{
-        bbox: l.bbox,
-        runs: l.runs || [],
-        fontSize: l.fontSize,
-        plainText: l.plainText,
-        dominantFontName: l.dominantFontName,
-      }], b.column);
+      const lineBlock = buildBlockFromLines([toLineLike(l)], b.column);
       const cells = maybeSubsplitTableRowCells(lineBlock, medianLineHeight);
       for (const c of cells) c.type = classifyBlockType(c, ctx);
       exploded.push(...cells);
@@ -711,6 +705,16 @@ function splitColumnIntoBlocks(colLines, medianLineHeight, columnIdx) {
   return blocks;
 }
 
+function toLineLike(l) {
+  return {
+    bbox: l.bbox,
+    runs: l.runs || [],
+    fontSize: l.fontSize,
+    plainText: l.plainText,
+    dominantFontName: l.dominantFontName,
+  };
+}
+
 function buildBlockFromLines(lines, columnIdx) {
   let bbox = lines[0].bbox.slice();
   for (let i = 1; i < lines.length; i++) bbox = unionBBox(bbox, lines[i].bbox);
@@ -851,13 +855,7 @@ function maybeSplitHeadingsAcrossBlock(block, medianLineHeight) {
     .filter((seg) => seg.length > 0)
     .map((seg) =>
       buildBlockFromLines(
-        seg.map((l) => ({
-          bbox: l.bbox,
-          runs: l.runs || [],
-          fontSize: l.fontSize,
-          plainText: l.plainText,
-          dominantFontName: l.dominantFontName,
-        })),
+        seg.map(toLineLike),
         block.column
       )
     );
@@ -891,13 +889,7 @@ function maybeSubsplitListBlock(block) {
   const totalLines = lines.length;
   const parentRunCount = block.runCount || 0;
   return groups.map((g) => {
-    const lineLikes = g.map((l) => ({
-      bbox: l.bbox,
-      runs: l.runs || [],
-      fontSize: l.fontSize,
-      plainText: l.plainText,
-      dominantFontName: l.dominantFontName,
-    }));
+    const lineLikes = g.map(toLineLike);
     const subBlock = buildBlockFromLines(lineLikes, block.column);
     subBlock.runCount = Math.round(parentRunCount * (g.length / totalLines));
     return subBlock;
@@ -948,13 +940,7 @@ function maybeSubsplitFormBlock(block) {
   if (lines.length < FORM_SUBSPLIT_MIN_LINES) return [block];
   const labelLines = lines.filter((l) => FORM_LABEL_RE.test(l.plainText || ''));
   if (labelLines.length < lines.length * FORM_SUBSPLIT_LABEL_RATIO) return [block];
-  return lines.map((l) => buildBlockFromLines([{
-    bbox: l.bbox,
-    runs: l.runs || [],
-    fontSize: l.fontSize,
-    plainText: l.plainText,
-    dominantFontName: l.dominantFontName,
-  }], block.column));
+  return lines.map((l) => buildBlockFromLines([toLineLike(l)], block.column));
 }
 
 function maybeSubsplitTableRowCells(block, medianLineHeight) {
@@ -1035,13 +1021,7 @@ function splitRowPairedBlocks(blocks, medianLineHeight, ctx) {
     }
     for (const l of lines) {
       if (!l.plainText || !l.plainText.trim()) continue;
-      const lineBlock = buildBlockFromLines([{
-        bbox: l.bbox,
-        runs: l.runs || [],
-        fontSize: l.fontSize,
-        plainText: l.plainText,
-        dominantFontName: l.dominantFontName,
-      }], b.column);
+      const lineBlock = buildBlockFromLines([toLineLike(l)], b.column);
       lineBlock.type = classifyBlockType(lineBlock, ctx);
       out.push(lineBlock);
     }
@@ -1094,13 +1074,7 @@ function mergeWrapFragments(blocks, medianLineHeight) {
           if (narrower <= 0 || overlap < narrower * WRAP_MERGE_MIN_X_OVERLAP_RATIO) continue;
           if (Math.abs((cur.fontSize || 0) - (cand.fontSize || 0)) > fontTol) continue;
           const mergedBlock = buildBlockFromLines(
-            [...(cur._lines || []), ...(cand._lines || [])].map((l) => ({
-              bbox: l.bbox,
-              runs: l.runs || [],
-              fontSize: l.fontSize,
-              plainText: l.plainText,
-              dominantFontName: l.dominantFontName,
-            })),
+            [...(cur._lines || []), ...(cand._lines || [])].map(toLineLike),
             cur.column
           );
           mergedBlock.type = cur.type;
@@ -1132,13 +1106,7 @@ function maybeSplitNarrowMultilineBlock(block, colLefts, colRights) {
   const ratio = (maxLineRight - colLeft) / colWidth;
   if (ratio >= NARROW_BLOCK_MAX_RIGHT_RATIO) return [block];
 
-  return lines.map((l) => buildBlockFromLines([{
-    bbox: l.bbox,
-    runs: l.runs || [],
-    fontSize: l.fontSize,
-    plainText: l.plainText,
-    dominantFontName: l.dominantFontName,
-  }], block.column));
+  return lines.map((l) => buildBlockFromLines([toLineLike(l)], block.column));
 }
 
 export { maybeSplitNarrowMultilineBlock, mergeLabelValueRows, maybeSubsplitFormBlock, maybeSubsplitTableRowCells, groupIntoLines, splitLinesAtCellGaps, mergeWrapFragments, maybeSubsplitListBlock, splitRowPairedBlocks };

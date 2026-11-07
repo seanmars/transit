@@ -133,13 +133,6 @@ function clearError() {
   el.hidden = true;
 }
 
-function showResultError(msg) {
-  const el = $('result-error');
-  if (!el) return;
-  el.textContent = msg;
-  el.hidden = false;
-}
-
 function clearResultError() {
   const el = $('result-error');
   if (!el) return;
@@ -1548,15 +1541,7 @@ async function _startTranslateImpl() {
   currentEngine = engine;
 
   showStage('translating');
-  setProgress({
-    totalBlocks: 0,
-    translatedBlocks: 0,
-    failedBlocks: 0,
-    estimatedRemainingSec: 0,
-    cumulativeInputTokens: 0,
-    cumulativeOutputTokens: 0,
-    cumulativeCostUSD: 0,
-  });
+  resetProgress();
 
   const glossary = injectableArticleGlossary();
   if (glossary) {
@@ -1578,17 +1563,7 @@ async function _startTranslateImpl() {
     });
   } catch (err) {
     console.error('[Transit] translateDocument 失敗', err);
-    summary = {
-      totalBlocks: 0,
-      translatedBlocks: 0,
-      failedBlocks: 0,
-      cumulativeInputTokens: 0,
-      cumulativeBilledInputTokens: 0,
-      cumulativeOutputTokens: 0,
-      cumulativeCostUSD: 0,
-      cancelled: false,
-      error: (err && err.message) || String(err),
-    };
+    summary = failedSummary(err);
   }
   translateAbortController = null;
 
@@ -2082,6 +2057,32 @@ async function formatCostStr(usd) {
   }
 }
 
+function resetProgress() {
+  setProgress({
+    totalBlocks: 0,
+    translatedBlocks: 0,
+    failedBlocks: 0,
+    estimatedRemainingSec: 0,
+    cumulativeInputTokens: 0,
+    cumulativeOutputTokens: 0,
+    cumulativeCostUSD: 0,
+  });
+}
+
+function failedSummary(err) {
+  return {
+    totalBlocks: 0,
+    translatedBlocks: 0,
+    failedBlocks: 0,
+    cumulativeInputTokens: 0,
+    cumulativeBilledInputTokens: 0,
+    cumulativeOutputTokens: 0,
+    cumulativeCostUSD: 0,
+    cancelled: false,
+    error: (err && err.message) || String(err),
+  };
+}
+
 function setProgress(p) {
   const ratio = p.totalBlocks > 0 ? (p.translatedBlocks / p.totalBlocks) : 0;
   $('translate-progress-fill').style.width = `${(ratio * 100).toFixed(1)}%`;
@@ -2443,15 +2444,7 @@ async function startEpubTranslate() {
   currentEngine = engine;
 
   showStage('translating');
-  setProgress({
-    totalBlocks: 0,
-    translatedBlocks: 0,
-    failedBlocks: 0,
-    estimatedRemainingSec: 0,
-    cumulativeInputTokens: 0,
-    cumulativeOutputTokens: 0,
-    cumulativeCostUSD: 0,
-  });
+  resetProgress();
 
   const glossary = injectableArticleGlossary();
   if (glossary) {
@@ -2487,17 +2480,7 @@ async function startEpubTranslate() {
     });
   } catch (err) {
     console.error('[Transit] translateDocument(epub) 失敗', err);
-    summary = {
-      totalBlocks: 0,
-      translatedBlocks: 0,
-      failedBlocks: 0,
-      cumulativeInputTokens: 0,
-      cumulativeBilledInputTokens: 0,
-      cumulativeOutputTokens: 0,
-      cumulativeCostUSD: 0,
-      cancelled: false,
-      error: (err && err.message) || String(err),
-    };
+    summary = failedSummary(err);
   }
   translateAbortController = null;
   lastTranslateSummary = summary;
@@ -3845,7 +3828,16 @@ async function persistEpubSession() {
     }
   }
   const removedBlockIds = [..._sessionSavedSig.keys()].filter((id) => !doneIds.has(id));
-  const ok = await saveEpubSession(epubBookHash, {
+  const ok = await saveEpubSession(epubBookHash, sessionMetaFields(), { changedBlocks, removedBlockIds });
+  if (ok) {
+    for (const [id, rec] of Object.entries(changedBlocks)) _sessionSavedSig.set(id, rec);
+    for (const id of removedBlockIds) _sessionSavedSig.delete(id);
+    await removeLegacyBookGloss();
+  }
+}
+
+function sessionMetaFields() {
+  return {
     title: currentDoc.meta.title || '',
     glossary: Array.isArray(currentArticleGlossary) ? currentArticleGlossary : null,
     forbidden: currentBookForbidden,
@@ -3853,16 +3845,13 @@ async function persistEpubSession() {
     costUSD: epubCumulativeCostUSD,
     scanIgnored: [...epubScanIgnored.values()],
     scanIgnoredDrift: [...epubScanIgnoredDrift],
-  }, { changedBlocks, removedBlockIds });
-  if (ok) {
-    for (const [id, rec] of Object.entries(changedBlocks)) _sessionSavedSig.set(id, rec);
-    for (const id of removedBlockIds) _sessionSavedSig.delete(id);
-  }
-  if (ok) {
-    const legacyKey = bookGlossStorageKey();
-    if (legacyKey) {
-      try { await chrome.storage.local.remove(legacyKey); } catch (_) {   }
-    }
+  };
+}
+
+async function removeLegacyBookGloss() {
+  const legacyKey = bookGlossStorageKey();
+  if (legacyKey) {
+    try { await chrome.storage.local.remove(legacyKey); } catch (_) {   }
   }
 }
 
@@ -3898,10 +3887,7 @@ async function discardBookTranslation() {
   await clearEpubBlocksCache(currentDoc.chapters, { all: true });
   await clearBookGlossaryExtractionCache(currentDoc);
   await deleteEpubSession(epubBookHash);
-  const legacyKey = bookGlossStorageKey();
-  if (legacyKey) {
-    try { await chrome.storage.local.remove(legacyKey); } catch (_) {   }
-  }
+  await removeLegacyBookGloss();
   releaseCurrentDoc();
   showStage('upload');
 }
@@ -3914,14 +3900,8 @@ function exportEpubSession() {
     type: SESSION_EXPORT_TYPE,
     version: 1,
     bookHash: epubBookHash,
-    title: currentDoc.meta.title || '',
+    ...sessionMetaFields(),
     exportedAt: new Date().toISOString(),
-    glossary: Array.isArray(currentArticleGlossary) ? currentArticleGlossary : null,
-    forbidden: currentBookForbidden,
-    extraPrompt: currentDocExtraPrompt || '',
-    costUSD: epubCumulativeCostUSD,
-    scanIgnored: [...epubScanIgnored.values()],
-    scanIgnoredDrift: [...epubScanIgnoredDrift],
     blocks: collectSessionBlocks(currentDoc),
     failures: collectSessionFailures(currentDoc),
   };
