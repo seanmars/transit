@@ -477,6 +477,12 @@
       return;
     }
 
+    // 雙語模式下, 已有譯文 wrapper 的元素內不可再就地替換 fragment, 否則原文會被譯文覆蓋.
+    if (STATE.translatedMode === 'dual' && unit.kind === 'fragment'
+        && unit.startNode?.parentElement?.closest?.('[data-transit-dual-source]')) {
+      return;
+    }
+
     if (STATE.translatedMode !== 'dual' && unit.kind !== 'fragment'
         && SK.injectDual && SK.isFrameworkManaged?.(unit.el)) {
       if (unit.el.hasAttribute) {

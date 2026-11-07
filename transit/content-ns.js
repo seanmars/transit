@@ -435,6 +435,12 @@ if (window.__transit_loaded) {
   };
 
   SK.TRANSLATION_WRAPPER_TAG = 'transit-translation';
+
+  // 只比對不在譯文 wrapper 內的元素, 避免 wrapper 內部的 div 被當成原文的子區塊.
+  const _outsideWrapper = (selector) => selector.split(',')
+    .map((s) => `${s}:not(${SK.TRANSLATION_WRAPPER_TAG} *)`).join(',');
+  SK.BLOCK_OUTSIDE_WRAPPER_SELECTOR = _outsideWrapper(SK.BLOCK_TAG_SELECTOR);
+  SK.CONTAINER_OUTSIDE_WRAPPER_SELECTOR = _outsideWrapper(SK.CONTAINER_TAG_SELECTOR);
   SK.DEFAULT_MARK_STYLE = 'tint';
   SK.VALID_MARK_STYLES = new Set(['tint', 'bar', 'dashed', 'none']);
 
@@ -550,7 +556,7 @@ if (window.__transit_loaded) {
   };
 
   SK.containsBlockDescendant = function containsBlockDescendant(el) {
-    return !!el.querySelector(SK.BLOCK_TAG_SELECTOR);
+    return !!el.querySelector(SK.BLOCK_OUTSIDE_WRAPPER_SELECTOR);
   };
 
   SK.SUBSTANTIVE_CHAR_RE = /[\p{L}\p{N}]/u;

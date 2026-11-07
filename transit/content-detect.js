@@ -553,6 +553,14 @@
   }
   SK._findBrSplitTarget = findBrSplitTarget;
 
+  // 已經有雙語譯文的元素 (或其內部) 注入時一律跳過, 收集時先排除, 避免 rescan 重複送翻.
+  function dropDualSourceUnits(units) {
+    return units.filter((u) => {
+      const anchor = u.kind === 'fragment' ? u.startNode?.parentElement : u.el;
+      return !anchor?.closest?.('[data-transit-dual-source]');
+    });
+  }
+
   SK.collectParagraphs = function collectParagraphs(root, stats, opts) {
     SK.beginStyleMemo();
     try {
@@ -562,9 +570,9 @@
         for (const r of scopeRoots) {
           results.push(..._collectParagraphsImpl(r, stats, { ...opts, includeRoot: true }));
         }
-        return results;
+        return dropDualSourceUnits(results);
       }
-      return _collectParagraphsImpl(root, stats, opts);
+      return dropDualSourceUnits(_collectParagraphsImpl(root, stats, opts));
     } finally {
       SK.endStyleMemo();
     }
@@ -679,7 +687,7 @@
       return SK.CONTAINER_TAGS.has(d.tagName) && directTextLength(d) >= _selfContainerMinText;
     }
     function containsSelfCollectingContainer(el) {
-      for (const d of el.querySelectorAll(SK.CONTAINER_TAG_SELECTOR)) {
+      for (const d of el.querySelectorAll(SK.CONTAINER_OUTSIDE_WRAPPER_SELECTOR)) {
         if (isSelfCollectingContainer(d)) return true;
       }
       return false;
@@ -748,7 +756,7 @@
             return NodeFilter.FILTER_REJECT;
           }
         }
-        if (el.hasAttribute('data-transit-translated')) {
+        if (el.hasAttribute('data-transit-translated') || el.hasAttribute('data-transit-dual-source')) {
           if (stats) stats.alreadyTranslated = (stats.alreadyTranslated || 0) + 1;
           return NodeFilter.FILTER_REJECT;
         }
