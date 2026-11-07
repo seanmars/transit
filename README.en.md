@@ -1,0 +1,335 @@
+**English** | [繁體中文](README.md)
+
+# Transit
+
+A fast, privacy-first translation extension for web pages and YouTube subtitles. Supports 8 target languages and multiple AI engines (Google Gemini, Google Translate, OpenAI-compatible custom models). In-place text replacement keeps the original layout; your browsing never touches a third-party server.
+
+This project is modified from [Shinkansen](https://github.com/jimmysu0309/shinkansen) by Jimmy Su and is maintained by seanmars.
+
+## Why Transit
+
+Most web translation tools forward every page you read to a third-party server, putting your privacy out of your control. Transit was designed privacy-first from day one: every setting and piece of data lives on your own computer; aside from your own Gemini API key talking directly to Google, nothing is forwarded to anyone else; the source is fully open, anyone can audit it.
+
+## Features
+
+- **Multi-language target + multi-language UI**: translate into 8 languages — Traditional Chinese (Taiwan) / Simplified Chinese (China) / English / Japanese / Korean / Spanish / French / German. Pick in the "Translate to" dropdown inside the toolbar icon menu; all translation paths (web / PDF / YouTube subtitles) share this setting. The toolbar icon menu, settings page, web-translation progress toast, and PDF document reader UI are all available in all 8 UI languages — independent picker, defaults to your browser locale.
+- **Instant Translation**: see the page start turning into your target language within 1 second of pressing translate — no waiting for the entire batch to come back before any text is updated (Gemini only).
+- **Preserves page layout**: text is replaced in place; fonts, sizes, colors, and links are kept; bold and italics survive untouched.
+- **Respects the page's "do not translate" markup**: names, codes, and snippets that site authors mark with the standard HTML `translate="no"` or `notranslate` are preserved as-is and never sent to the API; icons drawn with icon fonts (words like `star` or `menu` in the HTML) are not translated into text, so they don't disappear.
+- **Single-language overlay / bilingual side-by-side dual mode**: one-click switch in the toolbar icon menu. *Overlay* replaces text in place; *bilingual* keeps the original and appends the translation as a new paragraph. Bilingual mode offers four visual treatments (subtle background tint / left border / dotted underline / none) for the translated paragraphs.
+- **Three translation engines**: Gemini (AI translation, best quality, requires API key) + Google Translate (unofficial free endpoint, no API key, faster) + Custom model — switch freely depending on what you're reading.
+- **Free Chinese variant conversion**: when your target language is Traditional or Simplified Chinese, content in the opposite variant is converted locally with built-in OpenCC dictionaries — no API key, no API calls, works offline, with phrase-level Taiwan-convention mapping (软件→軟體, 视频→影片, 内存→記憶體). "Auto-convert Chinese variants" is on by default — pages in the opposite variant convert automatically on load, no manual trigger needed; you can turn it off in the toolbar icon menu (unchecking reverts the current page immediately); on mixed-language pages only the Chinese paragraphs use the free conversion while the rest go through your chosen engine.
+- **Custom AI models**: any OpenAI-compatible endpoint — OpenRouter / Together / Groq / local Ollama, hundreds of models.
+- **Primary engine + automatic failback**: page translation uses the primary engine first (Gemini by default). If it is unavailable (for example, no API key or no connection) or some segments fail, Transit switches to the failback engine (Google Translate by default) automatically. You can translate without setting an API key. Details in "Translation settings and shortcut" below.
+- **Hover translate**: pick a modifier key (Shift / Option / Control) in settings, then hold it and rest the pointer on a paragraph to translate just that paragraph in place — handy when you want to read the original first or only need part of a page. Pressing a shortcut afterwards translates the rest of the page; press again to restore. Hover translations are bilingual by default (original stays, translation appended below) and can be switched to replace-original in the same place, independently of the full-page display mode.
+- **Floating button**: a floating button pinned to the left/right edge of the page — tap to translate the page, long-press to switch translation engine or open the menu; on by default on all platforms, with adjustable button size and opacity.
+- **Document translation (PDF / EPUB / Word / TXT / Markdown / HTML / subtitles)**: upload a file and translate the whole thing — PDFs keep the original layout in the translated output; EPUB supports a book-wide glossary (consistent name translations across chapters), per-chapter translation, preview editing, and bilingual output; Word (.docx) files get the translation written back into the original file with layout, styles, and tables fully preserved, with optional bilingual output; TXT / Markdown / HTML files reuse the same chapter pipeline, and the translated file keeps the same format as the original; SRT / WebVTT / ASS subtitle files are translated cue by cue with timing preserved, with optional bilingual output. Details in "Document translation" below.
+- **YouTube subtitle translation**: detects YouTube captions and replaces them in real time with your target language (Traditional Chinese by default); styling matches the native YouTube subtitle look. Details in "YouTube subtitle translation" below.
+- **Bilingual subtitles**: when the display mode is set to "Bilingual", subtitles show two lines simultaneously — English on top, Chinese below. Useful for listening practice or proofreading. Applies to YouTube, Google Drive and X videos. Details in "Bilingual subtitles" below.
+- **X (Twitter) video subtitle translation**: X videos with auto-generated captions are translated into your target language when played with sound, shown in X's native caption style. Details in "X video subtitle translation" below.
+- **YouTube AI re-segmentation** (ASR-only): YouTube auto-generated captions arrive as broken word fragments without punctuation. Transit sends the whole batch to AI for semantic re-segmentation, then translates — Chinese subtitles go from "shattered words" to "complete sentences". Details in "AI smart segmentation" below.
+- **Custom glossary**: pin specific terms to your preferred translations so proper nouns are always rendered consistently. Two layers (global + domain-specific) where domain rules override global. Details in "Custom glossary" below.
+- **Blocked-word list**: an editable list of words you don't want in the translation. Works for any target language — write your own substitution pairs (defaults to empty for most targets; ships with 26 entries for Traditional Chinese targets). Injected as a high-prominence block at the end of the system prompt. Details in "Blocked-word list" below.
+- **Translate opening only**: preview the first few paragraphs before deciding whether to translate the whole article. Saves tokens. Details in "Translate opening only" below.
+- **Full-text glossary consistency** (off by default): especially useful for long articles with many proper nouns. Automatically ensures the same name or term is translated consistently throughout. Details in "Glossary consistency" below.
+- **Translation cache + live cost report**: two-layer caching (local cache + Gemini implicit cache). After translation, the toast shows live cache hit rate and actual cost saved. Details in "Translation cache and cost calculation" below.
+- **Usage tracking**: every translation's token count and cost is logged, with charts and CSV export.
+- **Edit translations**: after a page is translated, you can directly edit the translated text on the page — handy for cleaning up before printing PDFs or letting Readwise Reader pick it up.
+- **Cross-tab translation continuity**: after triggering translation in tab A, opening a link from A in a new tab B (with Cmd-click on Mac / Ctrl-click on Windows / `target="_blank"` / `window.open`) automatically translates B with the same primary / failback settings. Multi-level: B opens C, C inherits too.
+- **Auto-translate specific sites**: add domains to a whitelist in settings; pages on those sites auto-translate on load (the toast displays an `[Auto]` prefix to indicate the whitelist trigger).
+- **Restore original**: press the same shortcut to switch back to the original — toggle anytime.
+- **Google Docs translation**: detects Google Docs and opens a translatable read-only view automatically (details below).
+- **Gmail: translate email content only**: on Gmail, Transit translates only the subject and body of the open email (every expanded message in the thread); the sidebar, toolbar and other Gmail UI stay as-is. Messages you expand later are translated automatically. With no email open, only the inbox list is translated.
+
+## Installation
+
+Supports Chrome / Edge / Brave and other Chromium browsers. The Chrome Web Store version is not published yet; install it as an unpacked extension for now.
+
+**Load unpacked**
+
+1. Open Chrome, go to `chrome://extensions/`
+2. Enable "Developer mode" (top right)
+3. Click "Load unpacked"
+4. Select the `transit/` folder in this repo
+5. Transit appears in the extensions list — pin it to the toolbar
+
+## First-time setup
+
+1. (Optional; without it, Google Translate still works) Get a Gemini API key — open [aistudio.google.com/api-keys](https://aistudio.google.com/api-keys), sign in and click "Create API key"; see the [API key setup guide](docs/API-KEY-SETUP.en.md) for step-by-step instructions
+2. Click the Transit icon in the toolbar → "Settings"
+3. Paste your Gemini API key
+4. Default model is `gemini-3.1-flash-lite`, Service Tier `DEFAULT`
+5. Other parameters (temperature, paragraphs per batch, character budget, etc.) can be tweaked as needed
+
+## Usage
+
+- **Manual translation**: click the toolbar icon → "Translate this page"
+- **Translation shortcut**: `Option+S` / `Alt+S` — translate this page (primary engine first, automatic failback on failure)
+    - The keybinding and the primary / failback engines, models, and labels are customizable in the "Translation settings" section of settings
+    - Press the shortcut while translated → restore original
+    - Press the shortcut while translating → cancel translation
+- **YouTube subtitle translation**: open a video with captions (manual or auto-generated), make sure CC is on, click the toolbar icon → toggle "YouTube subtitle translation" on
+- **Auto-translate sites**: add domains to the "Auto-translate sites" list in settings; pages on those sites translate on load (toast shows the `[Auto]` prefix)
+- **Custom glossary**: add term mappings in the "Glossary" tab; translations are forced to use your preferred renderings
+- **Glossary consistency**: enable it from the toolbar icon menu or settings page; long-form translations build a glossary first to keep proper nouns consistent
+- **Edit translations**: after translating, click "Edit translations" in the toolbar icon menu to directly edit the translated text on the page. While editing, a floating toolbar at the bottom of the page lets you undo changes paragraph by paragraph or finish editing
+
+## Translation settings and shortcut
+
+Page translation (shortcut, toolbar button, floating button, and auto-translate all behave the same) uses two engines:
+
+| Setting | Default engine | Default model | Purpose |
+|---------|----------------|---------------|---------|
+| Primary | Gemini | Flash Lite ($0.25 / $1.50) | Used first |
+| Failback | Google Translate | — | Used when the primary engine is unavailable or fails; no API key needed |
+
+**Failback rules**:
+- Primary engine unavailable (Gemini without an API key, custom model without a Base URL) → the whole page uses the failback engine
+- Some or all segments fail with the primary engine (for example, no connection or an invalid API key) → the failed segments are retried with the failback engine
+- The completion notice shows how many segments used the failback engine
+
+**All customizable in the "Translation settings" section of settings**: the primary / failback engine (Gemini / Google Translate / custom model), model, and display label. Customize the shortcut at the top right of the primary card — click the key field and press the combination you want (it must include `⌥ Option` or `⌃ Control`; press `ESC` to cancel). You can also adjust the built-in default key at `chrome://extensions/shortcuts`.
+
+**Document translation** (PDF, EPUB, DOCX, subtitle files) has its own engine setting. It supports Gemini or a custom model only — Google Translate is not supported, and there is no automatic failback.
+
+**Unified cancel / restore behavior**:
+- Press the shortcut while translating → cancel immediately
+- Press the shortcut while translated → restore original
+
+**Cross-tab continuity**: after triggering translation in tab A, opening a link from A in a new tab B (Cmd-click on Mac / Ctrl-click on Windows, `target="_blank"`, or `window.open`) auto-translates B with the same primary / failback settings — read through linked articles without pressing the shortcut on every tab. Tab B opening tab C continues the chain. Tabs opened by typing a URL / from bookmarks / from external apps don't inherit (`openerTabId` is empty). Pressing the shortcut to restore only affects the current tab; siblings in the tree are unaffected.
+
+## Google Translate engine
+
+Google Translate is supported as a second translation engine:
+
+- **No API key required**: uses Google's public unofficial web endpoint (same origin as `translate.google.com`); completely free
+- **Faster**: machine translation responses are typically quicker than LLM responses
+- **Quality trade-off**: grammar fluency and tone are slightly behind Gemini, but sufficient for purely factual content (news, spec docs)
+- **Preserves links and formatting**: `<a>`, `<b>`, `<small>`, and other semantic tags are protected via special markers; structure is fully restored after translation (no whole-page `<span>` shredding)
+- **Zero cost, no Gemini quota usage**: but the unofficial endpoint has no SLA — if Google changes things, Transit may need a patch
+
+When to use it: bulk browsing of English forums, news, product pages, etc. — content where "good enough" is good enough — use Google MT to save API budget. Switch to Gemini for precision (literature, academic articles, careful proper-noun handling).
+
+## Google Docs translation
+
+Google Docs renders text via Canvas, so generic web translation extensions can't access the content. Transit detects Google Docs and uses the following flow:
+
+1. On a Google Docs editing page, press `Option+S` (or click "Translate this page" in the toolbar icon menu)
+2. Transit opens the same document in a new tab in "mobile reading view" (mobilebasic)
+3. Once the new tab loads, translation starts automatically — no second keystroke needed
+
+Notes: you must have view access to the document. Mobile reading view is read-only and does not affect the original document.
+
+## Document translation (PDF / EPUB / Word / TXT / Markdown / HTML / subtitles)
+
+Click the Transit toolbar icon → "Translate document" to open a dedicated tab, then drop a PDF, EPUB, Word (.docx), TXT, Markdown, HTML, or subtitle file (SRT / WebVTT / ASS) onto the page to translate the whole file. Files are parsed entirely in your browser — nothing is uploaded anywhere except the text sent to the translation engine. The one exception is PDF translation into Simplified Chinese / Japanese / Korean: the first time, the matching font (about 10–20 MB) is downloaded from the project website, once only and cached for offline use; that request carries no document content.
+
+**PDF translation**:
+
+- **Layout preserved**: the PDF layout is analyzed to rebuild paragraphs (columns, tables, lists, captions), and the translation is rendered at the original positions
+- **Online reader**: side-by-side original / translation view with synchronized scrolling
+- **Download translated PDF**: the translation is written directly onto the original page layout (with an embedded CJK font); downloads as `<filename>-transit.pdf` for offline reading or archiving
+- **Choose which pages to translate**: after parsing, enter a first / last page to translate just part of a long report or manual; the reader and the downloaded PDF still contain the whole document, with pages outside the range left in the original language
+- **Limits**: 300 pages / 50 MB; scanned-image PDFs (OCR required) and encrypted PDFs are not supported
+
+**EPUB book translation** (beta):
+
+- **Book-wide glossary**: before translating, the whole book is scanned to extract a glossary of names / places / terms (including nicknames, short forms, and standalone-surname variants); review and edit it, then it stays frozen for the entire book so translated names remain consistent across chapters. A plain translated name is output as-is (any "(original)" the model adds on its own is stripped) — to show the original alongside, write the target as "translation (original)" and tick "annotate once". Export / import as JSON, or import an externally curated CSV (two columns: source,translation; header rows and quoted fields are tolerated) — reuse a previous book's glossary for sequels
+- **Per-chapter translation**: after parsing, a chapter list shows word counts and estimated cost per chapter; translate a chapter or two to check quality before continuing — finished chapters hit the cache and are never billed again
+- **Post-translation consistency scan**: after each round, drift ("same source term, multiple translations") is detected automatically; unify with one click and feed the fix back into the glossary
+- **Preview and editing**: per-chapter and whole-book preview, click-to-edit paragraphs, search & replace, original-text comparison view
+- **Automatic session saving**: translation progress, glossary, and accumulated cost are saved locally as a bundle; closing and reopening the page restores everything, and sessions can be exported to a file and imported on another computer
+- **Translated book download**: the translation is written back into the original book structure (CSS / images / fonts and untranslated chapters preserved as-is), in monolingual or bilingual format; 100 MB limit, DRM-protected books are rejected
+
+**Word (.docx) file translation**:
+
+- **Translation written back into the original file**: layout, styles, fonts, images, and tables are all maintained by Word itself — bold / italic, underline, colored text, highlights, hyperlinks, list numbering, and bookmarks are preserved as-is; download `<filename>-transit.docx` and open it straight in Word for further editing
+- **Per-chapter translation**: chapters are split by heading styles (Heading 1 / Heading 2) with the same chapter checklist as EPUB; headers & footers, footnotes, and document comments each appear as their own selectable chapter, and comment text is translated too
+- **TOC and page-number fields stay intact**: PAGE / TOC and other Word fields are preserved untouched — update fields in Word after translating and the TOC recalculates with the translated headings
+- **Monolingual or bilingual output**: the bilingual version keeps each original paragraph and inserts the translation right after it (`-transit-dual.docx`); switching modes just re-downloads with no re-translation cost
+- **Same pipeline as EPUB**: book-wide glossary, post-translation consistency scan, preview editing, automatic session saving, and cost estimates all carry over
+- **Limits**: 100 MB max; password-protected files and files with unaccepted tracked changes are rejected with a clear message; legacy `.doc` is not supported
+
+**TXT / Markdown / HTML file translation**:
+
+- **Same pipeline as EPUB**: book-wide glossary, post-translation consistency scan, preview editing, automatic session saving, and cost estimates all carry over
+- **TXT**: translated paragraph by paragraph (split on blank lines); blank lines and separators are preserved as-is
+- **Markdown**: split into chapters by headings (`#` / `##`) with the same chapter checklist as EPUB; headings, lists, quotes, and other markup are preserved, and code blocks are passed through untranslated
+- **HTML**: saved web pages (`.htm` / `.html`) reuse the EPUB chapter serialization engine — inline bold / italic / link markup is preserved, and `<script>` / styles pass through untouched
+- **Output format matches the input**: txt in, txt out; Markdown in, Markdown out; HTML in, HTML out — downloads as `<filename>-transit.<ext>`
+
+**Subtitle file translation** (SRT / WebVTT / ASS):
+
+- **Cue by cue**: each cue is one translation unit; neighbouring cues provide context, but cues are never merged or split, and translations stay concise and conversational
+- **Timing and structure preserved**: cue numbers, timestamps, the WEBVTT header, NOTE / STYLE blocks, and ASS style sections and `Comment:` lines are left untouched — the translated file has the same cues and timing as the original
+- **Inline tags preserved**: `<i>` / `<b>` / `<c>` tags, speaker tags, and ASS `{\an8}` positioning and `\N` line breaks are restored as-is
+- **No trailing period**: each translated cue ends without a "。" (question and exclamation marks are kept), matching YouTube subtitle translation; it can be turned off in the translation settings, applies to both preview and download, and turning it off restores the AI's original output (only when the target language is Chinese)
+- **Monolingual or bilingual subtitles**: "Translated content" lets you choose translation-only cues, or bilingual cues with the translation on top and the original below (great for side-by-side viewing or language learning); switching re-downloads without re-translating
+- **Same pipeline**: book-wide glossary (consistent name translations across the whole film), post-translation consistency scan, preview editing, and automatic session saving all carry over
+- **Player-friendly file names**: downloads as `<filename>.<lang>.<ext>` (e.g. `Show S01E01.srt` → `Show S01E01.zh.srt`), so VLC / Plex / Jellyfin pick it up next to the video and label the language automatically; the bilingual version is `<filename>.dual.<lang>.<ext>`
+- **Encoding auto-detected, always saved as UTF-8**: subtitle files in legacy encodings (Big5 / GBK / Shift_JIS / EUC-KR …) load without mojibake, and the translated file is always written as UTF-8 (also applies to TXT / Markdown / HTML files)
+
+Document translation shares the same translation cache and usage tracking as web translation. The "Translation settings" dialog also lets you set the batch size and a per-document extra prompt (e.g., "this is a 19th-century novel — keep the tone classical").
+
+## YouTube subtitle translation
+
+Open a YouTube video with captions (manual or auto-generated), make sure CC is on, click the Transit toolbar icon — the menu will show a "YouTube subtitle translation" toggle. Turn it on. Captions are progressively replaced with your target language (Traditional Chinese by default) without affecting playback; styling matches native YouTube captions exactly. Captions already in the target language are not sent for translation.
+
+If you watch a lot of English YouTube content, enable auto-translate in the "YouTube subtitles" tab in settings — translation will start automatically whenever you open a video, no manual toggling.
+
+On YouTube video pages, the toolbar icon menu shows a "Caption size" dropdown to enlarge the translated captions (100%–200%)
+
+### AI smart segmentation (ASR-only)
+
+YouTube auto-generated captions (videos without human captions; CC labeled "auto-generated") are sliced **by time, not by sentence** — each caption is just 1–3 English words with no punctuation. Translating each one individually loses all semantic context, and the output reads like shredded fragments.
+
+Transit has a dedicated pipeline for ASR captions:
+
+- **AI-driven re-segmentation**: the entire batch of ASR fragments is sent to Gemini, which re-segments by meaning (merges short fragments into full sentences, adds punctuation), then translates. Chinese subtitles go from "shattered words" to "complete sentences".
+- **Default "hybrid mode"**: a fast local heuristic shows segmented captions immediately (subsecond, no waiting), while AI segmentation runs in the background and replaces them with the polished version when ready — best of both worlds.
+- **Stable subtitle overlay**: Transit's own overlay completely bypasses YouTube's native caption-segment rendering (which causes "word-by-word popup" behavior); whole sentences appear and disappear cleanly. Auto-shifts up to avoid the progress bar when the controls appear.
+- **Toggleable**: if you only want minimum latency with YouTube's original segmentation, uncheck "AI segmentation mode" in the "YouTube subtitles" tab.
+- **Automatically disabled with the Google Translate engine**: AI segmentation needs an LLM, which would call Gemini and incur cost. When the free engine is selected, YouTube's original segmentation is always used — your API key is never touched behind your back.
+
+Human-uploaded captions (professional / community-contributed) are unaffected by this setting; they continue using the original sentence-by-sentence translation pipeline.
+
+### X video subtitle translation
+
+For X (Twitter) videos that have auto-generated captions, Transit translates the captions into your target language **when the video plays with sound (unmuted)**. Fragments are re-segmented into full sentences by AI, and the translation is shown as a caption track at the bottom of the video, styled like X's own captions (also in fullscreen). Videos auto-playing muted in the timeline are not translated, so scrolling past them costs nothing.
+
+- **X's CC button doubles as the translated-caption toggle**: "Hide captions" hides the translation, "Show captions" brings it back (showing the translation, not the English original). Right after the translation first appears, the first CC press may do nothing — press it again
+- **Toggle**: on an X post page, the Transit toolbar icon menu shows an "X video subtitle translation" toggle; it shares the same setting as YouTube subtitle translation
+- **Engine and model** follow the YouTube subtitle settings; bilingual display follows the display mode
+- Captions already in the target language are not sent for translation; videos for which X provides no captions cannot be translated
+
+### Bilingual subtitles
+
+Subtitle bilingual display follows the display mode setting: click the Transit toolbar icon and pick the "Bilingual" display mode — subtitles will then show both original and translation simultaneously (English on top, Chinese below). The "Replace" mode (default) shows Chinese only. Page translation and subtitles share the same display mode, no separate setting needed.
+
+Best for:
+- **Listening practice**: glance at the original when you can't catch a word
+- **Proofreading**: when translation quality is in doubt, see the English directly without switching modes
+- **Language learning**: use subtitles as bilingual study material
+
+Implementation notes:
+- **YouTube, Google Drive and X videos share the same display mode** (switching to Bilingual affects all of them)
+- **Live switch**: changing the mode during playback takes effect immediately, no reload
+- **Compatible with AI segmentation**: bilingual subtitles work cleanly on AI-segmented full sentences — full English sentence + full Chinese sentence on two lines
+
+### Cost
+
+Subtitle translation shares the same billing logic and usage tracking as web translation. Translated subtitles are automatically cached — replays or scrubbing back to already-translated regions are free. AI segmentation mode uses slightly more tokens than the off mode (one extra prompt for semantic segmentation), but the readability gain is significant; recommended on.
+
+### Notes
+
+- The video must have captions (manually uploaded or auto-generated)
+- Subtitle translation uses an independent system prompt, customizable in the "YouTube subtitles" tab
+- If CC is off, Transit turns it on for you (only once per video session, to respect manual user opt-out afterward)
+- After switching videos, you'll need to toggle the switch on again (or enable auto-translate)
+
+## Translation cache and cost calculation
+
+Transit has two layers of caching, each saving you money at a different stage:
+
+**Layer 1: Local translation cache** — translated paragraphs are stored in `chrome.storage.local`, keyed by SHA-1 hash of the original text. Next time the same text is encountered (even on a different page), the translation is served directly — no API call, no cost. The key also includes the target language, model, glossary and blocked-word lists, and custom prompt, so changed settings never hit stale translations. Extension updates do **not** clear the cache; when an update changes translation output, the release notes say so and recommend clearing it once from the settings page. The cache evicts least-recently-used entries when it fills up (LRU).
+
+**Layer 2: Gemini implicit context cache** — done server-side by Google. When consecutive requests share a common prompt prefix (e.g., system prompt + glossary), Gemini caches that prefix; cached input tokens are billed at a discount (90% off for the Gemini 3 series, i.e. 10% of the normal rate; per-model discounts are shown in the settings pricing table). In practice Gemini 3 only caches complete prefix blocks of roughly 4,096 tokens or more; a web-translation batch carries a fixed prefix of about 2,400 tokens, so the hit rate shown for ordinary web pages is usually 0% — large glossaries or document translation are more likely to hit. No setup needed — Transit automatically reads the cache hit data from API responses.
+
+**After translation, the bottom-right toast shows two lines of metrics:**
+
+- Line 1: `{billed tokens} tokens (XX% hit)` — billed token count, plus the Gemini implicit cache hit rate (cached input tokens as % of all input tokens)
+- Line 2: `${cost} (XX% saved)` — actual amount paid, plus how much was saved relative to no-cache pricing
+
+If every paragraph hits the local cache (e.g., re-translating a page you just translated), the toast shows "All cache hits · no charge".
+
+Every translation's token usage, cost, and cache hit rate is logged and viewable in the "Usage" tab in settings.
+
+## Custom glossary
+
+In the "Glossary" tab in settings, you can pin specific source terms to your preferred translations. For example, force "Arrow" to always translate as "艾蘿" instead of "箭頭", or specifically as "乙太翠雀之箭" on DC Comics-related sites.
+
+The glossary has two layers: "Global" applies to all sites; "Domain-specific" only applies to designated domains. When the same term appears in both, domain rules override global. Append a path to a domain (e.g. `example.com/news`) to limit the scope to pages under that path, so different sections or series on the same site can each have their own glossary; path rules override site-wide rules. In the settings page, the domain list marks path-limited entries with " (path scope)" so you can see at a glance which ones apply to only part of a site.
+
+The custom glossary takes priority over auto glossary consistency. During translation, glossary instructions are placed at the very end of the system prompt — the position the LLM weights most heavily. After editing the glossary, no need to manually clear the cache; Transit invalidates old entries automatically.
+
+The custom glossary and the term blacklist are stored locally in your browser (not subject to the browser sync quota of 8KB per item, so hundreds of entries fit) and are not synced across devices; to move them to another device use "Export / Import settings" on the options page — the backup file includes both lists.
+
+## Custom models (OpenAI-compatible endpoints)
+
+In addition to Gemini and Google Translate, you can connect one OpenAI-compatible endpoint to use any model other than Gemini — for example:
+
+- **OpenRouter** (`https://openrouter.ai/api/v1`): one endpoint, hundreds of models — Anthropic / Gemini / Llama / Qwen / Grok / xAI / Mistral, etc.
+- **Together / Groq / Fireworks** and other model providers
+- **Local Ollama** (`http://localhost:11434/v1`): run open-source models on your own machine — zero cost, zero latency
+- **OpenAI directly** (`https://api.openai.com/v1`)
+
+### Setup steps
+
+1. Go to the "Custom models" tab in settings
+2. Fill the three required fields:
+   - **Base URL**: e.g., `https://openrouter.ai/api/v1` (Transit automatically appends `/chat/completions`)
+   - **Model ID**: e.g., `anthropic/claude-sonnet-4-5` (OpenRouter format is `provider/model`)
+   - **API Key**: the Bearer token for that provider; click "Test" to verify connectivity instantly (~1 token cost)
+3. Optional: translation prompt (leave blank = use the built-in compact default, identical to Gemini's) / temperature (leave blank = omit the parameter entirely, for reasoning models that only accept their own default) / thinking level and advanced JSON parameter pass-through / model pricing input & output rates and cache-hit discount (USD per 1M tokens; 0 = don't display cost)
+4. Save
+5. In the "General settings" tab → "Translation settings", change the primary (or failback, or document translation) engine to "Custom model"
+6. Translations now route through your custom endpoint
+
+### Design notes
+
+- **Independent translation prompt**: custom models use their own translation prompt, not inherited from the Gemini tab
+- **Shared blocked-word list and custom glossary**: settings from those two tabs are auto-injected into the prompt end; custom models inherit them. Edit once, both engines apply.
+- **Cache partitioning**: the cache key includes a base URL hash — different endpoints with the same model name don't pollute each other
+- **API key not synced**: `customProvider.apiKey` lives only in your local browser — not synced across devices, not included in JSON export
+- **429 retry with backoff built in**: when a provider returns 429 (quota limit), requests are automatically retried with backoff
+- **Strong segment markers** (on by default): local quantized models (e.g. gemma-4 quantized) tend to mistranslate the compact `«1» «2»` segment markers as natural language ("N1, N2") and leak them into the output. With this on, multi-segment batches use `<<<TRZX_SEG-N>>>` instead — weak models don't mistranslate it. Cost: about 7 extra tokens per segment. Commercial APIs (OpenRouter / Groq, etc.) typically don't need this, but leaving it on is harmless
+
+### Limitations
+
+- Only **one** custom model can be configured
+- Must be genuinely OpenAI-compatible (`POST /chat/completions` + `Bearer` Authorization + standard `messages` structure + `usage.prompt_tokens` / `completion_tokens` fields). Anthropic's and Gemini's **native** APIs cannot be connected directly, but you can route them through OpenRouter
+- Pricing must be entered manually; token counts depend on the provider returning a correct `usage` object in responses
+
+## Blocked-word list
+
+AI models occasionally produce wording you'd rather avoid in the translation — for example, when translating to British English you may want "colour" instead of "color"; when translating to European Portuguese you may want "telemóvel" instead of "celular"; or your in-house style guide may forbid certain words entirely ("utilize" should always be "use", "leverage" should always be "use", etc.). The blocked-word list lets you give the model an explicit rule per word: never use the left column; always use the right column.
+
+The list works for any target language. Each entry has three columns — blocked word (required), replacement (optional), and a free-text note (optional, useful for documenting why an entry exists). Only the blocked word is required: fill in a replacement to force a specific word, or leave it blank to simply forbid the word and let the model rephrase naturally on its own — handy when you just dislike a word but can't pin down a fixed replacement (e.g. a cliché). You can edit, add to, or fully replace the list in the "Blocked-word list" settings tab, or click "Restore defaults" to revert. By default the list is empty; some targets ship with prepopulated defaults curated for that language's typical AI failure modes. Switching between targets only auto-resets the list if your current entries still match the previous target's defaults — your hand-edited entries are preserved.
+
+After every translation response, Transit scans the output and logs a `forbidden-term-leak` warning in the Debug tab (with original and translation snippets) for any blocked words that slipped through — letting you investigate model leakage without **automatically rewriting the translation**, following the design principle "language preferences belong in the prompt, not in post-hoc regex replace", which avoids damaging legitimate quoted uses in the translation.
+
+## Translate opening only
+
+For users sensitive to token usage who want to preview before committing to a full read, the Gemini tab has a "Saving mode" section with a "Translate opening only" toggle. When enabled, only the first N paragraphs (in DOM order, default 25, range 5–50) are translated; the rest are skipped. Significantly reduces token usage.
+
+**Progressive experience**: translate the opening → if you decide to keep reading → a "Translate remaining paragraphs" button appears in the bottom-right toast → click to run the full translation. Already-translated paragraphs hit the local cache fast path (0 tokens / ~9 ms); only the remainder hits the API. The toggle setting itself isn't modified, so the next page you open also runs in saving mode.
+
+Off by default. Especially useful for blogs / news / Substack — most articles can be evaluated within the first 5–10 paragraphs. Less useful for sites like Wikipedia / GitHub where the DOM front-matter is nav / chrome rather than main content (you'd end up translating the navigation instead of the article).
+
+## Glossary consistency
+
+LLMs translating long articles tend to produce inconsistent renderings for the same name or term across paragraphs (e.g., the same person rendered as "強森" early on and "約翰森" later). With "Glossary consistency" enabled, Transit first scans the full article to build a proper-noun mapping, then applies that mapping uniformly to every translation batch.
+
+Off by default. Recommended only for articles where precision matters (e.g., long-form journalism with many names, academic articles). Side effect: the glossary translation step bypasses some system prompt instructions — for example, if you originally configured "keep English names untranslated", enabling glossary consistency forces them to be translated. Building the glossary also costs an extra API call, increasing token usage and translation time slightly.
+
+## License
+
+This project is licensed under the [Elastic License 2.0 (ELv2)](LICENSE).
+
+In plain English: you're free to view the source, learn from it, modify it, and use it yourself, but you **cannot** package Transit (or any modified version) as a hosted or managed service to third parties. See the [LICENSE](LICENSE) file for the full text.
+
+This project is a modified version of [Shinkansen](https://github.com/jimmysu0309/shinkansen) by Jimmy Su. The original copyright notice is kept in [LICENSE](LICENSE).
+
+## Third-Party Notices
+
+Transit bundles the following open-source libraries and fonts. Full source,
+licenses, and license file locations are listed in
+[THIRD-PARTY-NOTICES.md](transit/THIRD-PARTY-NOTICES.md):
+
+- **PDF.js** (Mozilla, Apache 2.0) — PDF parsing / page rendering for the document translation feature
+- **pdf-lib** (@cantoo/pdf-lib, MIT) — bilingual PDF reconstruction on download
+- **fontkit** (pdf-fontkit, MIT) — font parsing / subsetting backend used by pdf-lib
+- **Chart.js** (Chart.js Contributors, MIT) — charts on the usage breakdown tab
+- **fflate** (Arjun Barrett, MIT) — EPUB unzip / repack for the translated book
+- **opencc-js / OpenCC dictionaries** (nk2028 / BYVoid, MIT / Apache 2.0) — local Simplified ↔ Traditional Chinese conversion
+- **Noto Sans CJK TC** (Google Noto, SIL OFL 1.1) — embedded Traditional Chinese font for the translated PDF (Regular + Bold); for Simplified Chinese / Japanese / Korean targets, **Noto Sans SC / JP / KR** (same license) is downloaded once from the project site on first use

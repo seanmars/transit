@@ -1,0 +1,21 @@
+.transit-editable {
+  outline: 1.5px dashed rgba(0, 113, 227, 0.4) !important;
+  outline-offset: 2px;
+  border-radius: 3px;
+  cursor: text;
+}
+.transit-editable:focus {
+  outline-color: rgba(0, 113, 227, 0.7) !important;
+}
+
+table[role="grid"] [data-transit-translated] br {
+  display: none !important;
+}
+
+.ytp-caption-segment:empty {
+  display: none !important;
+}
+.ytp-caption-segment:empty + span,
+span:has(> .ytp-caption-segment:empty) {
+  display: none !important;
+}

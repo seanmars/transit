@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Transit 介面共用 design token
+   由 options/options.css 與 popup/popup.css 以 @import 引用.
+   只放顏色, 字型, 圓角與動態; 各頁面專用的尺寸留在各自的 CSS.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* 中性色 */
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #f6f7f9;
+  --surface-3: #eceff3;
+  --ink: #131923;
+  --ink-2: #364152;
+  --muted: #5b6576;
+  --line: #e4e8ee;
+  --line-strong: #cdd4de;
+
+  /* 品牌色: 取自 icon 的電光藍 */
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #eef3fe;
+  --accent-line: #c7d7fb;
+  --accent-ring: rgb(37 99 235 / 0.22);
+
+  /* 狀態色 */
+  --ok: #146c3c;
+  --ok-bg: #ecf8f1;
+  --ok-line: #bfe3cd;
+  --warn: #8a4b00;
+  --warn-bg: #fff6e6;
+  --warn-line: #f1d39c;
+  --danger: #c0262d;
+  --danger-bg: #fdf1f1;
+  --danger-line: #f0c2c4;
+
+  /* 深色區塊 (設定頁 sidebar, popup header; 呼應 icon 的夜色) */
+  --side-bg: #0d1424;
+  --side-ink: #e8edf6;
+  --side-text: #b4bfd1;
+  --side-muted: #8592a8;
+  --side-hover: rgb(255 255 255 / 0.06);
+  --side-active: rgb(255 255 255 / 0.1);
+  --side-accent: #6e9bff;
+
+  /* 字型 */
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", monospace;
+
+  /* 圓角 */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+
+  /* 動態 */
+  --m-in: 140ms;
+  --m-out: 200ms;
+  --m-press: 90ms;
+  --m-ease: cubic-bezier(.2, .8, .2, 1);
+
+  accent-color: var(--accent);
+}

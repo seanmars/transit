@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Test output (Playwright / Jest)
+test-results/
+playwright-report/
+playwright/.cache/
+coverage/
+
+# Harness / probe output (tools/harness, tools/probes)
+.playwright-mcp/
+docs/excluded/
+tools/probes/*.js
+
+# Build / release artifacts
+/dist/
+/build/
+transit-chrome-*.zip
+*.crx
+*.pem
+
+# Private / local-only
+.env
+.env.*
+!.env.example
+tools/release/chrome-webstore-submit.sh
+.private-git/
+.claude/settings.local.json
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Misc
+*.log
+__pycache__/
+*.pyc

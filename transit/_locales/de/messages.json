@@ -1,0 +1,17 @@
+{
+  "extName": {
+    "message": "Transit",
+    "description": "Name der Erweiterung"
+  },
+  "extDescription": {
+    "message": "Schnelle, flüssige Übersetzung für Webseiten und YouTube-Untertitel. 8 Zielsprachen, Daten bleiben im Browser."
+  },
+  "actionTitle": {
+    "message": "Transit Übersetzen",
+    "description": "工具列圖示 tooltip（manifest action.default_title）"
+  },
+  "cmdTranslateMain": {
+    "message": "Diese Seite übersetzen (primär, automatischer Failback bei Fehler)",
+    "description": "快速鍵說明（chrome://extensions/shortcuts）"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "extName": {
+    "message": "Transit",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Fast, smooth web page & YouTube subtitle translation. 8 target languages, multiple AI engines, data stays local."
+  },
+  "actionTitle": {
+    "message": "Transit Translate",
+    "description": "工具列圖示 tooltip（manifest action.default_title）"
+  },
+  "cmdTranslateMain": {
+    "message": "Translate this page (primary, auto failback on failure)",
+    "description": "快速鍵說明（chrome://extensions/shortcuts）"
+  }
+}

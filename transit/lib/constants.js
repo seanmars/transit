@@ -1,0 +1,3 @@
+export const DEFAULT_UNITS_PER_BATCH = 40;
+
+export const DEFAULT_CHARS_PER_BATCH = 7000;

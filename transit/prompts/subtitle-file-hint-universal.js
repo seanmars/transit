@@ -1,0 +1,6 @@
+export default `This document is a video subtitle file: each segment is one cue in timeline order and may be only part of a sentence.
+- Use neighbouring cues for context, but output only the translation of each cue itself: never merge or split cues, and never move content into an earlier or later cue (even when the target language's word order differs — each cue's translation must correspond strictly to that cue's own content, because subtitles must match picture timing).
+- Cues stay on screen for only a few seconds, so keep the translation concise, punchy, and conversational, with no notes, explanations, or thinking.
+- Line breaks inside a cue may be kept or collapsed to one line depending on length.
+
+Subtitle-specific rule (takes precedence over any rule above about annotating the original): never append the original term in parentheses after a translated name. Person, place, organisation, and work names are output as the translated name only (glossary targets exactly as given) — never forms like "<translated name> (Iraq)" or "<translated name> (Saddam Hussein)". Only when the glossary target itself already contains a parenthesised original should it be output as-is.`;
