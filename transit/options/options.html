@@ -63,7 +63,7 @@
       <label>
         <span data-i18n="options.apiKey.label">API Key</span>
         <div class="api-key-row">
-          <input type="password" id="apiKey" data-i18n-attr-placeholder="options.apiKey.placeholder" placeholder="貼上您的 Gemini API Key">
+          <input type="password" id="apiKey" data-i18n-attr-placeholder="options.apiKey.placeholder" placeholder="貼上你的 Gemini API Key">
           <button type="button" id="toggle-api-key" class="ghost-btn" data-i18n-attr-aria-label="options.apiKey.showAria" aria-label="顯示 API Key" data-i18n="options.action.show">顯示</button>
           <button type="button" id="test-api-key" class="ghost-btn" data-i18n-attr-aria-label="options.apiKey.testAria" aria-label="測試 API Key" data-i18n="options.action.test">測試</button>
         </div>
@@ -83,7 +83,7 @@
             <strong data-i18n="options.engine.primary">主要翻譯</strong>
             <div class="shortcut-controls">
               <button type="button" class="shortcut-recorder" id="sc-2"></button>
-              <button type="button" class="shortcut-clear" id="sc-clear-2" data-i18n-attr-title="options.preset.restoreDefault" title="還原預設">✕</button>
+              <button type="button" class="shortcut-clear" id="sc-clear-2" data-i18n-attr-title="options.preset.restoreDefault" title="重設為預設">✕</button>
             </div>
           </div>
           <label>
@@ -179,7 +179,7 @@
           </select>
         </label>
       </div>
-      <small class="muted" data-i18n="options.hover.hint">按住所選的鍵、把游標移到段落上停一下，只翻譯游標所在的那一段，譯文原地顯示。顯示方式獨立於整頁翻譯的顯示模式，預設雙語對照方便邊讀原文邊看譯文</small>
+      <small class="muted" data-i18n="options.hover.hint">按住所選的鍵，把游標移到段落上停一下，只翻譯游標所在的那一段，譯文原地顯示。顯示方式與整頁翻譯的顯示模式分開設定，預設為雙語對照，方便邊讀原文邊看譯文</small>
       </div>
     </section>
 
@@ -220,7 +220,7 @@
       </div>
       <div class="dual-accent-row" id="dual-accent-row">
         <span class="accent-label" data-i18n="options.dualMark.accent">強調色</span>
-        <button type="button" class="dual-accent-swatch" data-token="auto"   data-i18n-attr-title="options.dualMark.accentAuto"   title="預設（各 mark 原色）"></button>
+        <button type="button" class="dual-accent-swatch" data-token="auto"   data-i18n-attr-title="options.dualMark.accentAuto"   title="預設（各標記的原色）"></button>
         <button type="button" class="dual-accent-swatch" data-token="blue"   style="background:#3B82F6" data-i18n-attr-title="options.dualMark.accentBlue" title="藍"></button>
         <button type="button" class="dual-accent-swatch" data-token="green"  style="background:#10B981" data-i18n-attr-title="options.dualMark.accentGreen" title="綠"></button>
         <button type="button" class="dual-accent-swatch" data-token="yellow" style="background:#F59E0B" data-i18n-attr-title="options.dualMark.accentYellow" title="黃"></button>
@@ -243,7 +243,7 @@
         <input type="checkbox" id="showProgressToast" checked>
         <div class="checkbox-body">
         <span data-i18n="options.toast.show">顯示翻譯進度通知</span>
-        <small class="muted" data-i18n="options.toast.showHint">關閉後將完全不顯示翻譯期間的進度通知（包含成功 / 失敗訊息也不顯示）</small>
+        <small class="muted" data-i18n="options.toast.showHint">關閉後不顯示任何翻譯進度通知，成功與失敗訊息也不顯示</small>
         </div>
       </label>
       <label class="checkbox-label">
@@ -257,7 +257,7 @@
         <input type="checkbox" id="toastAutoHide" checked>
         <div class="checkbox-body">
         <span data-i18n="options.toast.autoHide">翻譯完成後自動關閉通知</span>
-        <small class="muted" data-i18n="options.toast.autoHideHint">開啟時翻譯完成的通知會在 5 秒後自動消失</small>
+        <small class="muted" data-i18n="options.toast.autoHideHint">開啟後，翻譯完成的通知會在 5 秒後自動消失</small>
         </div>
       </label>
       <label>
@@ -322,14 +322,14 @@
         <label><input type="radio" name="displayCurrency" value="TWD" checked><span data-i18n="options.currency.twd">TWD（台幣）</span></label>
       </div>
       <p class="muted rate-line" id="currency-rate-hint">
-        <span id="currency-rate-display">目前匯率讀取中⋯</span>
+        <span id="currency-rate-display">目前匯率讀取中…</span>
         <button type="button" id="refresh-rate-btn" class="ghost-btn" data-i18n="options.currency.refresh">重新抓取匯率</button>
       </p>
     </section>
 
     <section>
       <h2 data-i18n="options.io.heading">匯入 / 匯出設定</h2>
-      <p class="muted" data-i18n="options.io.intro">匯出為 JSON 檔案備份，或從檔案匯入還原（API Key 不包含在匯出入範圍）</p>
+      <p class="muted" data-i18n="options.io.intro">匯出為 JSON 檔案備份，或從檔案匯入還原（匯出與匯入都不包含 API Key）</p>
       <div class="btn-row">
         <button id="export-settings" class="secondary" data-i18n="options.io.export">匯出設定</button>
         <button id="import-file" class="secondary" data-i18n="options.io.import">匯入設定</button>
@@ -338,9 +338,9 @@
     </section>
 
     <section>
-      <h2 data-i18n="options.reset.heading">回復預設設定</h2>
+      <h2 data-i18n="options.reset.heading">重設為預設設定</h2>
       <p class="muted" data-i18n-html="options.reset.intro.html">將所有設定（模型、參數、計價、網域規則、系統提示等）重設為預設值。<strong>API Key 會被保留</strong>，不需要重填。翻譯快取與累計費用也不受影響（請點工具列圖示，分別按「清除快取」與累計費用旁的「清除」）</p>
-      <button id="reset-defaults" class="secondary" data-i18n="options.reset.button">回復預設設定</button>
+      <button id="reset-defaults" class="secondary" data-i18n="options.reset.button">重設為預設設定</button>
     </section>
 
 
@@ -444,7 +444,7 @@
         <label>
           <span data-i18n="options.gemini.params.tierLabel">服務層級（Service Tier）— 影響費用與延遲</span>
           <select id="serviceTier">
-            <option value="DEFAULT" data-i18n="options.gemini.params.tierDefault">預設（不指定，安全相容）</option>
+            <option value="DEFAULT" data-i18n="options.gemini.params.tierDefault">預設（不指定，相容性最高）</option>
             <option value="FLEX" data-i18n="options.gemini.params.tierFlex">Flex（省 50%，但翻譯速度會明顯變慢）</option>
             <option value="STANDARD" data-i18n="options.gemini.params.tierStandard">Standard（原價）</option>
             <option value="PRIORITY" data-i18n="options.gemini.params.tierPriority">Priority（優先，更貴）</option>
@@ -472,19 +472,19 @@
         <summary data-i18n="options.gemini.perf.summary">效能調校（進階）— 批次大小、並行數量、單頁段落上限、失敗重試</summary>
         <p class="muted" data-i18n="options.gemini.perf.intro">調整每批翻譯的大小與並行數量，影響翻譯速度與品質的平衡。一般使用者不需要動，維持預設即可</p>
         <label>
-          <span data-i18n="options.gemini.perf.maxConcurrentLabel">同時並發批次上限</span>
+          <span data-i18n="options.gemini.perf.maxConcurrentLabel">並行批次上限</span>
           <input type="number" id="maxConcurrentBatches" step="1" min="1" max="50">
-          <small class="muted" data-i18n="options.gemini.perf.maxConcurrentHint">同時送出幾批翻譯請求。數字越大翻越快，但也越容易撞到配額上限，長文建議 5–10，短文可設 1（逐批翻譯）</small>
+          <small class="muted" data-i18n="options.gemini.perf.maxConcurrentHint">同時送出幾批翻譯請求。數字越大翻越快，但也越容易達到配額上限。長文建議 5–10，短文可設 1（逐批翻譯）</small>
         </label>
         <label>
           <span data-i18n="options.gemini.perf.maxUnitsLabel">每批段數上限</span>
           <input type="number" id="maxUnitsPerBatch" step="1" min="1" max="100">
-          <small class="muted" data-i18n="options.gemini.perf.maxUnitsHint">每一批最多包含幾段。這裡的「段」是指網頁上一個獨立的文字區塊（例如一個段落、一個標題、一個列表項目），由網頁結構自動偵測。數字越大每批翻越多，但太大容易導致翻譯對齊失準，預設 20</small>
+          <small class="muted" data-i18n="options.gemini.perf.maxUnitsHint">每一批最多包含幾段。這裡的「段」是指網頁上一個獨立的文字區塊（例如一個段落、一個標題、一個列表項目），由網頁結構自動偵測。數字越大每批翻越多，但太大容易讓譯文與原文段落對不上，預設 40</small>
         </label>
         <label>
           <span data-i18n="options.gemini.perf.maxCharsLabel">每批字元預算</span>
           <input type="number" id="maxCharsPerBatch" step="500" min="500" max="20000">
-          <small class="muted" data-i18n="options.gemini.perf.maxCharsHint">每一批累積的原文字元數上限（與段數上限先到先封口）。數字越大每批能裝越多內容，但太大可能超出模型輸出長度限制，預設 3500</small>
+          <small class="muted" data-i18n="options.gemini.perf.maxCharsHint">每一批累積的原文字元數上限（與段數上限任一項先達到，就結束這一批）。數字越大每批能裝越多內容，但太大可能超出模型輸出長度限制，預設 7000</small>
         </label>
         <label>
           <span data-i18n="options.gemini.perf.maxTransLabel">單頁翻譯段落上限</span>
@@ -511,7 +511,7 @@
 
     <section>
       <h2 data-i18n="options.glossary.fixed.heading">固定術語表</h2>
-      <p class="muted" data-i18n="options.glossary.fixed.intro">手動指定「原文 → 譯文」對照。每次翻譯時會注入翻譯引擎的翻譯 Prompt，強制模型遵守你指定的譯法。固定術語的優先級高於自動擷取的術語</p>
+      <p class="muted" data-i18n="options.glossary.fixed.intro">手動指定「原文 → 譯文」對照。每次翻譯時會加入翻譯 Prompt，強制模型遵守你指定的譯法。固定術語的優先順序高於自動擷取的術語</p>
 
       <h3 class="glossary-scope-title" data-i18n="options.glossary.fixed.globalTitle">全域（所有網站共用）</h3>
       <div class="glossary-table-wrapper">
@@ -560,7 +560,7 @@
 
     <section>
       <h2 data-i18n="options.glossary.auto.heading">自動術語擷取</h2>
-      <p class="muted" data-i18n-html="options.glossary.auto.intro.html">長文翻譯時，先呼叫翻譯引擎擷取全文專有名詞建立對照表，確保分批翻譯的名詞譯名一致。短文（1 批以內）自動跳過。預設不開啟——開啟後術語翻譯會跳過翻譯 Prompt 的部分指示（例如「英文人名保留不翻」會失效）。詳細說明見 <a href="https://github.com/seanmars/transit#術語表一致化" target="_blank" rel="noopener">README</a></p>
+      <p class="muted" data-i18n-html="options.glossary.auto.intro.html">長文翻譯時，先呼叫翻譯引擎擷取全文專有名詞建立對照表，確保分批翻譯的名詞譯名一致。短文（1 批以內）自動跳過。預設不開啟。開啟後術語翻譯會跳過翻譯 Prompt 的部分指示（例如「英文人名保留不翻」會失效）。詳細說明見 <a href="https://github.com/seanmars/transit#術語表一致化" target="_blank" rel="noopener">README</a></p>
       <label class="checkbox-label">
         <input type="checkbox" id="glossaryEnabled">
         <div class="checkbox-body">
@@ -582,7 +582,7 @@
         <label>
           <span data-i18n="options.glossary.auto.blockingLabel">術語表等待門檻（批次數）</span>
           <input type="number" id="glossaryBlockingThreshold" step="1" min="0" max="50">
-          <small class="muted" data-i18n="options.glossary.auto.blockingHint">決定多長的文章才需要先等術語表抽完再開始翻譯。文章批次數超過此值，先等術語表抽完再翻譯（整篇譯名一致）；未超過則邊翻邊抽術語表（首字較快，但前後段譯名可能略不一致）。預設 10。設 0 = 一律邊翻邊抽，首字最快；設高（例如 50）= 幾乎都先等，譯名最一致</small>
+          <small class="muted" data-i18n="options.glossary.auto.blockingHint">決定多長的文章要先等術語表擷取完成再開始翻譯。文章批次數超過此值時，先等術語表完成再翻譯（整篇譯名一致）；未超過時，翻譯與擷取同時進行（第一段譯文較快出現，但前後段譯名可能略不一致）。預設 10。設 0 = 一律同時進行，第一段譯文最快出現；設高（例如 50）= 幾乎都先等，譯名最一致</small>
         </label>
         <label>
           <span data-i18n="options.glossary.auto.tempLabel">術語表 Temperature</span>
@@ -599,7 +599,7 @@
           <textarea id="glossaryPrompt" rows="10" class="mono"></textarea>
           <small class="muted" data-i18n="options.glossary.auto.promptHint">控制翻譯引擎擷取哪些類型的專有名詞。進階使用者可自行調整</small>
           <small id="glossaryPrompt-target-hint" class="muted target-mismatch-hint" hidden data-i18n-html="options.glossary.auto.targetMismatch.html">
-            ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位儲存（系統會自動走對應預設）
+            ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位（系統會自動改用對應預設）
           </small>
         </label>
       </details>
@@ -614,9 +614,7 @@
     <section>
       <h2 data-i18n="options.cp.heading">自訂 OpenAI 相容模型</h2>
       <p class="muted" data-i18n="options.cp.intro1">
-        想用 Gemini 之外的模型？設定一組 OpenAI 相容端點即可接
-        OpenRouter（含 Anthropic / Gemini / Llama / Qwen / Grok 等百種模型）、
-        Ollama 本機、Together、Groq、Fireworks、OpenAI 自家等
+        想用 Gemini 之外的模型？設定一組 OpenAI 相容端點即可連接 OpenRouter（含 Anthropic / Gemini / Llama / Qwen / Grok 等百種模型）、Ollama 本機、Together、Groq、Fireworks、OpenAI 官方 API 等
       </p>
       <p class="muted" data-i18n="options.cp.intro2">
         設定完成後，到「一般設定」分頁的「翻譯設定」，把「主要翻譯」或「備援翻譯」的翻譯引擎改為「自訂模型」，即可使用快速鍵啟動翻譯
@@ -625,31 +623,22 @@
         <span data-i18n="options.cp.baseUrlLabel">Base URL</span>
         <input type="text" id="cp-baseUrl" data-i18n-attr-placeholder="options.cp.baseUrlPlaceholder" placeholder="例如：https://openrouter.ai/api/v1">
         <small class="muted" data-i18n-html="options.cp.baseUrlHint.html">
-          OpenAI 相容模型端點的根目錄。系統會自動接 <code>/chat/completions</code>。
-          常見：<code>https://openrouter.ai/api/v1</code>、<code>https://api.together.xyz/v1</code>、
-          <code>http://localhost:11434/v1</code>（Ollama）
+          OpenAI 相容模型端點的根目錄。系統會自動加上 <code>/chat/completions</code>。常見：<code>https://openrouter.ai/api/v1</code>、<code>https://api.together.xyz/v1</code>、<code>http://localhost:11434/v1</code>（Ollama）
         </small>
       </label>
       <details class="advanced-details">
-        <summary data-i18n="options.cp.cors.summary">連本機 Ollama / llama.cpp 收到 403？（展開查看解法）</summary>
+        <summary data-i18n="options.cp.cors.summary">連線到本機 Ollama / llama.cpp 時收到 403？（展開查看解法）</summary>
         <div class="details-prose">
           <p class="muted" data-i18n-html="options.cp.cors.line1.html">
-            Chrome 從擴充功能呼叫本機後端（<code>localhost</code> / <code>127.0.0.1</code>）時，
-            會強制送 <code>Origin: chrome-extension://&lt;id&gt;</code> header。
-            Ollama 與 llama.cpp 預設的 CORS 設定不認得這個 origin → 直接回 403
+            Chrome 從擴充功能呼叫本機後端（<code>localhost</code> / <code>127.0.0.1</code>）時，一定會送出 <code>Origin: chrome-extension://&lt;id&gt;</code> header。Ollama 與 llama.cpp 預設的 CORS 設定不接受這個 origin，因此回傳 403
           </p>
           <p class="muted" data-i18n-html="options.cp.cors.line2.html"><strong>兩種解法擇一</strong>：</p>
           <ol class="muted">
             <li data-i18n-html="options.cp.cors.solution1.html">
-              <strong>Ollama</strong>：啟動前設環境變數 <code>OLLAMA_ORIGINS=*</code>
-              （或更嚴格的 <code>chrome-extension://*</code>）。
-              macOS 用 <code>launchctl setenv OLLAMA_ORIGINS "*"</code> 後重啟 Ollama；
-              Windows 在「系統內容 → 環境變數」加 <code>OLLAMA_ORIGINS</code> = <code>*</code>
+              <strong>Ollama</strong>：啟動前設環境變數 <code>OLLAMA_ORIGINS=*</code>（或更嚴格的 <code>chrome-extension://*</code>）。macOS 用 <code>launchctl setenv OLLAMA_ORIGINS "*"</code> 後重啟 Ollama；Windows 在「系統內容 → 環境變數」加 <code>OLLAMA_ORIGINS</code> = <code>*</code>
             </li>
             <li data-i18n-html="options.cp.cors.solution2.html">
-              <strong>後端不能改 CORS 設定時</strong>：在系統 hosts 檔加一筆
-              <code>127.0.0.1 ollama.local</code>，Base URL 改成
-              <code>http://ollama.local:11434/v1</code>。Chrome 看到的不是 loopback 地址就不會強制送 Origin
+              <strong>後端不能改 CORS 設定時</strong>：在系統 hosts 檔加一筆 <code>127.0.0.1 ollama.local</code>，Base URL 改成 <code>http://ollama.local:11434/v1</code>。Chrome 看到的不是 loopback 位址，就不會強制送 Origin
             </li>
           </ol>
         </div>
@@ -658,10 +647,7 @@
         <span data-i18n="options.cp.modelLabel">模型 ID</span>
         <input type="text" id="cp-model" data-i18n-attr-placeholder="options.cp.modelPlaceholder" placeholder="例如：anthropic/claude-sonnet-4-5（llama.cpp / Ollama 可留空）">
         <small class="muted" data-i18n-html="options.cp.modelHint.html">
-          OpenRouter 的 model ID 格式為 <code>provider/model</code>（如
-          <code>anthropic/claude-sonnet-4-5</code>、<code>google/gemini-3-flash</code>、
-          <code>meta-llama/llama-3.1-70b</code>）；其他端點直接填 model 名稱。
-          本機 server（llama.cpp / Ollama）啟動時若已鎖定 model 可留空，request 不送此欄位即用 server 預設
+          OpenRouter 的 model ID 格式為 <code>provider/model</code>（如 <code>anthropic/claude-sonnet-4-5</code>、<code>google/gemini-3-flash</code>、<code>meta-llama/llama-3.1-70b</code>）；其他端點直接填 model 名稱。本機 server（llama.cpp / Ollama）啟動時若已鎖定 model 可留空，此時 request 不送此欄位，由 server 使用預設 model
         </small>
       </label>
       <label>
@@ -673,25 +659,24 @@
         </div>
         <div id="cp-test-apiKey-result" class="api-test-result" hidden></div>
         <small class="muted" data-i18n="options.cp.apiKeyHint">
-          僅存在你的瀏覽器本機（與 Gemini API Key 同樣不跨裝置同步、不上傳任何伺服器）；本機後端（llama.cpp / Ollama 等）可留空
+          只存在你的瀏覽器本機（與 Gemini API Key 一樣不跨裝置同步，也不上傳任何伺服器）；本機後端（llama.cpp / Ollama 等）可留空
         </small>
       </label>
       <label>
         <span data-i18n="options.cp.systemPromptLabel">翻譯 Prompt</span>
         <textarea id="cp-systemPrompt" rows="8" data-i18n-attr-placeholder="options.cp.systemPromptPlaceholder" placeholder="留空使用內建簡短預設 prompt"></textarea>
         <small class="muted" data-i18n="options.cp.systemPromptHint">
-          自訂模型用獨立的翻譯 prompt（不繼承 Gemini 分頁的設定）；
-          但「固定術語表」與「禁用詞清單」會自動共用注入到 prompt 末端
+          自訂模型使用獨立的翻譯 prompt（不繼承 Gemini 分頁的設定）；但「固定術語表」與「禁用詞清單」仍會自動加到 prompt 末端
         </small>
         <small id="cp-systemPrompt-target-hint" class="muted target-mismatch-hint" hidden data-i18n-html="options.cp.targetMismatch.html">
           ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位（系統會自動改用對應預設），或按下方的「重設為預設 Prompt（與 Gemini 相同）」
         </small>
       </label>
-      <button type="button" id="cp-reset-prompt" class="secondary" data-i18n="options.cp.resetPrompt">重置為預設 Prompt（與 Gemini 同）</button>
+      <button type="button" id="cp-reset-prompt" class="secondary" data-i18n="options.cp.resetPrompt">重設為預設 Prompt（與 Gemini 相同）</button>
       <label>
         <span data-i18n="options.cp.tempLabel">Temperature</span>
         <input type="number" id="cp-temperature" step="0.1" min="0" max="2" placeholder="0.7">
-        <small class="muted" data-i18n="options.cp.tempHint">留空 = 不送 temperature 參數。部分推理模型只接受自家預設值，帶了會直接失敗</small>
+        <small class="muted" data-i18n="options.cp.tempHint">留空 = 不送 temperature 參數。部分推理模型只接受自家預設值，送出此參數會導致請求失敗</small>
       </label>
 
       <details class="advanced-details">
@@ -707,13 +692,7 @@
             <option value="high" data-i18n="options.cp.thinkingHigh">高</option>
           </select>
           <small class="muted" data-i18n-html="options.cp.thinkingHint.html">
-            依 baseUrl 與模型自動翻譯成對應 provider 的 thinking API
-            （OpenRouter <code>reasoning.effort</code>、Claude <code>thinking.type</code>、
-            OpenAI o-series <code>reasoning_effort</code>、Grok <code>reasoning_effort</code>、
-            Qwen <code>enable_thinking</code>）。
-            翻譯任務 thinking 通常無感但會多花 token；建議「關閉」省成本，
-            除非你的模型只能在 thinking 開啟時翻譯（如 QwQ）。
-            不認識的 provider 走「自動」
+            依 baseUrl 與模型自動轉換成對應 provider 的 thinking API（OpenRouter <code>reasoning.effort</code>、Claude <code>thinking.type</code>、OpenAI o-series <code>reasoning_effort</code>、Grok <code>reasoning_effort</code>、Qwen <code>enable_thinking</code>）。翻譯任務開啟 thinking 通常沒有明顯效果，但會多花 token；建議「關閉」省成本，除非你的模型只能在 thinking 開啟時翻譯（如 QwQ）。無法辨識的 provider 使用「自動」
           </small>
         </label>
 
@@ -722,10 +701,7 @@
           <div class="checkbox-body">
           <span data-i18n="options.cp.strongMarker">強化段序號標記（適合本機量化模型）</span>
         <small class="muted" data-i18n-html="options.cp.strongMarkerHint.html">
-          本機量化模型（如 gemma-4 量化版）會把預設的「<code>«1»</code> <code>«2»</code>」段序號誤譯為「N1、N2」洩漏到譯文。
-          開啟後改用 <code>&lt;&lt;&lt;TRZX_SEG-N&gt;&gt;&gt;</code> 格式，弱模型不會誤翻；
-          代價是每段批次多約 7 tokens（input + output 雙倍開銷）。
-          商用 API（OpenRouter / Groq 等）不需此選項，但開啟也無害
+          本機量化模型（如 gemma-4 量化版）會把預設的「<code>«1»</code> <code>«2»</code>」段序號誤譯為「N1、N2」洩漏到譯文。開啟後改用 <code>&lt;&lt;&lt;TRZX_SEG-N&gt;&gt;&gt;</code> 格式，弱模型不會誤翻；代價是每段多約 7 tokens（input 與 output 都會增加）。商用 API（OpenRouter / Groq 等）不需此選項，但開啟也無害
         </small>
           </div>
         </label>
@@ -734,11 +710,7 @@
           <span data-i18n="options.cp.extraBodyLabel">自訂 request body 額外參數（JSON，覆蓋上方思考強度）</span>
           <textarea id="cp-extra-body-json" rows="4" placeholder='e.g. {"reasoning":{"max_tokens":4000},"top_k":40}' class="mono"></textarea>
           <small class="muted" data-i18n-html="options.cp.extraBodyHint.html">
-            內容會深層合併進 chat.completions request body，可用來：
-            （1）強制覆蓋上方「思考強度」自動產生的設定；
-            （2）加 provider 專屬參數（例如 OpenRouter 的 <code>top_k</code> / <code>min_p</code>、
-            Anthropic 的 <code>metadata</code>）。
-            格式錯誤會在 Debug 分頁 log 一條 warn 並忽略，翻譯不會中斷
+            內容會深層合併進 chat.completions request body，可用來：（1）強制覆蓋上方「思考強度」自動產生的設定；（2）加 provider 專屬參數（例如 OpenRouter 的 <code>top_k</code> / <code>min_p</code>、Anthropic 的 <code>metadata</code>）。格式錯誤時會在 Debug 分頁記錄一則 warn 並忽略此設定，翻譯不會中斷
           </small>
         </label>
 
@@ -769,7 +741,7 @@
         <span data-i18n="options.cp.pricing.cachedDiscountLabel">Cache 命中折扣（%，例：90 = 命中部分省 90%）</span>
         <input type="number" id="cp-cachedDiscount" step="1" min="0" max="100" placeholder="90">
         <small class="muted" data-i18n="options.cp.pricing.cachedDiscountHint">
-          各家公告：Anthropic 90%、新 OpenAI(GPT-5+)90%、DeepSeek 98%、xAI 75-90%、舊 OpenAI 50%。空白 → 依 Base URL 自動推導
+          各家公告：Anthropic 90%、新 OpenAI（GPT-5+）90%、DeepSeek 98%、xAI 75-90%、舊 OpenAI 50%。留空時依 Base URL 自動判斷
         </small>
       </label>
     </section>
@@ -782,10 +754,7 @@
 
     <section>
       <p class="muted" data-i18n="options.forbidden.intro">
-        自訂不希望出現在譯文中的詞彙清單。內容會以高顯著性區塊注入翻譯引擎的
-        翻譯 Prompt 末端，要求譯文不可使用「禁用詞」欄的詞彙。「替換詞」可留空：
-        填了就要求改用指定詞，留空時則由 AI 自行改寫成自然的台灣慣用說法。
-        修改清單後會自動讓既有翻譯快取分區，不再命中舊譯文
+        自訂不希望出現在譯文中的詞彙清單。清單會以醒目區塊加到翻譯 Prompt 末端，要求譯文不可使用「禁用詞」欄的詞彙。「替換詞」可留空：填了就要求改用指定詞，留空時則由 AI 自行改寫成自然的台灣慣用說法。修改清單後，舊的翻譯快取不會再被使用
       </p>
       <div class="glossary-table-wrapper">
         <table class="glossary-edit-table" id="forbidden-terms-table">
@@ -802,7 +771,7 @@
       </div>
       <div class="btn-row">
         <button id="forbidden-terms-add" class="secondary glossary-add-btn" data-i18n="options.forbidden.add">＋ 新增一條</button>
-        <button id="forbidden-terms-reset" class="secondary glossary-add-btn" data-i18n="options.forbidden.reset">還原預設清單</button>
+        <button id="forbidden-terms-reset" class="secondary glossary-add-btn" data-i18n="options.forbidden.reset">重設為預設清單</button>
       </div>
     </section>
 
@@ -918,7 +887,7 @@
       </section>
 
       <section>
-        <h2 data-i18n="options.log.heading">Log 記錄</h2>
+        <h2 data-i18n="options.log.heading">Log</h2>
       </section>
       <div class="log-toolbar">
         <select id="log-category-filter">
@@ -940,7 +909,7 @@
           <option value="warn">warn</option>
           <option value="error">error</option>
         </select>
-        <input type="text" id="log-search" data-i18n-attr-placeholder="options.log.searchPlaceholder" placeholder="搜尋 Log（含批次內容）⋯" autocomplete="off">
+        <input type="text" id="log-search" data-i18n-attr-placeholder="options.log.searchPlaceholder" placeholder="搜尋 Log（含批次內容）…" autocomplete="off">
         <button id="log-clear" class="secondary" data-i18n="options.log.clear">清除</button>
         <button id="log-export" class="secondary" data-i18n="options.log.export">匯出 JSON</button>
         <label class="log-autoscroll-label">
@@ -985,7 +954,7 @@
 
     <section>
       <h2 data-i18n="options.yt.auto.heading">自動翻譯</h2>
-      <p class="muted" data-i18n="options.yt.auto.hint">開啟後進入 YouTube 影片頁面時，會自動開始翻譯字幕，不需手動點工具列圖示開啟開關</p>
+      <p class="muted" data-i18n="options.yt.auto.hint">開啟後進入 YouTube 影片頁面時，會自動開始翻譯字幕，不需要從工具列圖示手動開啟</p>
       <label class="checkbox-label">
         <input type="checkbox" id="ytAutoTranslate">
         <div class="checkbox-body">
@@ -1004,13 +973,12 @@
         <div class="checkbox-body">
         <strong data-i18n="options.yt.asr.toggle">AI 分句模式</strong>
         <small class="muted" data-i18n-html="options.yt.asr.hint.html">
-          <strong>開啟</strong>：使用 AI 分句，提升字幕品質，些微提升 token 耗費<br>
-          <strong>關閉</strong>：使用 YouTube 自動產生字幕的原始分句邏輯
+          <strong>開啟</strong>：使用 AI 分句，提升字幕品質，token 用量略增<br><strong>關閉</strong>：使用 YouTube 自動產生字幕的原始分句邏輯
         </small>
         </div>
       </label>
       <small id="yt-asr-google-note" class="muted" hidden data-i18n="options.yt.asr.googleDisabled">
-        翻譯引擎選 Google Translate 時無法使用 AI 分句——分句需要 LLM，會走 Gemini 並產生費用，此時一律使用 YouTube 原始分句
+        翻譯引擎選 Google Translate 時無法使用 AI 分句。AI 分句需要 LLM，會改用 Gemini 並產生費用，此時一律使用 YouTube 原始分句
       </small>
     </section>
 
@@ -1024,8 +992,7 @@
           <option value="openai-compat" data-i18n="options.yt.engine.custom">自訂模型（與「自訂模型」分頁共用設定）</option>
         </select>
         <small class="muted" data-i18n-html="options.yt.engine.hint.html">
-          選擇 Google Translate 時，下方模型、計價、Prompt 設定均不作用（Google MT 不支援自訂 Prompt）。<br>
-          選擇「自訂模型」時，會使用「自訂模型」分頁設定的 Base URL / 模型 ID / API Key / Prompt（與文章翻譯共用同一組）；下方模型、計價也不作用
+          選擇 Google Translate 時，下方模型、計價、Prompt 設定都不會生效（Google Translate 不支援自訂 Prompt）。<br>選擇「自訂模型」時，會使用「自訂模型」分頁設定的 Base URL / 模型 ID / API Key / Prompt（與文章翻譯共用同一組）；下方模型、計價也不會生效
         </small>
       </label>
     </section>
@@ -1038,8 +1005,8 @@
             <span data-i18n="options.yt.gemini.modelLabel">模型</span>
             <select id="ytModel">
               <option value="" data-i18n="options.yt.gemini.modelSame">（與網頁的主要翻譯相同）</option>
-              <option value="gemini-3.1-flash-lite" data-i18n="options.yt.gemini.modelLite">gemini-3.1-flash-lite（$0.25 / $1.50）— 便宜，字幕品質足夠</option>
-              <option value="gemini-3-flash-preview" data-i18n="options.yt.gemini.modelFlash">gemini-3-flash-preview（$0.50 / $3.00）— 推薦</option>
+              <option value="gemini-3.1-flash-lite" data-i18n="options.yt.gemini.modelLite">gemini-3.1-flash-lite（$0.25 / $1.50），便宜，字幕品質足夠</option>
+              <option value="gemini-3-flash-preview" data-i18n="options.yt.gemini.modelFlash">gemini-3-flash-preview（$0.50 / $3.00），推薦</option>
               <option value="gemini-3.8-flash" data-i18n="options.yt.gemini.modelPro">gemini-3.8-flash（$0.75 / $3.75）</option>
             </select>
             <small class="muted" data-i18n="options.yt.gemini.modelHint">選擇模型後，下方計價會自動帶入參考價；你也可以手動修改</small>
@@ -1064,14 +1031,14 @@
     <section id="yt-prompt-section">
       <details class="advanced-details">
         <summary data-i18n="options.yt.prompt.advSummary">進階：字幕翻譯 Prompt</summary>
-        <p class="muted" data-i18n="options.yt.prompt.intro">字幕翻譯使用獨立的 prompt，與文章翻譯分開。字幕著重口語化、逐段保持、不合併</p>
+        <p class="muted" data-i18n="options.yt.prompt.intro">字幕翻譯使用獨立的 prompt，與文章翻譯分開。字幕 prompt 著重口語化，逐段翻譯，不合併段落</p>
         <label>
           <textarea id="ytSystemPrompt" rows="14" class="mono"></textarea>
           <small id="ytSystemPrompt-target-hint" class="muted target-mismatch-hint" hidden data-i18n-html="options.yt.prompt.targetMismatch.html">
             ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位（系統會自動改用對應預設），或按下方的「重設為預設 Prompt」
           </small>
         </label>
-        <button type="button" id="yt-reset-prompt" class="secondary" data-i18n="options.yt.prompt.reset">重置為預設 Prompt</button>
+        <button type="button" id="yt-reset-prompt" class="secondary" data-i18n="options.yt.prompt.reset">重設為預設 Prompt</button>
       </details>
     </section>
 
@@ -1079,8 +1046,7 @@
       <details class="advanced-details">
         <summary data-i18n="options.yt.advanced.glossary.summary">進階：固定術語表 & 禁用詞清單</summary>
         <p class="muted" data-i18n-html="options.yt.advanced.glossary.intro.html">
-          是否把「術語表」分頁的固定術語表、與「禁用詞清單」分頁的禁用對照表也注入到字幕翻譯的 prompt？<br>
-          <strong>預設關閉以省 token</strong>——字幕本來就走獨立 prompt，且字幕短句 AI 模型不太會誤翻禁用詞，套用收益小、開銷會在高頻字幕場景累積
+          是否把「術語表」分頁的固定術語表與「禁用詞清單」分頁的禁用對照表，也加到字幕翻譯的 prompt？<br><strong>預設關閉以節省 token</strong>：字幕本來就使用獨立 prompt，而且字幕多為短句，AI 模型不太會誤用禁用詞。套用的效益小，token 用量卻會隨大量字幕請求累積
         </p>
         <label class="checkbox-label">
           <input type="checkbox" id="ytApplyFixedGlossary">

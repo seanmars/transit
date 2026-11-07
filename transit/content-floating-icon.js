@@ -251,7 +251,7 @@
       const ytKey = ytActive ? 'floating.ytSubtitleOff' : 'floating.ytSubtitleOn';
       ytLabel.textContent = (typeof SK.t === 'function')
         ? SK.t(ytKey)
-        : (ytActive ? '關閉字幕翻譯' : '啟動字幕翻譯');
+        : (ytActive ? '關閉字幕翻譯' : '開啟字幕翻譯');
       ytItem.appendChild(ytIcon);
       ytItem.appendChild(ytLabel);
       ytItem.addEventListener('click', (e) => {
