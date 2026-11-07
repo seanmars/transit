@@ -11,6 +11,7 @@
     "zh-charsets": "node tools/build/generate-zh-char-sets.mjs",
     "icons": "node tools/build/generate-icons.mjs",
     "release": "bash tools/release/release.sh",
+    "release:ps": "pwsh -NoProfile -ExecutionPolicy Bypass -File tools/release/release.ps1",
     "test": "playwright test && jest --config jest.config.cjs",
     "test:regression": "playwright test test/regression/",
     "test:unit": "playwright test test/unit/",
