@@ -54,7 +54,7 @@
           <option value="fr">Français</option>
           <option value="de">Deutsch</option>
         </select>
-        <small class="muted" data-i18n="options.uiLanguage.hint">控制工具列圖示、設定頁、翻譯進度通知等擴充功能介面字串的語言。跟工具列圖示選單中的「翻譯目標語言」獨立，互不影響</small>
+        <small class="muted" data-i18n="options.uiLanguage.hint">控制工具列圖示、設定頁、翻譯進度通知等擴充功能介面字串的語言。與工具列圖示選單中的「翻譯成」各自獨立，互不影響</small>
       </label>
     </section>
 
@@ -286,12 +286,12 @@
 
     <section>
       <h2 data-i18n="options.floating.heading">懸浮按鈕</h2>
-      <p class="muted" data-i18n="options.floating.intro">在頁面邊緣顯示一顆可拖移的按鈕，短按用預設翻譯、長按選三組預設，可拖到左右任一邊吸附</p>
+      <p class="muted" data-i18n="options.floating.intro">在頁面邊緣顯示一顆可拖移的按鈕，短按翻譯本頁，長按開啟功能選單，可拖到左右任一邊吸附</p>
       <label class="checkbox-label">
         <input type="checkbox" id="floatingIcon">
         <div class="checkbox-body">
         <span data-i18n="options.floating.enable">顯示懸浮按鈕</span>
-        <small class="muted" data-i18n="options.floating.enableHint">預設開啟；短按等同工具列「翻譯本頁」按鈕的預設</small>
+        <small class="muted" data-i18n="options.floating.enableHint">預設開啟；短按等同按下工具列的「翻譯本頁」</small>
         </div>
       </label>
       <div class="field-row floating-size-options">
@@ -339,7 +339,7 @@
 
     <section>
       <h2 data-i18n="options.reset.heading">回復預設設定</h2>
-      <p class="muted" data-i18n-html="options.reset.intro.html">將所有設定（模型、參數、計價、網域規則、系統提示等）還原為預設值。<strong>API Key 會被保留</strong>，不需要重填。翻譯快取與累計使用統計也不會受影響（請點工具列圖示分別點「清除快取」與「重置統計」處理）</p>
+      <p class="muted" data-i18n-html="options.reset.intro.html">將所有設定（模型、參數、計價、網域規則、系統提示等）重設為預設值。<strong>API Key 會被保留</strong>，不需要重填。翻譯快取與累計費用也不受影響（請點工具列圖示，分別按「清除快取」與累計費用旁的「清除」）</p>
       <button id="reset-defaults" class="secondary" data-i18n="options.reset.button">回復預設設定</button>
     </section>
 
@@ -365,7 +365,7 @@
         詳細費率見 <a href="https://ai.google.dev/pricing" target="_blank" rel="noopener">Gemini 官方定價頁</a>
       </p>
       <p class="muted" data-i18n="options.gemini.pricing.priority">
-        Preset 翻譯的計價優先順序：覆蓋值 → 內建表 → 下方「後備路徑單價」。單位皆為「每 1M tokens 的美金價格」
+        計價優先順序：覆蓋值 → 內建表。單位皆為「每 1M tokens 的美金價格」
       </p>
 
       <div class="model-pricing-overrides">
@@ -428,7 +428,7 @@
       <label>
         <span data-i18n="options.gemini.partial.maxLabel">翻譯段落數上限</span>
         <input type="number" id="partialModeMaxUnits" step="1" min="5" max="50">
-        <small class="muted" data-i18n="options.gemini.partial.hint">啟用後只翻譯頁面前幾段。適合先快速預覽再決定是否繼續讀完整文章，可大幅減少 token 用量。翻譯完成後右下角提示會出現「翻譯剩餘段落」按鈕，點按即可繼續翻完整篇——前面已翻好的段落會從本地快取載入，不重複收費。預設 25 段，範圍 5-50</small>
+        <small class="muted" data-i18n="options.gemini.partial.hint">啟用後只翻譯頁面前幾段。適合先快速預覽再決定是否繼續讀完整文章，可大幅減少 token 用量。翻譯完成後，進度通知會出現「翻譯剩餘段落」按鈕，點按即可繼續翻完整篇。前面已翻好的段落會從本地快取載入，不重複收費。預設 25 段，範圍 5-50</small>
       </label>
     </section>
 
@@ -461,7 +461,7 @@
         <span data-i18n="options.gemini.params.systemPromptLabel">翻譯 Prompt</span>
         <textarea id="systemInstruction" rows="8" class="mono"></textarea>
         <small id="systemInstruction-target-hint" class="muted target-mismatch-hint" hidden data-i18n-html="options.gemini.params.targetMismatch.html">
-          ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位儲存（系統會自動走對應預設），或點下方「重置」按鈕
+          ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位（系統會自動改用對應預設），或按下方的「重設所有參數」
         </small>
       </label>
     </section>
@@ -619,7 +619,7 @@
         Ollama 本機、Together、Groq、Fireworks、OpenAI 自家等
       </p>
       <p class="muted" data-i18n="options.cp.intro2">
-        設定完成後，到「一般設定」分頁的「翻譯快速鍵」，把任一組預設引擎改為「自訂模型」，即可使用快速鍵啟動翻譯
+        設定完成後，到「一般設定」分頁的「翻譯設定」，把「主要翻譯」或「備援翻譯」的翻譯引擎改為「自訂模型」，即可使用快速鍵啟動翻譯
       </p>
       <label>
         <span data-i18n="options.cp.baseUrlLabel">Base URL</span>
@@ -684,7 +684,7 @@
           但「固定術語表」與「禁用詞清單」會自動共用注入到 prompt 末端
         </small>
         <small id="cp-systemPrompt-target-hint" class="muted target-mismatch-hint" hidden data-i18n-html="options.cp.targetMismatch.html">
-          ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位儲存（系統會自動走對應預設），或點下方「重置」按鈕
+          ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位（系統會自動改用對應預設），或按下方的「重設為預設 Prompt（與 Gemini 相同）」
         </small>
       </label>
       <button type="button" id="cp-reset-prompt" class="secondary" data-i18n="options.cp.resetPrompt">重置為預設 Prompt（與 Gemini 同）</button>
@@ -1037,7 +1037,7 @@
           <label>
             <span data-i18n="options.yt.gemini.modelLabel">模型</span>
             <select id="ytModel">
-              <option value="" data-i18n="options.yt.gemini.modelSame">（與網頁翻譯主要預設相同）</option>
+              <option value="" data-i18n="options.yt.gemini.modelSame">（與網頁的主要翻譯相同）</option>
               <option value="gemini-3.1-flash-lite" data-i18n="options.yt.gemini.modelLite">gemini-3.1-flash-lite（$0.25 / $1.50）— 便宜，字幕品質足夠</option>
               <option value="gemini-3-flash-preview" data-i18n="options.yt.gemini.modelFlash">gemini-3-flash-preview（$0.50 / $3.00）— 推薦</option>
               <option value="gemini-3.8-flash" data-i18n="options.yt.gemini.modelPro">gemini-3.8-flash（$0.75 / $3.75）</option>
@@ -1068,7 +1068,7 @@
         <label>
           <textarea id="ytSystemPrompt" rows="14" class="mono"></textarea>
           <small id="ytSystemPrompt-target-hint" class="muted target-mismatch-hint" hidden data-i18n-html="options.yt.prompt.targetMismatch.html">
-            ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位儲存（系統會自動走對應預設），或點下方「重置」按鈕
+            ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位（系統會自動改用對應預設），或按下方的「重設為預設 Prompt」
           </small>
         </label>
         <button type="button" id="yt-reset-prompt" class="secondary" data-i18n="options.yt.prompt.reset">重置為預設 Prompt</button>
