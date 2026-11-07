@@ -135,14 +135,6 @@ export function detectDefaultTargetLanguage() {
   return langFromNavigator((typeof navigator !== 'undefined' && navigator.language) || 'en');
 }
 
-export function resolveUiLanguage(uiLanguagePref) {
-  if (uiLanguagePref && uiLanguagePref !== 'auto'
-      && ['zh-TW', 'zh-CN', 'en', 'ja', 'ko', 'es', 'fr', 'de'].includes(uiLanguagePref)) {
-    return uiLanguagePref;
-  }
-  return langFromNavigator((typeof navigator !== 'undefined' && navigator.language) || 'en');
-}
-
 const _escapeForRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const _PROMPT_DEFAULT_BLOCK_STRIP_RES = [
   ...[DEFAULT_GLOSSARY_PROMPT, UNIVERSAL_GLOSSARY_PROMPT]

@@ -1,7 +1,8 @@
 import { browser } from './lib/compat.js';
 import { translateBatch, extractGlossary, extractTermRenderings, translateBatchStream } from './lib/gemini.js';
-import { translateBatch as translateBatchCustom, extractGlossary as extractGlossaryCustom } from './lib/openai-compat.js';
+import { translateBatch as translateBatchCustom, extractGlossary as extractGlossaryCustom, resolveChatCompletionsUrl } from './lib/openai-compat.js';
 import { translateGoogleBatch } from './lib/google-translate.js';
+import { emptyUsage } from './lib/llm-common.js';
 import { getSettingsCached, setSettings, DEFAULT_SUBTITLE_SYSTEM_PROMPT, DEFAULT_ASR_SUBTITLE_SYSTEM_PROMPT, DEFAULT_DOC_SYSTEM_PROMPT, DOC_INLINE_MARKER_INSTRUCTION, getEffectiveSystemPrompt, getEffectiveSubtitleSystemPrompt, getEffectiveAsrSubtitleSystemPrompt, getEffectiveDocSystemPrompt, getEffectiveGlossaryPrompt, LANG_LABELS, isPromptUnchangedFromAnyTargetDefault, DEFAULT_SETTINGS, resolveTranslateChain, migrateTranslateEnginesIfNeeded } from './lib/storage.js';
 import { debugLog, getLogs, clearLogs, getPersistedLogs, getAnomalyLogs, clearPersistedLogs } from './lib/logger.js';
 import * as cache from './lib/cache.js';
@@ -1020,7 +1021,7 @@ async function handleTranslateStream(payload, sender, streamId, tabId, opts = {}
     const fastLogged = (cacheTag === '')
       ? await logWebBatchUsage({
         sender, engine: 'gemini', model: effectiveSettings.geminiConfig?.model,
-        usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0 }, billedInputTokens: 0, billedCostUSD: 0,
+        usage: emptyUsage(), billedInputTokens: 0, billedCostUSD: 0,
         segments: 0, cacheHits: texts.length,
       })
       : false;
@@ -1245,7 +1246,7 @@ async function testCustomProvider(payload) {
   const apiKey = (payload?.apiKey || '').trim();
   if (!baseUrl) return { ok: false, ...errorFields(codedError('baseUrlMissing', null, 'Base URL 為空。')) };
 
-  const url = /\/chat\/completions$/.test(baseUrl) ? baseUrl : baseUrl + '/chat/completions';
+  const url = resolveChatCompletionsUrl(baseUrl);
   try {
     const headers = { 'Content-Type': 'application/json' };
     if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
@@ -1560,7 +1561,7 @@ async function handleScanTermRenderings(payload, sender) {
   const cached = inputHash ? await cache.getScanRenderings(inputHash) : null;
   if (cached) {
     debugLog('info', 'scan', 'scan renderings cache hit', { inputHash, terms: cached.length });
-    return { renderings: cached, usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0, billedCostUSD: 0 }, fromCache: true };
+    return { renderings: cached, usage: { ...emptyUsage(), billedCostUSD: 0 }, fromCache: true };
   }
 
   const result = await extractTermRenderings(items, settings);

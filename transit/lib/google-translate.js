@@ -1,18 +1,16 @@
 import { debugLog } from './logger.js';
 import { codedError } from './bg-error.js';
+import { sleep } from './llm-common.js';
+import { TARGET_LANGUAGES } from './storage.js';
 
 const SEP = '\n\u2063\u2063\u2063\n';
 
 const MAX_URL_ENCODED_CHARS = 5500;
 
-const SUPPORTED_TL = new Set(['zh-TW', 'zh-CN', 'en', 'ja', 'ko', 'es', 'fr', 'de']);
+const SUPPORTED_TL = new Set(TARGET_LANGUAGES);
 
 const RETRY_SKIP_THRESHOLD = 20;
 const RETRY_DELAY_MS = 150;
-
-function _sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 function _normalizeTl(targetLanguage) {
   return SUPPORTED_TL.has(targetLanguage) ? targetLanguage : 'zh-TW';
@@ -152,7 +150,7 @@ export async function translateGoogleBatch(texts, targetLanguage = 'zh-TW') {
         }
       } catch (_) {
       }
-      if (ri < needsRetry.length - 1) await _sleep(RETRY_DELAY_MS);
+      if (ri < needsRetry.length - 1) await sleep(RETRY_DELAY_MS);
     }
     await debugLog('info', 'api', 'google batch retry done', {
       attempted: needsRetry.length,

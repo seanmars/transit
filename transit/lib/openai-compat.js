@@ -10,7 +10,7 @@ import {
 
 const DEFAULT_FETCH_TIMEOUT_MS = 90_000;
 
-function resolveChatCompletionsUrl(baseUrl) {
+export function resolveChatCompletionsUrl(baseUrl) {
   if (!baseUrl) throw codedError('baseUrlMissing', null, 'customProvider.baseUrl 未設定');
   const trimmed = String(baseUrl).trim().replace(/\/+$/, '');
   if (/\/chat\/completions$/.test(trimmed)) return trimmed;

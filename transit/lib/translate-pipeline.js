@@ -1,4 +1,5 @@
 import { computeBilling } from './billing.js';
+import { emptyUsage } from './llm-common.js';
 
 export function createTranslatePipeline(deps) {
   const {
@@ -85,7 +86,7 @@ export function createTranslatePipeline(deps) {
     const { missingTexts, missingIdxs, cached, cacheHits, cacheKeySuffix, glossary, fixedGlossaryEntries, forbiddenTermsList } = prep;
 
     let fresh = [];
-    let batchUsage = { inputTokens: 0, outputTokens: 0, cachedTokens: 0 };
+    let batchUsage = emptyUsage();
     let hadMismatch = false;
     if (missingTexts.length) {
       const t0 = Date.now();
