@@ -26,7 +26,8 @@ jobs:
         run: node tools/build/check.mjs --tag "${{ steps.version.outputs.VERSION }}"
 
       - name: Zip transit folder (Chrome)
-        run: zip -r "transit-chrome-${{ steps.version.outputs.VERSION }}.zip" transit/
+        working-directory: transit
+        run: zip -r "../transit-chrome-${{ steps.version.outputs.VERSION }}.zip" . -x '.*' '*/.*'
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
