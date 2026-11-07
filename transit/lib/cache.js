@@ -286,9 +286,17 @@ export async function setScanRenderings(inputHash, renderings) {
 
 export { hashText };
 
+// 只讀取 key 清單. 不支援 getKeys 時退回讀取全部內容.
+async function _localKeys() {
+  const area = browser.storage.local;
+  if (typeof area.getKeys === 'function') {
+    try { return await area.getKeys(); } catch (_) {}
+  }
+  return Object.keys(await area.get(null));
+}
+
 export async function clearAll() {
-  const all = await browser.storage.local.get(null);
-  const toRemove = Object.keys(all).filter(k => k.startsWith(KEY_PREFIX) || k.startsWith(GLOSSARY_PREFIX) || k.startsWith(SCAN_PREFIX));
+  const toRemove = (await _localKeys()).filter(k => k.startsWith(KEY_PREFIX) || k.startsWith(GLOSSARY_PREFIX) || k.startsWith(SCAN_PREFIX));
   if (toRemove.length) {
     await browser.storage.local.remove(toRemove);
   }
@@ -330,8 +338,7 @@ export async function stats() {
 }
 
 export async function clearDocTranslationCache() {
-  const all = await browser.storage.local.get(null);
-  const docKeys = Object.keys(all).filter((k) =>
+  const docKeys = (await _localKeys()).filter((k) =>
     /^tc_[0-9a-f]{40}(?:_oc)?_doc(?:_|$)/.test(k) || k.startsWith('bookgloss_'));
   if (docKeys.length > 0) {
     await browser.storage.local.remove(docKeys);
