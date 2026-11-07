@@ -436,6 +436,9 @@ if (window.__transit_loaded) {
 
   SK.TRANSLATION_WRAPPER_TAG = 'transit-translation';
 
+  // 雙語模式下譯文 wrapper 放在原文元素內部 (append) 的標籤; 其餘標籤放在原文元素後面.
+  SK.DUAL_APPEND_TAGS = new Set(['LI', 'TD', 'TH', 'CAPTION']);
+
   // 只比對不在譯文 wrapper 內的元素, 避免 wrapper 內部的 div 被當成原文的子區塊.
   const _outsideWrapper = (selector) => selector.split(',')
     .map((s) => `${s}:not(${SK.TRANSLATION_WRAPPER_TAG} *)`).join(',');

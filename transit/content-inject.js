@@ -690,7 +690,7 @@
     let innerTag;
     if (/^H[1-6]$/.test(originalTag)) {
       innerTag = 'div';
-    } else if (originalTag === 'LI' || originalTag === 'TD' || originalTag === 'TH') {
+    } else if (SK.DUAL_APPEND_TAGS.has(originalTag)) {
       innerTag = 'div';
     } else if (originalTag === 'PRE') {
       innerTag = 'div';
@@ -742,7 +742,7 @@
     const wrapperTagUpper = SK.TRANSLATION_WRAPPER_TAG.toUpperCase();
     const winDoc = original.ownerDocument;
     let candidate = null;
-    if (tag === 'LI' || tag === 'TD' || tag === 'TH') {
+    if (SK.DUAL_APPEND_TAGS.has(tag)) {
       candidate = original.lastElementChild;
     } else if (
       SK.BLOCK_TAGS_SET.has(tag) ||
@@ -827,6 +827,18 @@
   }
   SK._neutralizeInheritedFlip = neutralizeInheritedFlip;
 
+  // append 模式的 wrapper 在表格內是 fit-content 寬度, 用 margin 對齊原文的 text-align.
+  function applyAppendAlignment(wrapper, cs) {
+    const align = cs.textAlign;
+    if (align === 'center' || align === '-webkit-center') {
+      wrapper.style.marginLeft = 'auto';
+      wrapper.style.marginRight = 'auto';
+    } else if (align === 'right' || align === '-webkit-right'
+        || (align === 'end' && cs.direction !== 'rtl')) {
+      wrapper.style.marginLeft = 'auto';
+    }
+  }
+
   SK.injectDual = function injectDual(unit, translation, slots) {
     if (!translation) return;
     if (unit.kind === 'fragment') {
@@ -878,7 +890,7 @@
       return;
     }
 
-    const NUMERIC_METRIC_RE = /^[\d.\s,KMB%+\-]+$/;
+    const NUMERIC_METRIC_RE = /^[\d.\s,KMB%+\-~〜～≈×/<>]+$/;
     if (originalText.length > 0 && originalText.length < 30 && NUMERIC_METRIC_RE.test(originalText)) {
       original.setAttribute('data-transit-dual-source', '1');
       return;
@@ -909,24 +921,25 @@
     const winLayout = original.ownerDocument?.defaultView;
     const csLayout = winLayout?.getComputedStyle?.(original);
     const isNonZero = (v) => v && v !== '0px';
-    if (csLayout) {
+    const isAppendMode = SK.DUAL_APPEND_TAGS.has(tag);
+    if (csLayout && isAppendMode) {
+      // wrapper 在原文元素內部, 已經吃到原文元素的 padding, 不再複製 margin / padding.
+      applyAppendAlignment(wrapper, csLayout);
+    } else if (csLayout) {
       if (isNonZero(csLayout.marginLeft))   wrapper.style.marginLeft   = csLayout.marginLeft;
       if (isNonZero(csLayout.marginRight))  wrapper.style.marginRight  = csLayout.marginRight;
       if (isNonZero(csLayout.paddingLeft))  wrapper.style.paddingLeft  = csLayout.paddingLeft;
       if (isNonZero(csLayout.paddingRight)) wrapper.style.paddingRight = csLayout.paddingRight;
       if (csLayout.maxWidth && csLayout.maxWidth !== 'none') wrapper.style.maxWidth = csLayout.maxWidth;
 
-      const isAppendMode = (tag === 'LI' || tag === 'TD' || tag === 'TH');
-      if (!isAppendMode) {
-        const pb = parseFloat(csLayout.paddingBottom) || 0;
-        const mb = parseFloat(csLayout.marginBottom)  || 0;
-        if (pb > 0) wrapper.style.marginTop = `-${pb}px`;
-        if (pb + mb > 0) wrapper.style.marginBottom = `${pb + mb}px`;
-      }
+      const pb = parseFloat(csLayout.paddingBottom) || 0;
+      const mb = parseFloat(csLayout.marginBottom)  || 0;
+      if (pb > 0) wrapper.style.marginTop = `-${pb}px`;
+      if (pb + mb > 0) wrapper.style.marginBottom = `${pb + mb}px`;
     }
 
     let insertMode;
-    if (tag === 'LI' || tag === 'TD' || tag === 'TH') {
+    if (isAppendMode) {
       original.appendChild(wrapper);
       insertMode = 'append';
     } else if (
@@ -1340,6 +1353,7 @@
     style.id = 'transit-dual-style';
     style.textContent =
       `${tag} { display: block; margin-top: 0.5em; margin-bottom: 0.5em; box-sizing: border-box; }\n` +
+      `:is(td, th, caption) > ${tag} { width: fit-content; max-width: 100%; margin-top: 0.25em; margin-bottom: 0; }\n` +
       `${tag}[data-sk-mark="tint"]   { background-color: #FFF8E1; padding: 4px 8px; border-radius: 4px; }\n` +
       `${tag}[data-sk-mark="bar"]    { border-left: 3px solid #9CA3AF; padding-left: 8px; }\n` +
       `${tag}[data-sk-mark="dashed"] { text-decoration: underline wavy #C7CDD3; text-decoration-thickness: 1px; text-underline-offset: 4px; }\n` +
