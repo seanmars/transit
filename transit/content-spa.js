@@ -787,11 +787,16 @@
       if (el.getAttribute?.('contenteditable') === 'true') continue;
       const origText = STATE.originalText.get(el);
       if (!origText) continue;
-      const currentText = (el.textContent || '').trim();
+      const info = STATE.translationCache.get(el);
+      // append 模式的 wrapper 在 el 內部, 譯文不算原文內容的增加.
+      let currentText = el.textContent || '';
+      if (info?.wrapper && el.contains(info.wrapper)) {
+        currentText = currentText.replace(info.wrapper.textContent || '', '');
+      }
+      currentText = currentText.trim();
       if (currentText.length <= origText.length * 1.5) continue;
       if (!currentText.startsWith(origText)) continue;
 
-      const info = STATE.translationCache.get(el);
       if (info?.wrapper) {
         try { info.wrapper.remove(); } catch (_) {}
       }
