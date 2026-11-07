@@ -183,13 +183,18 @@ function pushSentenceChunks(out, line) {
   flush();
 }
 
+export function makeOffsets(lines) {
+  const offsets = new Array(lines.length + 1);
+  offsets[0] = 0;
+  for (let i = 0; i < lines.length; i++) offsets[i + 1] = offsets[i] + lines[i].length + 1;
+  return offsets;
+}
+
 export function parseMdStructure(text) {
   const segments = [];
   const chapterBreaks = [];
   const lines = text.split('\n');
-  const offsets = new Array(lines.length + 1);
-  offsets[0] = 0;
-  for (let i = 0; i < lines.length; i++) offsets[i + 1] = offsets[i] + lines[i].length + 1;
+  const offsets = makeOffsets(lines);
   const clamp = (o) => Math.min(text.length, o);
   const lineSpan = (a, b) => text.slice(offsets[a], clamp(offsets[b] - 1));
 
@@ -530,7 +535,7 @@ export function applyGlossaryAnnotationCleanup(doc, glossary) {
 
 export function parseGlossaryCsv(text) {
   if (typeof text !== 'string' || !text) return null;
-  const s = text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text;
+  const s = stripBom(text).text;
   const rows = [];
   let field = '';
   let row = [];

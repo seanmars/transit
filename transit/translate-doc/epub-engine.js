@@ -51,13 +51,13 @@ export function getSerializerSK() {
   return SK;
 }
 
-function parseXml(text, mime) {
+export function parseXml(text, mime) {
   const doc = new DOMParser().parseFromString(text, mime);
   if (doc.getElementsByTagName('parsererror').length > 0) return null;
   return doc;
 }
 
-function decodeEntryText(u8) {
+export function decodeEntryText(u8) {
   let text = window.fflate.strFromU8(u8);
   if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   return text;

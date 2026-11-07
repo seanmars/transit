@@ -1,4 +1,5 @@
 import { resolveBlockFragment } from './block-output.js';
+import { parseXml } from './epub-engine.js';
 
 const XML_SER = new XMLSerializer();
 const XML_DECL = '<?xml version="1.0" encoding="utf-8"?>\n';
@@ -265,8 +266,8 @@ function serializeChapter(ch) {
 }
 
 function buildUpdatedOpf(opfText, targetLanguage, { upgradeTo3 = false, navFilename = null } = {}) {
-  const doc = new DOMParser().parseFromString(opfText, 'application/xml');
-  if (doc.getElementsByTagName('parsererror').length > 0) return null;
+  const doc = parseXml(opfText, 'application/xml');
+  if (!doc) return null;
   const OPF_NS = 'http://www.idpf.org/2007/opf';
 
   if (targetLanguage) {
@@ -318,8 +319,8 @@ function buildUpdatedOpf(opfText, targetLanguage, { upgradeTo3 = false, navFilen
 }
 
 function opfHasNavItem(opfText) {
-  const doc = new DOMParser().parseFromString(opfText, 'application/xml');
-  if (doc.getElementsByTagName('parsererror').length > 0) return false;
+  const doc = parseXml(opfText, 'application/xml');
+  if (!doc) return false;
   for (const item of doc.getElementsByTagNameNS('*', 'item')) {
     if ((item.getAttribute('properties') || '').split(/\s+/).includes('nav')) return true;
   }

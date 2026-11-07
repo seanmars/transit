@@ -1,5 +1,6 @@
-import { collectChapterBlocks, getSerializerSK, EPUB_LIMITS, HAS_LETTER_RE } from './epub-engine.js';
+import { collectChapterBlocks, getSerializerSK, EPUB_LIMITS, HAS_LETTER_RE, decodeEntryText } from './epub-engine.js';
 import { resolveBlockFragment } from './block-output.js';
+import { isPrecompressedMediaPath } from './epub-writer.js';
 
 export class DocxParseError extends Error {
   constructor(code, message) {
@@ -430,13 +431,7 @@ export async function parseDocxFile(file, onProgress = () => {}, opts = {}) {
   }
   if (!entries['word/document.xml']) throw new DocxParseError('no-document');
 
-  const readPart = (path) => {
-    const u8 = entries[path];
-    if (!u8) return null;
-    let text = window.fflate.strFromU8(u8);
-    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-    return text;
-  };
+  const readPart = (path) => (entries[path] ? decodeEntryText(entries[path]) : null);
 
   const partPaths = ['word/document.xml'];
   const names = Object.keys(entries);
@@ -708,8 +703,6 @@ function buildParagraphHtml(htmlDoc, para, groups, rels, paraIdx) {
   return el;
 }
 
-const PRECOMPRESSED_MEDIA_RE = /\.(?:png|jpe?g|gif|webp|avif|bmp|tiff?|ico|ttf|otf|woff2?|eot|mp3|m4a|aac|ogg|oga|wav|mp4|m4v|webm|ogv|zip|jar|gz|br|pdf)$/i;
-
 function countParaEls(htmlDoc) {
   return htmlDoc.body.querySelectorAll('[data-sk-docx-para]').length;
 }
@@ -734,7 +727,7 @@ export function buildTranslatedDocx(doc, targetLanguage, { bilingual = false, de
   }
 
   const outEntries = {};
-  for (const [path, u8] of Object.entries(doc.docxEntries)) outEntries[path] = PRECOMPRESSED_MEDIA_RE.test(path) ? [u8, { level: 0 }] : u8;
+  for (const [path, u8] of Object.entries(doc.docxEntries)) outEntries[path] = isPrecompressedMediaPath(path) ? [u8, { level: 0 }] : u8;
   for (const [path, edits] of editsByPart) {
     const xml = doc.docxPartsXml.get(path);
     outEntries[path] = window.fflate.strToU8(spliceEdits(xml, edits));

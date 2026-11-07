@@ -1,6 +1,6 @@
 import {
   DocFileParseError, HAS_LETTER_RE, normalizeEol, stripBom, decodeTextFile,
-  assembleTextDoc, blockOutputText,
+  assembleTextDoc, blockOutputText, makeOffsets,
 } from './doc-file-engine.js';
 import SUBTITLE_PROMPT_HINT_ZH from '../prompts/subtitle-file-hint-zh.js';
 import SUBTITLE_PROMPT_HINT_EN from '../prompts/subtitle-file-hint-universal.js';
@@ -131,13 +131,6 @@ export function fixCjkSpacingAroundPlaceholders(raw, fixFn) {
     prevChar = parts[i].slice(-1);
   }
   return { text: parts.join(''), count };
-}
-
-function makeOffsets(lines) {
-  const offsets = new Array(lines.length + 1);
-  offsets[0] = 0;
-  for (let i = 0; i < lines.length; i++) offsets[i + 1] = offsets[i] + lines[i].length + 1;
-  return offsets;
 }
 
 function pushCueSegment(segments, src, format) {

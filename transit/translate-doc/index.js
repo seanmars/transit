@@ -1,6 +1,6 @@
 import { parsePdf, preflightFile, renderPageToCanvas, closeDocument, PdfParseError } from './pdf-engine.js';
 import { analyzeLayout } from './layout-analyzer.js';
-import { translateDocument, segmentsToMarkdown, markdownToSegments, collectGlossaryInputParts, clearTcCacheForTexts, stripPlaceholderTokens } from './translate.js';
+import { translateDocument, segmentsToMarkdown, markdownToSegments, collectGlossaryInputParts, clearTcCacheForTexts, stripPlaceholderTokens, sha1Hex } from './translate.js';
 import { TRANSLATABLE_TYPES } from './block-types.js';
 import { renderReader, buildPlainTextDump } from './reader.js';
 import { downloadBilingualPdf, buildBilingualPdf } from './pdf-renderer.js';
@@ -700,7 +700,7 @@ async function extractGlossaryForDoc(doc, { forceRefresh = false } = {}) {
     console.log('[Transit] glossary skipped (text too short)', { chars: compressedText.length });
     return null;
   }
-  const inputHash = await sha1(compressedText);
+  const inputHash = await sha1Hex(compressedText);
   console.log('[Transit] glossary extracting', { chars: compressedText.length, hash: inputHash.slice(0, 8) });
   const presetModel = currentModelOverride || (await resolveDocEngine()).modelOverride || null;
   try {
@@ -721,12 +721,6 @@ async function extractGlossaryForDoc(doc, { forceRefresh = false } = {}) {
     console.warn('[Transit] glossary extract failed', err && err.message);
     return null;
   }
-}
-
-async function sha1(text) {
-  const buf = new TextEncoder().encode(text);
-  const hash = await crypto.subtle.digest('SHA-1', buf);
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 // 文件翻譯只用 LLM: translateDoc.engine 是 gemini 或 openai-compat (由 getSettings 正規化)
@@ -874,28 +868,13 @@ async function clearCurrentDocCache() {
     }
   }
   if (segTexts.length === 0) return { removedKeyCount: 0, translatableSegmentCount: 0 };
-  const prefixes = await Promise.all(
-    segTexts.map(async (s) => 'tc_' + (await sha1(s.text))),
-  );
-  const prefixSet = new Set(prefixes);
-  const allKeys = (typeof chrome.storage.local.getKeys === 'function')
-    ? await chrome.storage.local.getKeys()
-    : Object.keys(await chrome.storage.local.get(null));
-  const matchedKeys = [];
-  for (const key of allKeys) {
-    if (!key.startsWith('tc_')) continue;
-    const prefix = key.slice(0, 43);
-    if (prefixSet.has(prefix)) matchedKeys.push(key);
-  }
-  if (matchedKeys.length > 0) {
-    await chrome.storage.local.remove(matchedKeys);
-  }
+  const removedKeyCount = await clearTcCacheForTexts(segTexts.map((s) => s.text));
   for (const { block } of segTexts) {
     block.translation = undefined;
     block.translationStatus = undefined;
     block.translationError = undefined;
   }
-  return { removedKeyCount: matchedKeys.length, translatableSegmentCount: segTexts.length };
+  return { removedKeyCount, translatableSegmentCount: segTexts.length };
 }
 
 function bindSummaryDialogUI() {
@@ -2192,7 +2171,7 @@ async function handleBookFile(file, kind, subtitleFormat = null) {
     currentDoc = doc;
     window.__skEpubDoc = doc;
 
-    epubBookHash = await sha1(
+    epubBookHash = await sha1Hex(
       doc.chapters.map((c) => c.blocks.map((b) => b.plainText).join('\n')).join('\n'));
     if (myGen !== parseGeneration) return;
 
@@ -2963,7 +2942,7 @@ async function runConsistencyScan(doc) {
   const collected = [];
   for (const batch of batches) {
     if (gen !== epubScanGen || currentDoc !== doc) return;
-    const inputHash = await sha1(JSON.stringify(batch.items) + '#skscan-v1');
+    const inputHash = await sha1Hex(JSON.stringify(batch.items) + '#skscan-v1');
     let res;
     try {
       res = await chrome.runtime.sendMessage({
@@ -3778,7 +3757,7 @@ const BOOK_GLOSSARY_SUFFIX_EN = `Additional rules (book mode): the input is part
 5. Also include recurring place names, organizations, and in-world proper nouns (magic terms, technologies, titles).`;
 
 function bookGlossaryRoundHash(text) {
-  return sha1(text + '\n#transit-book-glossary-v4');
+  return sha1Hex(text + '\n#transit-book-glossary-v4');
 }
 
 async function clearBookGlossaryExtractionCache(doc) {
