@@ -742,8 +742,9 @@
     const wrapperTagUpper = SK.TRANSLATION_WRAPPER_TAG.toUpperCase();
     const winDoc = original.ownerDocument;
     let candidate = null;
-    if (SK.DUAL_APPEND_TAGS.has(tag)) {
-      candidate = original.lastElementChild;
+    const last = original.lastElementChild;
+    if (SK.DUAL_APPEND_TAGS.has(tag) || last?.hasAttribute?.('data-sk-inline')) {
+      candidate = last;
     } else if (
       SK.BLOCK_TAGS_SET.has(tag) ||
       tag === 'DIV' || tag === 'SECTION' || tag === 'ARTICLE' || tag === 'MAIN' || tag === 'ASIDE'
@@ -826,6 +827,33 @@
     wrapper.style.transform = parts.join(' ');
   }
   SK._neutralizeInheritedFlip = neutralizeInheritedFlip;
+
+  // wrapper 用 afterend 插入時, 會成為哪個元素的下一個兄弟. 與 injectDual 的插入規則一致.
+  function afterendAnchor(original, tag) {
+    if (SK.BLOCK_TAGS_SET.has(tag) || SK.CONTAINER_TAGS.has(tag)) return original;
+    const blockAncestor = findBlockAncestor(original);
+    return (blockAncestor && blockAncestor !== original.ownerDocument.body) ? blockAncestor : original;
+  }
+
+  const INLINE_DUAL_MAX_CHARS = 40;
+
+  // 水平 flex 列 (例如 nav) 的單行短文字: afterend 的 wrapper 會變成並排的 flex item 被擠成直排,
+  // 改成把譯文 inline 接在原文後面. 其他版面維持原本的插入方式.
+  function shouldInlineInFlexRow(original, tag, originalText) {
+    if (!originalText || originalText.length > INLINE_DUAL_MAX_CHARS) return false;
+    const parent = afterendAnchor(original, tag).parentElement;
+    const win = original.ownerDocument?.defaultView;
+    if (!parent || !win) return false;
+    const pcs = win.getComputedStyle(parent);
+    if (pcs.display !== 'flex' && pcs.display !== 'inline-flex') return false;
+    if (!pcs.flexDirection.startsWith('row')) return false;
+    const cs = win.getComputedStyle(original);
+    const lineHeight = parseFloat(cs.lineHeight) || (parseFloat(cs.fontSize) || 16) * 1.2;
+    const contentHeight = original.getBoundingClientRect().height
+      - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0)
+      - (parseFloat(cs.borderTopWidth) || 0) - (parseFloat(cs.borderBottomWidth) || 0);
+    return contentHeight > 0 && contentHeight < lineHeight * 1.6;
+  }
 
   // append 模式的 wrapper 在表格內是 fit-content 寬度, 用 margin 對齊原文的 text-align.
   function applyAppendAlignment(wrapper, cs) {
@@ -921,8 +949,12 @@
     const winLayout = original.ownerDocument?.defaultView;
     const csLayout = winLayout?.getComputedStyle?.(original);
     const isNonZero = (v) => v && v !== '0px';
-    const isAppendMode = SK.DUAL_APPEND_TAGS.has(tag);
-    if (csLayout && isAppendMode) {
+    const isInlineMode = !SK.DUAL_APPEND_TAGS.has(tag) && shouldInlineInFlexRow(original, tag, originalText);
+    const isAppendMode = SK.DUAL_APPEND_TAGS.has(tag) || isInlineMode;
+    if (isInlineMode) {
+      wrapper.setAttribute('data-sk-inline', '');
+      inner.style.display = 'inline';
+    } else if (csLayout && isAppendMode) {
       // wrapper 在原文元素內部, 已經吃到原文元素的 padding, 不再複製 margin / padding.
       applyAppendAlignment(wrapper, csLayout);
     } else if (csLayout) {
@@ -1354,6 +1386,8 @@
     style.textContent =
       `${tag} { display: block; margin-top: 0.5em; margin-bottom: 0.5em; box-sizing: border-box; }\n` +
       `:is(td, th, caption) > ${tag} { width: fit-content; max-width: 100%; margin-top: 0.25em; margin-bottom: 0; }\n` +
+      `${tag}[data-sk-inline] { display: inline; margin: 0 0 0 0.35em; white-space: nowrap; }\n` +
+      `${tag}[data-sk-inline][data-sk-mark="tint"] { padding: 0 4px; }\n` +
       `${tag}[data-sk-mark="tint"]   { background-color: #FFF8E1; padding: 4px 8px; border-radius: 4px; }\n` +
       `${tag}[data-sk-mark="bar"]    { border-left: 3px solid #9CA3AF; padding-left: 8px; }\n` +
       `${tag}[data-sk-mark="dashed"] { text-decoration: underline wavy #C7CDD3; text-decoration-thickness: 1px; text-underline-offset: 4px; }\n` +
