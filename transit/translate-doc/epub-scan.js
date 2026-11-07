@@ -19,7 +19,7 @@ function sourceHasTerm(text, term) {
   return compileTermMatcher(term)(text);
 }
 
-export { sourceHasTerm };
+export { sourceHasTerm, compileTermMatcher };
 
 const CJK_EDGE_RE = /[㐀-鿿豈-﫿]/;
 const LATIN_EDGE_RE = /[A-Za-z0-9]/;

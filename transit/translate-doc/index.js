@@ -14,7 +14,7 @@ import {
 import { buildTranslatedEpub, translatedEpubFilename, computeAnnotationDedupe } from './epub-writer.js';
 import { resolveBlockFragment } from './block-output.js';
 import {
-  checkGlossaryCompliance, mineCandidates, buildScanBatches, aggregateRenderings, sourceHasTerm,
+  checkGlossaryCompliance, mineCandidates, buildScanBatches, aggregateRenderings, compileTermMatcher,
   replaceTermInText, addCjkLatinSpacing,
 } from './epub-scan.js';
 import {
@@ -3524,10 +3524,11 @@ function customComplianceReplace(group, term, statusEl) {
   let blocks = 0;
   const chapters = new Set();
   const blockRefs = [];
+  const hasSource = compileTermMatcher(group.source);
   for (const ch of currentDoc.chapters) {
     for (const b of ch.blocks) {
       if (b.translationStatus !== 'done') continue;
-      if (typeof b.plainText !== 'string' || !sourceHasTerm(b.plainText, group.source)) continue;
+      if (typeof b.plainText !== 'string' || !hasSource(b.plainText)) continue;
       const el = renderBlockForScanEdit(b, SK);
       if (!el) continue;
       const blockHits = replaceInTextNodes(el, term, group.expected);
@@ -3586,10 +3587,11 @@ function applyScanCase(scCase, keep) {
   let hits = 0;
   let blocks = 0;
   const undo = [];
+  const hasTerm = compileTermMatcher(scCase.term);
   for (const ch of currentDoc.chapters) {
     for (const b of ch.blocks) {
       if (b.translationStatus !== 'done') continue;
-      if (typeof b.plainText !== 'string' || !sourceHasTerm(b.plainText, scCase.term)) continue;
+      if (typeof b.plainText !== 'string' || !hasTerm(b.plainText)) continue;
       const el = renderBlockForScanEdit(b, SK);
       if (!el) continue;
       const prevEditedHtml = (typeof b.editedHtml === 'string' && b.editedHtml.length > 0) ? b.editedHtml : null;

@@ -480,41 +480,56 @@ export function translatedDocFilename(originalName, kind) {
 
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-function sourceHasOwnAnnotation(plainText, source) {
-  if (typeof plainText !== 'string' || !plainText) return false;
-  const src = escapeRe(source);
-  return new RegExp(`${src}\\s*[（(]|[（(]\\s*${src}\\s*[）)]`, 'i').test(plainText);
+// 每個詞條只編譯一次: ownAnnotationRe 判斷原文是否自帶註記, stripRe 移除譯文中的 "譯名(原文)".
+function compileAnnotationRules(glossary) {
+  const rules = [];
+  for (const e of glossary) {
+    if (!e || typeof e.source !== 'string' || typeof e.target !== 'string') continue;
+    const target = e.target.trim();
+    const source = e.source.trim();
+    if (!target || !source || /[（(]/.test(target)) continue;
+    const src = escapeRe(source);
+    rules.push({
+      ownAnnotationRe: new RegExp(`${src}\\s*[（(]|[（(]\\s*${src}\\s*[）)]`, 'i'),
+      stripRe: new RegExp(`(${escapeRe(target)})((?:\u27E6\\/?\\d+\u27E7)*)[ \u3000]?[（(]\\s*${src}\\s*[）)]`, 'gi'),
+    });
+  }
+  return rules;
+}
+
+function rulesForPlainText(rules, plainText) {
+  if (typeof plainText !== 'string' || !plainText) return rules;
+  return rules.filter((r) => !r.ownAnnotationRe.test(plainText));
+}
+
+function stripWithRules(text, rules) {
+  if (typeof text !== 'string' || !text || rules.length === 0) return { text: text || '', count: 0 };
+  let out = text;
+  let count = 0;
+  for (const { stripRe } of rules) {
+    out = out.replace(stripRe, (_m, t, tokens) => { count++; return t + tokens; });
+  }
+  return { text: out, count };
 }
 
 export function stripGlossaryAnnotations(text, glossary, plainText = '') {
   if (typeof text !== 'string' || !text || !Array.isArray(glossary) || glossary.length === 0) {
     return { text: text || '', count: 0 };
   }
-  let out = text;
-  let count = 0;
-  for (const e of glossary) {
-    if (!e || typeof e.source !== 'string' || typeof e.target !== 'string') continue;
-    const target = e.target.trim();
-    const source = e.source.trim();
-    if (!target || !source || /[（(]/.test(target)) continue;
-    if (sourceHasOwnAnnotation(plainText, source)) continue;
-    const re = new RegExp(`(${escapeRe(target)})((?:\u27E6\\/?\\d+\u27E7)*)[ \u3000]?[（(]\\s*${escapeRe(source)}\\s*[）)]`, 'gi');
-    out = out.replace(re, (_m, t, tokens) => { count++; return t + tokens; });
-  }
-  return { text: out, count };
+  return stripWithRules(text, rulesForPlainText(compileAnnotationRules(glossary), plainText));
 }
 
 export function applyGlossaryAnnotationCleanup(doc, glossary) {
   if (!doc || !Array.isArray(doc.chapters) || !Array.isArray(glossary) || glossary.length === 0) return 0;
+  const allRules = compileAnnotationRules(glossary);
   let total = 0;
   for (const ch of doc.chapters) {
     for (const b of ch.blocks) {
       if (b.translationStatus !== 'done') continue;
       if (typeof b.editedHtml === 'string' && b.editedHtml.length > 0) continue;
-      const rawRes = typeof b.translationRaw === 'string'
-        ? stripGlossaryAnnotations(b.translationRaw, glossary, b.plainText) : null;
-      const plainRes = typeof b.translation === 'string'
-        ? stripGlossaryAnnotations(b.translation, glossary, b.plainText) : null;
+      const rules = rulesForPlainText(allRules, b.plainText);
+      const rawRes = typeof b.translationRaw === 'string' ? stripWithRules(b.translationRaw, rules) : null;
+      const plainRes = typeof b.translation === 'string' ? stripWithRules(b.translation, rules) : null;
       if (rawRes && plainRes) {
         if (rawRes.count > 0) {
           b.translationRaw = rawRes.text;

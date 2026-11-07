@@ -84,11 +84,23 @@ export function scanLeafParagraphSpans(xml) {
   return spans;
 }
 
+// 每個 tagName 只編譯一次. findElementEnd 每次使用前都會重設 lastIndex, 所以可以共用.
+const _elementBoundaryReCache = new Map();
+function elementBoundaryRe(tagName) {
+  let re = _elementBoundaryReCache.get(tagName);
+  if (!re) {
+    const tag = tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    re = new RegExp('<' + tag + '(?=[\\s>/])|</' + tag + '>', 'g');
+    _elementBoundaryReCache.set(tagName, re);
+  }
+  return re;
+}
+
 export function findElementEnd(xml, openIdx, tagName) {
   const gt = xml.indexOf('>', openIdx);
   if (gt === -1) return { end: xml.length, selfClosing: true };
   if (xml.charCodeAt(gt - 1) === 47) return { end: gt + 1, selfClosing: true };
-  const re = new RegExp('<' + tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=[\\s>/])|</' + tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '>', 'g');
+  const re = elementBoundaryRe(tagName);
   re.lastIndex = gt + 1;
   let depth = 1;
   let m;
@@ -278,11 +290,22 @@ export function mergeRunItems(items) {
   return out;
 }
 
-const offRe = (tag) => new RegExp('<w:' + tag + '\\s[^>]*w:val="(?:false|0|none)"');
+const _rprFlagReCache = new Map();
+function rprFlagRes(tag) {
+  let res = _rprFlagReCache.get(tag);
+  if (!res) {
+    res = {
+      on: new RegExp('<w:' + tag + '(?=[\\s/>])'),
+      off: new RegExp('<w:' + tag + '\\s[^>]*w:val="(?:false|0|none)"'),
+    };
+    _rprFlagReCache.set(tag, res);
+  }
+  return res;
+}
 function rprFlag(rpr, tag) {
-  const re = new RegExp('<w:' + tag + '(?=[\\s/>])');
-  if (!re.test(rpr)) return false;
-  return !offRe(tag).test(rpr);
+  const { on, off } = rprFlagRes(tag);
+  if (!on.test(rpr)) return false;
+  return !off.test(rpr);
 }
 export function rprSemantics(rpr) {
   const vert = /<w:vertAlign\s[^>]*w:val="(superscript|subscript)"/.exec(rpr)?.[1];

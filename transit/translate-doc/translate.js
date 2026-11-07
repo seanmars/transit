@@ -442,27 +442,24 @@ export function stripTrailingSeparatorGarbage(s) {
 
 const CJK_RE = '[\\u3400-\\u9fff\\uf900-\\ufaff\\u3000-\\u303f\\uff00-\\uffef]';
 const PH_TOKEN_RE = '⟦[*\\/]?\\d+⟧';
+const PH_RUN = '((?:[ \\t]*(?:' + PH_TOKEN_RE + '))+[ \\t]*)';
+const CJK_PH_RUN_CJK_RE = new RegExp('(' + CJK_RE + ')' + PH_RUN + '(?=' + CJK_RE + ')', 'g');
+const LEADING_PH_RUN_CJK_RE = new RegExp('^' + PH_RUN + '(?=' + CJK_RE + ')');
+const CJK_PH_RUN_TRAILING_RE = new RegExp('(' + CJK_RE + ')' + PH_RUN + '$');
+const CJK_ASCII_SPACE_CJK_RE = new RegExp('(' + CJK_RE + ')[ \\t]+(?=' + CJK_RE + ')', 'g');
+
 export function collapseCjkPlaceholderSpaces(s) {
   if (typeof s !== 'string' || s.length === 0) return s;
   const strip = (run) => run.replace(/[ \t]+/g, '');
-  s = s.replace(
-    new RegExp('(' + CJK_RE + ')((?:[ \\t]*(?:' + PH_TOKEN_RE + '))+[ \\t]*)(?=' + CJK_RE + ')', 'g'),
-    (m, a, run) => a + strip(run),
-  );
-  s = s.replace(
-    new RegExp('^((?:[ \\t]*(?:' + PH_TOKEN_RE + '))+[ \\t]*)(?=' + CJK_RE + ')'),
-    (m, run) => strip(run),
-  );
-  s = s.replace(
-    new RegExp('(' + CJK_RE + ')((?:[ \\t]*(?:' + PH_TOKEN_RE + '))+[ \\t]*)$'),
-    (m, a, run) => a + strip(run),
-  );
+  s = s.replace(CJK_PH_RUN_CJK_RE, (m, a, run) => a + strip(run));
+  s = s.replace(LEADING_PH_RUN_CJK_RE, (m, run) => strip(run));
+  s = s.replace(CJK_PH_RUN_TRAILING_RE, (m, a, run) => a + strip(run));
   return s;
 }
 
 export function collapseCjkAsciiSpaces(s) {
   if (typeof s !== 'string' || s.length === 0) return s;
-  return s.replace(new RegExp('(' + CJK_RE + ')[ \\t]+(?=' + CJK_RE + ')', 'g'), '$1');
+  return s.replace(CJK_ASCII_SPACE_CJK_RE, '$1');
 }
 
 export function collapseDoubledTitleMarks(s) {
