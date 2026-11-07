@@ -140,6 +140,11 @@
     return null;
   }
 
+  // Transit 自己的 UI 與已翻譯的段落不再翻譯
+  function isSkipped(el) {
+    return !!closestComposed(el, '#transit-toast-host, #transit-floating-host, [data-transit-translated], [data-transit-dual-source], ' + SK.TRANSLATION_WRAPPER_TAG);
+  }
+
   function collectScoped(scope, target) {
     let units = [];
     try {
@@ -154,7 +159,7 @@
   function findUnitAt(x, y) {
     const target = deepElementFromPoint(x, y);
     if (!target || target === document.documentElement || target === document.body) return null;
-    if (closestComposed(target, '#transit-toast-host, #transit-floating-host, [data-transit-translated], [data-transit-dual-source], ' + SK.TRANSLATION_WRAPPER_TAG)) return null;
+    if (isSkipped(target)) return null;
     let scope = nearestBlock(target);
     for (let hop = 0; scope && hop < MAX_SCOPE_HOPS; hop++) {
       if (scope === document.body || scope === document.documentElement) break;
@@ -182,28 +187,31 @@
     };
   }
 
-  async function translateUnit(unit) {
-    const el = unit.el;
+  // source: 'hover' | 'selection', 只用於 log
+  async function translateUnits(units, source) {
     const runner = await resolveRunner();
     if (STATE.translating) return;
-    const clearPending = showPending(unit);
+    const clearPendings = units.map(showPending);
     const signal = SK.getRescanSignal();
     try {
-      const r = await runner([unit], signal);
+      const r = await runner(units, signal);
       if (signal.aborted) return;
       const done = r?.done || 0;
       const failures = r?.failures || [];
       if (done > 0) {
         STATE.hoverTranslated = true;
-        SK.sendLog?.('info', 'translate', 'hover translate done', { kind: unit.kind || 'element', tag: el?.tagName });
-      } else if (failures.length) {
-        SK.sendLog?.('warn', 'translate', 'hover translate failed', { error: failures[0]?.error });
-        SK.showToast?.('error', SK.t('toast.partialFailed', { failed: 1, total: 1 }), {
+        SK.sendLog?.('info', 'translate', `${source} translate done`, {
+          units: units.length, done, kind: units[0].kind || 'element', tag: units[0].el?.tagName,
+        });
+      }
+      if (failures.length) {
+        SK.sendLog?.('warn', 'translate', `${source} translate failed`, { error: failures[0]?.error });
+        SK.showToast?.('error', SK.t('toast.partialFailed', { failed: failures.length, total: units.length }), {
           detail: String(failures[0]?.error || '').slice(0, 120), autoHideMs: 4000,
         });
       }
     } finally {
-      clearPending();
+      for (const clear of clearPendings) clear();
     }
   }
 
@@ -239,33 +247,43 @@
     return () => { if (host && host.parentNode) host.parentNode.removeChild(host); };
   }
 
+  function canRun() {
+    if (SK.INSTANCE?.stoodDown) return false;
+    if (SK.isInstanceLeader && !SK.isInstanceLeader()) return false;
+    return !STATE.translating;
+  }
+
+  // 暫時把 translatedMode 切成懸停的顯示模式再執行 fn; 整頁沒有翻譯時才在結束後切回
+  async function withHoverDisplay(fn) {
+    if (!SK.isPageTranslated()) {
+      let settings = {};
+      try { settings = await browser.storage.sync.get(null); } catch (_) {   }
+      SK.applyTranslateDisplaySettings?.(settings);
+    }
+    if (STATE.translating) return;
+    const prevMode = STATE.translatedMode;
+    const wasTranslated = STATE.translated;
+    STATE.translatedMode = displayMode;
+    if (displayMode === 'dual') SK.ensureDualWrapperStyle?.();
+    try {
+      await fn();
+    } finally {
+      if (!STATE.translating && STATE.translated === wasTranslated && STATE.translatedMode === displayMode) {
+        STATE.translatedMode = prevMode;
+      }
+    }
+  }
+
   async function fire() {
     if (!armed || mode === 'off') return;
-    if (SK.INSTANCE?.stoodDown) return;
-    if (SK.isInstanceLeader && !SK.isInstanceLeader()) return;
-    if (STATE.translating) return;
+    if (!canRun()) return;
     if (inflight) { rerunAfter = true; return; }
-    inflight = (async () => {
-      if (!SK.isPageTranslated()) {
-        let settings = {};
-        try { settings = await browser.storage.sync.get(null); } catch (_) {   }
-        SK.applyTranslateDisplaySettings?.(settings);
-      }
-      if (!armed || STATE.translating) return;
-      const prevMode = STATE.translatedMode;
-      const wasTranslated = STATE.translated;
-      STATE.translatedMode = displayMode;
-      if (displayMode === 'dual') SK.ensureDualWrapperStyle?.();
-      try {
-        const unit = findUnitAt(lastX, lastY);
-        if (!unit) return;
-        await translateUnit(unit);
-      } finally {
-        if (!STATE.translating && STATE.translated === wasTranslated && STATE.translatedMode === displayMode) {
-          STATE.translatedMode = prevMode;
-        }
-      }
-    })().catch((err) => {
+    inflight = withHoverDisplay(async () => {
+      if (!armed) return;
+      const unit = findUnitAt(lastX, lastY);
+      if (!unit) return;
+      await translateUnits([unit], 'hover');
+    }).catch((err) => {
       SK.sendLog?.('warn', 'translate', 'hover translate error', { error: err?.message });
     }).finally(() => {
       inflight = null;
