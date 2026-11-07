@@ -18,6 +18,7 @@ import { createTranslatePipeline } from './lib/translate-pipeline.js';
 import { planStreamingPartialReuse } from './lib/stream-reuse.js';
 import { convertZhBatch, ZH_CONVERT_DIRECTIONS } from './lib/zh-convert.js';
 import './lib/domain-utils.js';
+import './lib/i18n.js';
 
 debugLog('info', 'system', 'service worker started', { version: browser.runtime.getManifest().version });
 
@@ -1605,6 +1606,41 @@ browser.commands.onCommand.addListener(async (command) => {
   browser.tabs.sendMessage(tab.id, { type: 'TOGGLE_TRANSLATE' }).catch(() => {});
 });
 
+// 右鍵選單: 選取文字後翻譯選取範圍涵蓋的段落 (content-hover.js 處理)
+const SELECTION_MENU_ID = 'transit-translate-selection';
+
+// 選單文字跟著 options 的「介面語言」(uiLanguage), 不跟瀏覽器語系
+function selectionMenuTitle(uiPref) {
+  const i18n = globalThis.__SK.i18n;
+  return i18n.t('contextMenu.translateSelection', null, i18n.getUiLanguage(uiPref || 'auto'));
+}
+
+async function setupSelectionMenu() {
+  let uiPref = null;
+  try { ({ uiLanguage: uiPref } = await browser.storage.sync.get('uiLanguage')); } catch (_) {}
+  await browser.contextMenus.removeAll();
+  browser.contextMenus.create({
+    id: SELECTION_MENU_ID,
+    title: selectionMenuTitle(uiPref),
+    contexts: ['selection'],
+  }, () => void browser.runtime.lastError);
+}
+
+browser.runtime.onStartup.addListener(() => {
+  setupSelectionMenu().catch((e) => debugLog('warn', 'system', 'context menu setup failed', { error: e.message }));
+});
+
+browser.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId !== SELECTION_MENU_ID || !tab?.id) return;
+  browser.tabs.sendMessage(tab.id, { type: 'TRANSLATE_SELECTION' }, { frameId: info.frameId ?? 0 }).catch(() => {});
+});
+
+browser.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'sync' || !changes.uiLanguage) return;
+  const title = selectionMenuTitle(changes.uiLanguage.newValue);
+  browser.contextMenus.update(SELECTION_MENU_ID, { title }).catch(() => {});
+});
+
 browser.runtime.onInstalled.addListener(async ({ reason, previousVersion }) => {
   debugLog('info', 'system', `extension ${reason}`, {
     version: browser.runtime.getManifest().version,
@@ -1619,6 +1655,12 @@ browser.runtime.onInstalled.addListener(async ({ reason, previousVersion }) => {
     }
   } catch (e) {
     debugLog('warn', 'system', 'translate engine migration failed', { error: e.message });
+  }
+
+  try {
+    await setupSelectionMenu();
+  } catch (e) {
+    debugLog('warn', 'system', 'context menu setup failed', { error: e.message });
   }
 
   const wrote = await maybeWriteWelcomeNotice({ reason, previousVersion, currentVersion });

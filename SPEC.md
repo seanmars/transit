@@ -55,6 +55,7 @@ Transit 是一款 Chrome 擴充功能，將英文（或其他外語）網頁翻�
 | Debug 工具 | ✅ | Log buffer 1000 筆 + 持久化 100 筆（跨 SW 重啟）；設定頁 Debug 分頁瀏覽 |
 | Google Docs 支援 | ✅ | 偵測編輯頁自動導向 `/mobilebasic` 閱讀版再翻譯 |
 | Gmail 郵件內容翻譯 | ✅ | `mail.google.com` 整頁翻譯只收郵件主旨與每封展開郵件的內文，Gmail 介面不翻；未開啟郵件時範圍為收件匣列表（`role="main"`）；懸停翻譯不受此範圍限制；詳見 §5 |
+| 選取翻譯（右鍵選單） | ✅ | 選取文字後按右鍵「用 Transit 翻譯選取的文字」, 就地翻譯選取範圍涵蓋的段落; 顯示方式沿用懸停翻譯; 詳見 §10.2 |
 | 自動語言偵測 | ✅ | 跳過已是目標語言的頁面；target-aware（各 target 跳對應源語言） |
 | 翻譯目標語言 | ✅ | 8 語：zh-TW / zh-CN / en / ja / ko / es / fr / de；詳見 §3.9 |
 | 自動翻譯網站 | ✅ | 網域白名單（支援萬用字元）；`autoTranslate` 總開關 |
@@ -63,7 +64,7 @@ Transit 是一款 Chrome 擴充功能，將英文（或其他外語）網頁翻�
 
 ### 2.3 明確不做
 
-滑鼠懸停顯示、原文樣式客製、輸入框翻譯、劃詞翻譯、DeepL / Yandex 等第三方付費翻譯服務、影片字幕（YouTube / Google Drive / X 除外，已支援）、延遲載入、淺色/深色主題切換。
+滑鼠懸停顯示、原文樣式客製、輸入框翻譯、劃詞翻譯（浮動卡片顯示選取字串的譯文; 選取段落的就地翻譯已支援, 見 §10.2）、DeepL / Yandex 等第三方付費翻譯服務、影片字幕（YouTube / Google Drive / X 除外，已支援）、延遲載入、淺色/深色主題切換。
 
 > 備注：已加入 Google Translate 非官方免費端點（不需 API Key，預設作為 Failback 翻譯，見 §10），同時保留 Gemini（預設的主要翻譯）。Google 官方 Cloud Translation v2 API（付費）不在支援範圍內。
 
@@ -289,7 +290,7 @@ transit/
 ├── content-x.js              # X（Twitter）影片 ASR 字幕翻譯（原生 text track 顯示）
 ├── content.js                # 主協調層（translatePage、Debug API、初始化）
 ├── content-shortcuts.js      # 自訂快速鍵 keydown capture 比對 → 本地 dispatch（§10.1）
-├── content-hover.js          # 懸停翻譯：修飾鍵 + 游標停留只翻該段（§10.2）
+├── content-hover.js          # 懸停翻譯：修飾鍵 + 游標停留只翻該段; 右鍵選單翻譯選取範圍（§10.2）
 ├── content-floating-icon.js  # 懸浮翻譯控制按鈕
 ├── content.css
 ├── background.js             # Service Worker（ES module）
@@ -561,6 +562,8 @@ Failback 規則：
 ### 10.2 懸停翻譯（桌面 / 有滑鼠的裝置）
 
 按住修飾鍵、游標停在段落上約 0.15 秒即只翻譯該段（`content-hover.js`）。設定 `hoverTranslateModifier`：`off`（預設）/ `shift` / `alt` / `ctrl`；`hoverTranslateMode`：`dual`（預設，雙語對照）/ `single`（單語覆蓋），獨立於整頁 `displayMode`，兩顆 picker 並排在 options「翻譯設定」區塊底部。譯文原地注入；引擎用主要翻譯，失敗時改用 failback（§10），整頁已翻譯時延用該次引擎。懸停雙語 + 整頁單語可混在同一頁，還原一併清掉。已翻譯段落不重翻、快取命中不計費；等待回應時該段畫虛線外框（游標所在的只是容器內一段文字時，外框只框那一段，不框整個容器），不彈進度 toast。懸停翻過幾段後按快速鍵 = 補翻整頁其餘段落（不是還原），再按一次才整頁還原（含懸停段落）。觸控裝置無 hover 事件。
+
+**右鍵選單翻譯選取範圍**: 選取文字後按右鍵選「用 Transit 翻譯選取的文字」(`contextMenus`, contexts `selection`, 選單文字跟隨 `uiLanguage`)。background 依 `info.frameId` 只送 `TRANSLATE_SELECTION` 給選取所在的 frame, 由 `content-hover.js` 處理。翻譯範圍 = 與選取範圍重疊且重疊部分有文字的段落; 只選到半段時翻整段; 三擊選取時終點落在下一段開頭不算選到下一段。顯示方式、引擎、虛線外框、`hoverTranslated` 狀態 (之後按快速鍵 = 補翻其餘段落) 都與懸停翻譯相同, 不受 `hoverTranslateModifier` 開關影響。找不到可翻譯段落時顯示 `toast.noContent`。限制: `window.getSelection()` 看不到 shadow root 內的選取。
 
 ### 10.3 首次設定（onboarding）
 

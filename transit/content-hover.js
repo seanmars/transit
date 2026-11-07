@@ -172,6 +172,64 @@
     return null;
   }
 
+  function unitRange(unit) {
+    const r = document.createRange();
+    if (unit.kind === 'fragment') {
+      r.setStartBefore(unit.startNode);
+      r.setEndAfter(unit.endNode);
+    } else {
+      r.selectNodeContents(unit.el);
+    }
+    return r;
+  }
+
+  // 用「段落與選取範圍重疊部分的文字」判斷, 三擊選取時終點落在下一段開頭 (offset 0) 不算選到下一段
+  function hasSelectedText(unit, sel) {
+    try {
+      const r = unitRange(unit);
+      if (r.compareBoundaryPoints(Range.START_TO_START, sel) < 0) r.setStart(sel.startContainer, sel.startOffset);
+      if (r.compareBoundaryPoints(Range.END_TO_END, sel) > 0) r.setEnd(sel.endContainer, sel.endOffset);
+      return !r.collapsed && r.toString().trim() !== '';
+    } catch (_) { return false; }
+  }
+
+  function findUnitsInRange(sel) {
+    const anchor = sel.commonAncestorContainer;
+    const start = anchor.nodeType === Node.ELEMENT_NODE ? anchor : anchor.parentElement;
+    if (!start) return [];
+    let scope = nearestBlock(start);
+    for (let hop = 0; scope && hop < MAX_SCOPE_HOPS; hop++) {
+      const hits = collectScoped(scope, null).filter((u) => !isSkipped(u.el) && hasSelectedText(u, sel));
+      if (hits.length) return hits;
+      if (scope === document.body || scope === document.documentElement) break;
+      const up = parentOf(scope);
+      scope = up ? nearestBlock(up) : null;
+    }
+    return [];
+  }
+
+  function currentSelectionRanges() {
+    const s = window.getSelection();
+    if (!s || s.isCollapsed) return [];
+    const ranges = [];
+    for (let i = 0; i < s.rangeCount; i++) ranges.push(s.getRangeAt(i));
+    return ranges;
+  }
+
+  function findSelectedUnits(ranges) {
+    const seen = new Set();
+    const units = [];
+    for (const r of ranges) {
+      for (const u of findUnitsInRange(r)) {
+        const key = u.kind === 'fragment' ? u.startNode : u.el;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        units.push(u);
+      }
+    }
+    return units;
+  }
+
   async function resolveRunner() {
     const ctx = STATE.translationContext;
     if (ctx && ctx.provider !== 'opencc-local') {
@@ -292,6 +350,30 @@
     return inflight;
   }
 
+  // 右鍵選單「用 Transit 翻譯選取的文字」: 翻譯選取範圍涵蓋的段落, 顯示方式沿用懸停翻譯
+  async function translateSelection() {
+    if (!canRun() || inflight) return;
+    const ranges = currentSelectionRanges();
+    if (!ranges.length) return;
+    inflight = withHoverDisplay(async () => {
+      const units = findSelectedUnits(ranges);
+      if (!units.length) {
+        SK.showToast?.('info', SK.t('toast.noContent'), { autoHideMs: 3000 });
+        return;
+      }
+      await translateUnits(units, 'selection');
+    }).catch((err) => {
+      SK.sendLog?.('warn', 'translate', 'selection translate error', { error: err?.message });
+    }).finally(() => {
+      inflight = null;
+    });
+    return inflight;
+  }
+
+  browser.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === 'TRANSLATE_SELECTION') translateSelection();
+  });
+
   let _styleDone = false;
   function ensurePendingStyle() {
     if (_styleDone || !document.head) return;
@@ -313,7 +395,9 @@
     getDisplayMode: () => displayMode,
     isArmed: () => armed,
     findUnitAt,
+    findSelectedUnits,
     fire,
+    translateSelection,
   };
   loadMode();
 })(window.__SK);
