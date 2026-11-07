@@ -1070,18 +1070,11 @@ function markDirty() {
   if (bar.classList.contains('saved') && !bar.hidden) return;
   showSaveBar('dirty', _t('options.action.dirtyBar'));
 }
-document.getElementById('tab-settings').addEventListener('input', markDirty);
-document.getElementById('tab-settings').addEventListener('change', markDirty);
-document.getElementById('tab-gemini').addEventListener('input', markDirty);
-document.getElementById('tab-gemini').addEventListener('change', markDirty);
-document.getElementById('tab-glossary').addEventListener('input', markDirty);
-document.getElementById('tab-glossary').addEventListener('change', markDirty);
-document.getElementById('tab-forbidden').addEventListener('input', markDirty);
-document.getElementById('tab-forbidden').addEventListener('change', markDirty);
-document.getElementById('tab-custom-provider').addEventListener('input', markDirty);
-document.getElementById('tab-custom-provider').addEventListener('change', markDirty);
-document.getElementById('tab-youtube').addEventListener('input', markDirty);
-document.getElementById('tab-youtube').addEventListener('change', markDirty);
+for (const id of ['tab-settings', 'tab-gemini', 'tab-glossary', 'tab-forbidden', 'tab-custom-provider', 'tab-youtube']) {
+  const tab = document.getElementById(id);
+  tab.addEventListener('input', markDirty);
+  tab.addEventListener('change', markDirty);
+}
 $('debugLog').addEventListener('change', markDirty);
 $('ytDebugToast').addEventListener('change', markDirty);
 $('ytOnTheFly').addEventListener('change', markDirty);
@@ -1314,20 +1307,16 @@ let fixedGlossary = { global: [], byDomain: {} };
 let currentDomain = '';
 
 function renderGlossaryTable(tbody, entries) {
-  const phSrc = escapeAttr(_t('options.glossary.fixed.placeholderSource'));
-  const phTgt = escapeAttr(_t('options.glossary.fixed.placeholderTarget'));
-  const delTitle = escapeAttr(_t('options.glossary.fixed.deleteRow'));
+  const phSrc = escapeHtml(_t('options.glossary.fixed.placeholderSource'));
+  const phTgt = escapeHtml(_t('options.glossary.fixed.placeholderTarget'));
+  const delTitle = escapeHtml(_t('options.glossary.fixed.deleteRow'));
   tbody.innerHTML = entries.map((e, i) =>
     `<tr data-idx="${i}">` +
-    `<td><input type="text" class="fg-source" value="${escapeAttr(e.source)}" placeholder="${phSrc}"></td>` +
-    `<td><input type="text" class="fg-target" value="${escapeAttr(e.target)}" placeholder="${phTgt}"></td>` +
+    `<td><input type="text" class="fg-source" value="${escapeHtml(e.source)}" placeholder="${phSrc}"></td>` +
+    `<td><input type="text" class="fg-target" value="${escapeHtml(e.target)}" placeholder="${phTgt}"></td>` +
     `<td class="glossary-col-action"><button class="glossary-delete-row" data-idx="${i}" title="${delTitle}">×</button></td>` +
     `</tr>`
   ).join('');
-}
-
-function escapeAttr(str) {
-  return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function readGlossaryTableEntries(tbody) {
@@ -1384,7 +1373,7 @@ function updateDomainSelect() {
   const sel = $('fixed-domain-select');
   const domains = Object.keys(fixedGlossary.byDomain).sort();
   sel.innerHTML = `<option value="" data-i18n="options.glossary.fixed.domainSelectPlaceholder">${escapeHtml(_t('options.glossary.fixed.domainSelectPlaceholder'))}</option>` +
-    domains.map(d => `<option value="${escapeAttr(d)}">${escapeHtml(domainKeyLabel(d))}</option>`).join('');
+    domains.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(domainKeyLabel(d))}</option>`).join('');
   if (currentDomain && fixedGlossary.byDomain[currentDomain]) {
     sel.value = currentDomain;
   }
@@ -1462,15 +1451,15 @@ let forbiddenTerms = [];
 
 function renderForbiddenTermsTable() {
   const tbody = $('forbidden-terms-tbody');
-  const phF = escapeAttr(_t('options.forbidden.placeholderForbidden'));
-  const phR = escapeAttr(_t('options.forbidden.placeholderReplacement'));
-  const phN = escapeAttr(_t('options.forbidden.placeholderNote'));
-  const delTitle = escapeAttr(_t('options.glossary.fixed.deleteRow'));
+  const phF = escapeHtml(_t('options.forbidden.placeholderForbidden'));
+  const phR = escapeHtml(_t('options.forbidden.placeholderReplacement'));
+  const phN = escapeHtml(_t('options.forbidden.placeholderNote'));
+  const delTitle = escapeHtml(_t('options.glossary.fixed.deleteRow'));
   tbody.innerHTML = forbiddenTerms.map((t, i) => {
-    const noteVal = escapeAttr(t.note || '');
+    const noteVal = escapeHtml(t.note || '');
     return `<tr data-idx="${i}">` +
-      `<td><input type="text" class="ft-forbidden" value="${escapeAttr(t.forbidden)}" placeholder="${phF}"></td>` +
-      `<td><input type="text" class="ft-replacement" value="${escapeAttr(t.replacement)}" placeholder="${phR}"></td>` +
+      `<td><input type="text" class="ft-forbidden" value="${escapeHtml(t.forbidden)}" placeholder="${phF}"></td>` +
+      `<td><input type="text" class="ft-replacement" value="${escapeHtml(t.replacement)}" placeholder="${phR}"></td>` +
       `<td class="ft-note-cell"><input type="text" class="ft-note" value="${noteVal}" title="${noteVal}" placeholder="${phN}"></td>` +
       `<td class="glossary-col-action"><button class="glossary-delete-row" data-idx="${i}" title="${delTitle}">×</button></td>` +
       `</tr>`;
@@ -1614,11 +1603,7 @@ function getUsageDateRange() {
 
 function fmtTime(ts) {
   const d = new Date(ts);
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mi = String(d.getMinutes()).padStart(2, '0');
-  return `${mm}/${dd} ${hh}:${mi}`;
+  return `${_pad2(d.getMonth() + 1)}/${_pad2(d.getDate())} ${_pad2(d.getHours())}:${_pad2(d.getMinutes())}`;
 }
 
 let _loadUsageDataReqId = 0;
@@ -1924,7 +1909,7 @@ function populateModelFilter() {
   sel.innerHTML = `<option value="" data-i18n="options.usage.modelAll">${escapeHtml(_t('options.usage.modelAll'))}</option>` +
     models.map(m => {
       const label = escapeHtml(modelToLabel(m));
-      return `<option value="${escapeAttr(m)}"${m === currentVal ? ' selected' : ''}>${label}</option>`;
+      return `<option value="${escapeHtml(m)}"${m === currentVal ? ' selected' : ''}>${label}</option>`;
     }).join('');
 }
 
@@ -1959,7 +1944,7 @@ function shortenUrl(url) {
 }
 
 function escapeHtml(str) {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 for (const id of ['usage-from-date', 'usage-from-hour', 'usage-from-min',
@@ -2203,10 +2188,7 @@ function renderLogTable() {
 function formatLogTime(isoStr) {
   try {
     const d = new Date(isoStr);
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-    const ss = String(d.getSeconds()).padStart(2, '0');
-    return `${hh}:${mm}:${ss}`;
+    return `${_pad2(d.getHours())}:${_pad2(d.getMinutes())}:${_pad2(d.getSeconds())}`;
   } catch {
     return '??:??:??';
   }
