@@ -308,7 +308,34 @@ async function _handleAsrSubtitleBatch(payload, sender, cacheTag, namespace) {
     { temperatureDefault: DEFAULT_SETTINGS.ytSubtitle.temperature });
 }
 
+async function _handleAsrSubtitleBatchCustom(payload, sender, cacheTag) {
+  const s = await getSettingsCached();
+  const yt = s.ytSubtitle || {};
+  const overrides = {
+    systemPrompt: getEffectiveAsrSubtitleSystemPrompt(s.targetLanguage, payload?.sourceLanguage || 'en'),
+    temperature: yt.temperature ?? 0.1,
+  };
+  return handleTranslateCustom(payload, sender, cacheTag, overrides, false, false,
+    { temperatureDefault: DEFAULT_SETTINGS.ytSubtitle.temperature });
+}
+
 const DOC_FETCH_TIMEOUT_MS = 120_000;
+
+// TRANSLATE_DOC_BATCH 與 _CUSTOM 共用的 prompt 與設定.
+function _docBatchContext(s, payload) {
+  const td = s.translateDoc || {};
+  const userPrompt = getEffectiveDocSystemPrompt(s.targetLanguage, td.systemPrompt);
+  const extraPrompt = docExtraPromptOf(payload);
+  return {
+    prompt: userPrompt
+      + (extraPrompt ? '\n\n' + extraPrompt : '')
+      + DOC_INLINE_MARKER_INSTRUCTION,
+    hasTemperature: typeof td.temperature === 'number' && Number.isFinite(td.temperature),
+    temperature: td.temperature,
+    applyFixedGlossary: td.applyFixedGlossary !== false,
+    keyExtras: { customPrompt: customPromptForKey(td.systemPrompt, getEffectiveDocSystemPrompt) },
+  };
+}
 
 const messageHandlers = {
   RELOAD_EXTENSION: {
@@ -494,48 +521,30 @@ const messageHandlers = {
     async: true,
     handler: async (payload, sender) => {
       const s = await getSettingsCached();
-      const td = s.translateDoc || {};
-      const userPrompt = getEffectiveDocSystemPrompt(s.targetLanguage, td.systemPrompt);
-      const extraPrompt = docExtraPromptOf(payload);
-      const effectivePrompt = userPrompt
-        + (extraPrompt ? '\n\n' + extraPrompt : '')
-        + DOC_INLINE_MARKER_INSTRUCTION;
-      const overrides = { systemInstruction: effectivePrompt };
+      const doc = _docBatchContext(s, payload);
+      const overrides = { systemInstruction: doc.prompt };
       overrides.fetchTimeoutMs = DOC_FETCH_TIMEOUT_MS;
       overrides.timeoutRetries = 1;
-      if (typeof td.temperature === 'number' && Number.isFinite(td.temperature)) {
-        overrides.temperature = td.temperature;
-      }
+      if (doc.hasTemperature) overrides.temperature = doc.temperature;
       if (payload?.modelOverride) overrides.model = payload.modelOverride;
-      const applyFixedGlossary = td.applyFixedGlossary !== false;
       return _withDocBatchKeepAlive(() =>
-        handleTranslate(payload, sender, overrides, null, '_doc', applyFixedGlossary, true,
-          { customPrompt: customPromptForKey(td.systemPrompt, getEffectiveDocSystemPrompt) }));
+        handleTranslate(payload, sender, overrides, null, '_doc', doc.applyFixedGlossary, true, doc.keyExtras));
     },
   },
   TRANSLATE_DOC_BATCH_CUSTOM: {
     async: true,
     handler: async (payload, sender) => {
       const s = await getSettingsCached();
-      const td = s.translateDoc || {};
-      const userPrompt = getEffectiveDocSystemPrompt(s.targetLanguage, td.systemPrompt);
-      const extraPrompt = docExtraPromptOf(payload);
-      const effectivePrompt = userPrompt
-        + (extraPrompt ? '\n\n' + extraPrompt : '')
-        + DOC_INLINE_MARKER_INSTRUCTION;
-      const overrides = { systemPrompt: effectivePrompt };
+      const doc = _docBatchContext(s, payload);
+      const overrides = { systemPrompt: doc.prompt };
       const userTimeoutSec = s.customProvider?.fetchTimeoutSec;
       overrides.fetchTimeoutSec = Math.max(
         DOC_FETCH_TIMEOUT_MS / 1000,
         (typeof userTimeoutSec === 'number' && userTimeoutSec > 0) ? userTimeoutSec : 0,
       );
-      if (typeof td.temperature === 'number' && Number.isFinite(td.temperature)) {
-        overrides.temperature = td.temperature;
-      }
-      const applyFixedGlossary = td.applyFixedGlossary !== false;
+      if (doc.hasTemperature) overrides.temperature = doc.temperature;
       return _withDocBatchKeepAlive(() =>
-        handleTranslateCustom(payload, sender, '_oc_doc', overrides, applyFixedGlossary, true,
-          { customPrompt: customPromptForKey(td.systemPrompt, getEffectiveDocSystemPrompt) }));
+        handleTranslateCustom(payload, sender, '_oc_doc', overrides, doc.applyFixedGlossary, true, doc.keyExtras));
     },
   },
   TRANSLATE_DRIVE_BATCH_GOOGLE: {
@@ -564,42 +573,15 @@ const messageHandlers = {
   },
   TRANSLATE_ASR_SUBTITLE_BATCH_CUSTOM: {
     async: true,
-    handler: async (payload, sender) => {
-      const s = await getSettingsCached();
-      const yt = s.ytSubtitle || {};
-      const overrides = {
-        systemPrompt: getEffectiveAsrSubtitleSystemPrompt(s.targetLanguage, payload?.sourceLanguage || 'en'),
-        temperature: yt.temperature ?? 0.1,
-      };
-      return handleTranslateCustom(payload, sender, '_oc_yt_asr', overrides, false, false,
-        { temperatureDefault: DEFAULT_SETTINGS.ytSubtitle.temperature });
-    },
+    handler: (payload, sender) => _handleAsrSubtitleBatchCustom(payload, sender, '_oc_yt_asr'),
   },
   TRANSLATE_DRIVE_ASR_SUBTITLE_BATCH_CUSTOM: {
     async: true,
-    handler: async (payload, sender) => {
-      const s = await getSettingsCached();
-      const yt = s.ytSubtitle || {};
-      const overrides = {
-        systemPrompt: getEffectiveAsrSubtitleSystemPrompt(s.targetLanguage, payload?.sourceLanguage || 'en'),
-        temperature: yt.temperature ?? 0.1,
-      };
-      return handleTranslateCustom(payload, sender, '_oc_drive_yt_asr', overrides, false, false,
-        { temperatureDefault: DEFAULT_SETTINGS.ytSubtitle.temperature });
-    },
+    handler: (payload, sender) => _handleAsrSubtitleBatchCustom(payload, sender, '_oc_drive_yt_asr'),
   },
   TRANSLATE_X_ASR_SUBTITLE_BATCH_CUSTOM: {
     async: true,
-    handler: async (payload, sender) => {
-      const s = await getSettingsCached();
-      const yt = s.ytSubtitle || {};
-      const overrides = {
-        systemPrompt: getEffectiveAsrSubtitleSystemPrompt(s.targetLanguage, payload?.sourceLanguage || 'en'),
-        temperature: yt.temperature ?? 0.1,
-      };
-      return handleTranslateCustom(payload, sender, '_oc_x_asr', overrides, false, false,
-        { temperatureDefault: DEFAULT_SETTINGS.ytSubtitle.temperature });
-    },
+    handler: (payload, sender) => _handleAsrSubtitleBatchCustom(payload, sender, '_oc_x_asr'),
   },
   UPDATE_NOTICE_DISMISSED: {
     async: true,
@@ -1414,6 +1396,39 @@ function resolveGlossaryModel(settings, modelOverride) {
   return override || settings.geminiConfig?.model || '';
 }
 
+function _glossaryCacheSuffix(tl) {
+  return (tl && tl !== 'zh-TW') ? '_lang' + tl.replace(/[^a-z0-9]/gi, '') : '';
+}
+
+function _glossaryPromptSuffix(payload) {
+  return (typeof payload.promptSuffix === 'string' && payload.promptSuffix.trim())
+    ? '\n\n' + payload.promptSuffix.trim().slice(0, 2000)
+    : '';
+}
+
+// 記錄 glossary 抽取的用量, 回傳 billedCostUSD. 沒有用量時不記錄, 回傳 0.
+async function _logGlossaryUsage(sender, usage, { engine, model, pricing, cachedRate }) {
+  if (!(usage.inputTokens > 0 || usage.outputTokens > 0)) return 0;
+  const { billedInputTokens, billedCostUSD } = computeBilling(usage, pricing, cachedRate);
+  await usageDB.logTranslation({
+    url: sender?.tab?.url || '',
+    title: sender?.tab?.title || '',
+    engine,
+    model,
+    inputTokens: usage.inputTokens || 0,
+    outputTokens: usage.outputTokens || 0,
+    cachedTokens: usage.cachedTokens || 0,
+    billedInputTokens,
+    billedCostUSD,
+    segments: 0,
+    cacheHits: 0,
+    durationMs: 0,
+    timestamp: Date.now(),
+    source: 'glossary',
+  });
+  return billedCostUSD;
+}
+
 async function handleExtractGlossary(payload, sender) {
   debugLog('info', 'glossary', 'glossary extraction start', { inputHash: payload.inputHash, chars: payload.compressedText?.length });
   const settings = await getSettingsCached();
@@ -1423,19 +1438,17 @@ async function handleExtractGlossary(payload, sender) {
   const { compressedText, inputHash } = payload;
 
   const tl = settings.targetLanguage;
-  const glossarySuffix = (tl && tl !== 'zh-TW') ? '_lang' + tl.replace(/[^a-z0-9]/gi, '') : '';
+  const glossarySuffix = _glossaryCacheSuffix(tl);
 
   const cached = payload.forceRefresh ? null : await cache.getGlossary(inputHash, glossarySuffix);
   if (cached) {
     debugLog('info', 'glossary', 'glossary cache hit', { inputHash, terms: cached.length });
-    return { glossary: cached, usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0 }, fromCache: true };
+    return { glossary: cached, usage: emptyUsage(), fromCache: true };
   }
 
   debugLog('info', 'glossary', 'calling Gemini');
 
-  const promptSuffix = (typeof payload.promptSuffix === 'string' && payload.promptSuffix.trim())
-    ? '\n\n' + payload.promptSuffix.trim().slice(0, 2000)
-    : '';
+  const promptSuffix = _glossaryPromptSuffix(payload);
   const effGlossaryModel = resolveGlossaryModel(settings, payload.modelOverride);
   const glossaryEffSettings = {
     ...settings,
@@ -1454,29 +1467,14 @@ async function handleExtractGlossary(payload, sender) {
     await cache.setGlossary(inputHash, glossary, glossarySuffix);
   }
 
-  let glossaryBilledCostUSD = 0;
-  if (usage.inputTokens > 0 || usage.outputTokens > 0) {
-    const glossaryModel = effGlossaryModel || 'unknown';
-    const glossaryPricing = getPricingForModel(glossaryModel, settings) || settings.pricing;
-    const { billedInputTokens, billedCostUSD } = computeBilling(usage, glossaryPricing, geminiCachedRate(glossaryPricing));
-    glossaryBilledCostUSD = billedCostUSD;
-    await usageDB.logTranslation({
-      url: sender?.tab?.url || '',
-      title: sender?.tab?.title || '',
-      engine: 'gemini',
-      model: glossaryModel,
-      inputTokens: usage.inputTokens || 0,
-      outputTokens: usage.outputTokens || 0,
-      cachedTokens: usage.cachedTokens || 0,
-      billedInputTokens,
-      billedCostUSD: glossaryBilledCostUSD,
-      segments: 0,
-      cacheHits: 0,
-      durationMs: 0,
-      timestamp: Date.now(),
-      source: 'glossary',
-    });
-  }
+  const glossaryModel = effGlossaryModel || 'unknown';
+  const glossaryPricing = getPricingForModel(glossaryModel, settings) || settings.pricing;
+  const glossaryBilledCostUSD = await _logGlossaryUsage(sender, usage, {
+    engine: 'gemini',
+    model: glossaryModel,
+    pricing: glossaryPricing,
+    cachedRate: geminiCachedRate(glossaryPricing),
+  });
 
   debugLog('info', 'glossary', 'glossary extraction complete', {
     terms: glossary.length,
@@ -1494,22 +1492,20 @@ async function handleExtractGlossaryCustomProvider(payload, sender) {
   const settings = await getSettingsCached();
   const cp = settings.customProvider || {};
   if (!cp.baseUrl) {
-    return { glossary: [], usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0 }, _diag: '尚未設定自訂 Provider 的 Base URL。' };
+    return { glossary: [], usage: emptyUsage(), _diag: '尚未設定自訂 Provider 的 Base URL。' };
   }
   const { compressedText, inputHash } = payload;
 
   const tl = settings.targetLanguage;
-  const glossarySuffix = (tl && tl !== 'zh-TW') ? '_lang' + tl.replace(/[^a-z0-9]/gi, '') : '';
+  const glossarySuffix = _glossaryCacheSuffix(tl);
 
   const cached = payload.forceRefresh ? null : await cache.getGlossary(inputHash, glossarySuffix);
   if (cached) {
     debugLog('info', 'glossary', 'openai-compat glossary cache hit', { inputHash, terms: cached.length });
-    return { glossary: cached, usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0 }, fromCache: true };
+    return { glossary: cached, usage: emptyUsage(), fromCache: true };
   }
 
-  const promptSuffix = (typeof payload.promptSuffix === 'string' && payload.promptSuffix.trim())
-    ? '\n\n' + payload.promptSuffix.trim().slice(0, 2000)
-    : '';
+  const promptSuffix = _glossaryPromptSuffix(payload);
   const glossaryEffSettings = {
     ...settings,
     glossary: { ...settings.glossary, prompt: getEffectiveGlossaryPrompt(tl, settings.glossary?.prompt) + promptSuffix },
@@ -1523,27 +1519,12 @@ async function handleExtractGlossaryCustomProvider(payload, sender) {
     await cache.setGlossary(inputHash, glossary, glossarySuffix);
   }
 
-  let glossaryBilledCostUSD = 0;
-  if (usage.inputTokens > 0 || usage.outputTokens > 0) {
-    const { billedInputTokens, billedCostUSD } = computeBilling(usage, customProviderPricing(cp), resolveCustomProviderCachedRate(cp));
-    glossaryBilledCostUSD = billedCostUSD;
-    await usageDB.logTranslation({
-      url: sender?.tab?.url || '',
-      title: sender?.tab?.title || '',
-      engine: 'openai-compat',
-      model: cp.model || '<server-default>',
-      inputTokens: usage.inputTokens || 0,
-      outputTokens: usage.outputTokens || 0,
-      cachedTokens: usage.cachedTokens || 0,
-      billedInputTokens,
-      billedCostUSD: glossaryBilledCostUSD,
-      segments: 0,
-      cacheHits: 0,
-      durationMs: 0,
-      timestamp: Date.now(),
-      source: 'glossary',
-    });
-  }
+  const glossaryBilledCostUSD = await _logGlossaryUsage(sender, usage, {
+    engine: 'openai-compat',
+    model: cp.model || '<server-default>',
+    pricing: customProviderPricing(cp),
+    cachedRate: resolveCustomProviderCachedRate(cp),
+  });
 
   debugLog('info', 'glossary', 'openai-compat glossary extraction complete', {
     terms: glossary.length, inputHash, tabUrl: sender?.tab?.url,
