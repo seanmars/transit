@@ -1117,8 +1117,14 @@
       units = SK.consolidateDualInlineUnits(units);
     }
 
+    // convertOnly 篩選時算過的 innerText (會觸發 layout) 與判斷結果, 後面重用.
+    const convertOnlyText = new Map();
     if (convertOnly) {
-      units = units.filter(u => SK.isConvertibleVariant((u.el?.innerText || '').trim(), convertDirection));
+      units = units.filter(u => {
+        const text = (u.el?.innerText || '').trim();
+        convertOnlyText.set(u, text);
+        return SK.isConvertibleVariant(text, convertDirection);
+      });
       if (units.length === 0) {
         SK.sendLog('info', 'translate', 'convertOnly: no convertible units, silent exit');
         releaseRunState(myAbortController);
@@ -1176,7 +1182,7 @@
 
     const t_preser_start = Date.now();
     const preSerialized = units.map(unit => {
-      return { text: (unit.el?.innerText || '').trim() };
+      return { text: convertOnlyText.get(unit) ?? (unit.el?.innerText || '').trim() };
     });
     const preTexts = preSerialized.map(s => s.text);
     SK.sendLog('info', 'translate', 'milestone:preserialize_done', { t: Date.now() - entryTime, dt: Date.now() - t_preser_start });
@@ -1190,8 +1196,9 @@
       if (Number.isFinite(cv) && cv >= 500) estCharsPerBatch = cv;
     }
 
+    // convertOnly 留下的 unit 都已確認可轉換.
     const _isConvertible = convertDirection
-      ? preTexts.map(t => SK.isConvertibleVariant(t, convertDirection))
+      ? units.map((u, i) => (convertOnlyText.has(u) ? true : SK.isConvertibleVariant(preTexts[i], convertDirection)))
       : null;
     const llmPreTexts = _isConvertible ? preTexts.filter((_, i) => !_isConvertible[i]) : preTexts;
 
@@ -1432,8 +1439,10 @@
         if (convertOnly && SK.shouldHideZhConvertToast?.()) {
           SK.hideToast?.();
         } else {
-        const updateNotice = await SK.maybeBuildUpdateNotice();
-        const welcomeNotice = await SK.maybeBuildWelcomeNotice();
+        const [updateNotice, welcomeNotice] = await Promise.all([
+          SK.maybeBuildUpdateNotice(),
+          SK.maybeBuildWelcomeNotice(),
+        ]);
         const action = (pmActive && pmSkippedCount > 0) ? {
           label: SK.t('toast.translateRemaining'),
           onClick: () => {
@@ -2018,8 +2027,10 @@
         const successMsg = truncatedCount > 0
           ? SK.t('toast.googleDoneTruncated', { total, truncated: truncatedCount })
           : SK.t('toast.googleDone', { total });
-        const updateNotice = await SK.maybeBuildUpdateNotice();
-        const welcomeNotice = await SK.maybeBuildWelcomeNotice();
+        const [updateNotice, welcomeNotice] = await Promise.all([
+          SK.maybeBuildUpdateNotice(),
+          SK.maybeBuildWelcomeNotice(),
+        ]);
         let detail = SK.t('toast.googleFreeDetail', { chars: chars.toLocaleString() });
         const _fbLines = SK.fallbackNoticeText(gtOptions, fallbackDone);
         if (_fbLines) detail = `${detail}\n${_fbLines}`;

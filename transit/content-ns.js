@@ -673,19 +673,26 @@ if (window.__transit_loaded) {
 
   SK.collectVisibleTextNodes = function collectVisibleTextNodes(el) {
     const textNodes = [];
+    const selfRejected = (p) => {
+      if (SK.HARD_EXCLUDE_TAGS.has(p.tagName)) return true;
+      if (p.tagName === 'PRE' && p.querySelector('code')) return true;
+      const cs = p.ownerDocument?.defaultView?.getComputedStyle?.(p);
+      return !!(cs && (cs.display === 'none' || cs.visibility === 'hidden'));
+    };
+    // 同一個祖先底下有很多文字節點; 每個祖先 (到 el 為止) 的結果只算一次.
+    const chainRejected = new Map();
+    const isRejected = (p) => {
+      if (!p || p === el) return false;
+      let r = chainRejected.get(p);
+      if (r === undefined) {
+        r = selfRejected(p) || isRejected(p.parentElement);
+        chainRejected.set(p, r);
+      }
+      return r;
+    };
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
       acceptNode(node) {
-        let p = node.parentElement;
-        while (p && p !== el) {
-          if (SK.HARD_EXCLUDE_TAGS.has(p.tagName)) return NodeFilter.FILTER_REJECT;
-          if (p.tagName === 'PRE' && p.querySelector('code')) return NodeFilter.FILTER_REJECT;
-          const cs = p.ownerDocument?.defaultView?.getComputedStyle?.(p);
-          if (cs && (cs.display === 'none' || cs.visibility === 'hidden')) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          p = p.parentElement;
-        }
-        return NodeFilter.FILTER_ACCEPT;
+        return isRejected(node.parentElement) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
       }
     });
     let n;
@@ -759,9 +766,11 @@ if (window.__transit_loaded) {
 
   SK.maybeBuildUpdateNotice = async function maybeBuildUpdateNotice() {
     try {
-      const { disableUpdateNotice } = await browser.storage.sync.get('disableUpdateNotice');
+      const [{ disableUpdateNotice }, { updateAvailable }] = await Promise.all([
+        browser.storage.sync.get('disableUpdateNotice'),
+        browser.storage.local.get('updateAvailable'),
+      ]);
       if (disableUpdateNotice === true) return null;
-      const { updateAvailable } = await browser.storage.local.get('updateAvailable');
       if (!updateAvailable || !updateAvailable.version) return null;
       if (updateAvailable.lastNoticeShownDate === SK.localTodayKey()) return null;
       const currentVersion = browser.runtime.getManifest().version;

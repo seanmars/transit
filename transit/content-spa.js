@@ -577,9 +577,9 @@
       if (el.getAttribute?.('contenteditable') === 'true') continue;
       const origText = STATE.originalText?.get?.(el);
       const savedTranslation = STATE.nvMutateTranslation?.get?.(el);
+      if (nvBackupIntact(backup)) continue;
       const curText = (el.textContent || '').trim();
-      if (nvBackupIntact(backup)
-          || (savedTranslation && nvTextEqualsPlain(curText, savedTranslation.plain))) continue;
+      if (savedTranslation && nvTextEqualsPlain(curText, savedTranslation.plain)) continue;
       const allDetached = backup.every(entry => !entry?.node?.isConnected);
       const reverted = nvMutateRevertedToOriginal(backup, origText, curText);
       const revertedToOrig = nvRevertedToOrigText(origText, curText);
@@ -975,10 +975,17 @@
     }
     if (removedTrans.length === 0 || addedAll.length === 0) return;
     let restored = 0;
+    // added 節點的文字快取; 寫入 innerHTML 後清空, 因為巢狀節點的文字可能一起改變.
+    const addedTextCache = new Map();
+    const addedTextOf = (a) => {
+      let t = addedTextCache.get(a);
+      if (t === undefined) { t = (a.textContent || '').trim(); addedTextCache.set(a, t); }
+      return t;
+    };
     for (const r of removedTrans) {
       for (const added of addedAll) {
-        const addedText = (added.textContent || '').trim();
-        if (addedText !== r.originalText) continue;
+        if (addedTextOf(added) !== r.originalText) continue;
+        addedTextCache.clear();
         try {
           added.innerHTML = r.savedHTML;
         } catch (_) { continue; }
@@ -1062,10 +1069,10 @@
 
   const unitText = (unit) => SK.unitText(unit);
 
-  function capUnitsAndMarkSeen(units, now) {
+  function capUnitsAndMarkSeen(units, now, textOf = unitText) {
     const capped = units.length > SK.SPA_OBSERVER_MAX_UNITS;
     const kept = capped ? units.slice(0, SK.SPA_OBSERVER_MAX_UNITS) : units;
-    kept.forEach(unit => spaObserverSeenTexts.set(unitText(unit), now));
+    kept.forEach(unit => spaObserverSeenTexts.set(textOf(unit), now));
     return { kept, capped };
   }
   SK._capUnitsAndMarkSeen = capUnitsAndMarkSeen;
@@ -1088,12 +1095,17 @@
       const roots = [..._scopedRescanRoots];
       _scopedRescanRoots.clear();
       const seenEls = new Set(newUnits.map((u) => u.el));
+      const rootSet = new Set(roots);
+      const hasAncestorRoot = (node) => {
+        for (let p = node.parentNode; p; p = p.parentNode) if (rootSet.has(p)) return true;
+        return false;
+      };
       let scopedAdded = 0;
       for (const root of roots) {
         if (!root.isConnected) continue;
         if (root.hasAttribute('data-transit-translated')) continue;
         if (!root.parentElement?.closest?.('[data-transit-translated]')) continue;
-        if (roots.some((r) => r !== root && r.contains && r.contains(root))) continue;
+        if (hasAncestorRoot(root)) continue;
         let scoped = [];
         try { scoped = SK.collectParagraphs(root, null, { includeRoot: true }) || []; } catch (_) {   }
         for (const u of scoped) {
@@ -1127,14 +1139,21 @@
       }
     }
 
-    newUnits = newUnits.filter(unit => !isSeenTextRecent(unitText(unit)));
+    // unitText 會讀 innerText (觸發 layout), 同一次 rescan 只算一次.
+    const textByUnit = new Map();
+    const cachedUnitText = (u) => {
+      let t = textByUnit.get(u);
+      if (t === undefined) { t = unitText(u); textByUnit.set(u, t); }
+      return t;
+    };
+    newUnits = newUnits.filter(unit => !isSeenTextRecent(cachedUnitText(unit)));
     if (newUnits.length === 0) {
       SK.sendLog('info', 'spa', 'SPA observer rescan: all units already seen in this session, skipping');
       return;
     }
     const now = Date.now();
     const totalFound = newUnits.length;
-    const { kept, capped } = capUnitsAndMarkSeen(newUnits, now);
+    const { kept, capped } = capUnitsAndMarkSeen(newUnits, now, cachedUnitText);
     newUnits = kept;
     if (capped) {
       SK.sendLog('warn', 'spa', 'SPA observer rescan capped', { found: totalFound, cap: SK.SPA_OBSERVER_MAX_UNITS });
@@ -1143,7 +1162,7 @@
 
     SK.sendLog('info', 'spa', `SPA observer rescan #${spaObserverRescanCount}`, { newUnits: newUnits.length });
     const _watchdog_t0 = performance.now();
-    const totalChars = newUnits.reduce((sum, u) => sum + (unitText(u).length || 0), 0);
+    const totalChars = newUnits.reduce((sum, u) => sum + (cachedUnitText(u).length || 0), 0);
     const isTinyRescan = newUnits.length <= 2 && totalChars < 200;
     let loadingShown = false;
     let watchdogTimer = null;

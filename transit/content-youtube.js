@@ -3160,10 +3160,15 @@
     }
   });
 
-  browser.storage.sync.get('ytSubtitle').then((s) => {
-    const sc = s?.ytSubtitle?.captionScale;
-    if (sc != null) _applyYtCaptionScale(sc);
-  }).catch(() => {   });
+  // 字幕縮放只作用在 YouTube player frame (含嵌入與 Drive 的 youtube.googleapis.com).
+  // 其他網站的 frame 不讀 storage, 也不啟動 #movie_player 輪詢.
+  const _YT_PLAYER_HOST_RE = /(^|\.)(youtube\.com|youtube-nocookie\.com)$|^youtube\.googleapis\.com$/;
+  if (_YT_PLAYER_HOST_RE.test(location.hostname)) {
+    browser.storage.sync.get('ytSubtitle').then((s) => {
+      const sc = s?.ytSubtitle?.captionScale;
+      if (sc != null) _applyYtCaptionScale(sc);
+    }).catch(() => {   });
+  }
 
   SK.ASR = {
     parseJson3,
