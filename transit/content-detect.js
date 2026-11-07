@@ -225,6 +225,21 @@
     return false;
   }
 
+  // 表格欄位的文字全部在 code / kbd / samp 內 (例如 API 名稱欄), 不需要翻譯.
+  function isCodeOnlyCell(el) {
+    if (!el.querySelector('code, kbd, samp')) return false;
+    const walker = (el.ownerDocument || document).createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let hasCode = false;
+    let n;
+    while ((n = walker.nextNode())) {
+      if (!n.nodeValue.trim()) continue;
+      const code = n.parentElement?.closest('code, kbd, samp');
+      if (!code || !el.contains(code)) return false;
+      hasCode = true;
+    }
+    return hasCode;
+  }
+
   const DATE_PATTERNS = [
     /^[A-Z][a-z]{2,8}\s+\d{1,2},\s+\d{4}$/,
     /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/,
@@ -760,7 +775,7 @@
           if (stats) stats.alreadyTranslated = (stats.alreadyTranslated || 0) + 1;
           return NodeFilter.FILTER_REJECT;
         }
-        if ((el.tagName === 'TD' || el.tagName === 'TH') && isPureIdentifierCell(el)) {
+        if ((el.tagName === 'TD' || el.tagName === 'TH') && (isPureIdentifierCell(el) || isCodeOnlyCell(el))) {
           if (stats) stats.pureIdentifierCell = (stats.pureIdentifierCell || 0) + 1;
           return NodeFilter.FILTER_REJECT;
         }
