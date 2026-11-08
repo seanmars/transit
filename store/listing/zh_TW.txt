@@ -1,0 +1,31 @@
+Transit 是網頁、YouTube 字幕與文件的翻譯擴充功能。譯文會直接取代原本位置的文字，保留字型、排版與連結。支援 8 種目標語言：繁體中文、簡體中文、英文、日文、韓文、西班牙文、法文、德文。
+
+■ 主要功能
+
+・網頁翻譯：原地替換網頁文字，保留原始排版。連結仍可點擊，粗體與斜體也會保留。
+・單語覆蓋與雙語對照：在工具列圖示選單一鍵切換。雙語對照會在原文下方顯示譯文。
+・YouTube 字幕翻譯：即時翻譯字幕，也可以同時顯示原文與譯文兩行字幕。Google Drive 與 X 的影片字幕也適用。
+・翻譯文件：支援 PDF、EPUB、Word (.docx)、TXT、Markdown、HTML 與字幕檔 (SRT / WebVTT / ASS)。PDF 會保留原版面。
+・懸停翻譯與選取翻譯：只翻譯游標所在的段落，或是你選取的文字。
+・簡繁自動互轉（免費）：使用內建的 OpenCC 字典在本機轉換，不呼叫任何 API，也可以離線使用。
+・主要翻譯與備援翻譯：主要翻譯無法使用或失敗時，自動改用備援翻譯。沒有 API Key 也能翻譯。
+・固定術語表、禁用詞清單與術語表一致化：讓人名和專有名詞的譯名前後一致。
+・自動翻譯指定網站、懸浮按鈕與快速鍵 (Alt+S)。
+
+■ 翻譯引擎
+
+・Google Translate：免費，不需要 API Key。
+・Google Gemini：品質較好，需要你自己的 API Key。
+・自訂模型：OpenAI 相容端點，例如 OpenRouter、Groq，或在本機執行的 Ollama。
+
+■ 隱私
+
+・設定與 API Key 只儲存在你的瀏覽器中。
+・Transit 沒有自己的伺服器，不會把任何資料傳給開發者。
+・要翻譯的文字會直接送到你選擇的翻譯引擎 (Google Translate、Gemini 或自訂模型)。
+・使用本機模型 (例如 Ollama) 時，資料不經過第三方。
+・完整的對外連線清單請見隱私權政策：https://seanmars.github.io/transit/privacy-policy.html
+
+■ 原始碼公開
+
+原始碼公開在 GitHub，任何人都可以檢視：https://github.com/seanmars/transit

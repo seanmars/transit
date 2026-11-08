@@ -1,0 +1,31 @@
+Transit translates web pages, YouTube subtitles and documents. It replaces text in place and keeps the original fonts, layout and links. It supports 8 target languages: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, Spanish, French and German.
+
+■ Features
+
+• Web page translation: replaces text in place and keeps the original layout. Links still work. Bold and italic text stay the same.
+• Replace or Bilingual: switch with one click in the toolbar menu. Bilingual mode shows the translation below each original paragraph.
+• YouTube subtitle translation: translates subtitles in real time. It can also show the original and the translation as two lines. Works with Google Drive and X videos too.
+• Translate document: PDF, EPUB, Word (.docx), TXT, Markdown, HTML and subtitle files (SRT / WebVTT / ASS). PDF output keeps the original page layout.
+• Hover translate and selection translate: translate only the paragraph under the cursor, or only the text you select.
+• Auto-convert Chinese variants (free): converts between Traditional and Simplified Chinese on your device with the built-in OpenCC dictionary. No API calls, works offline.
+• Primary and Failback: if the primary engine is not available or fails, Transit uses the Failback engine. You can translate without an API key.
+• Fixed glossary, forbidden terms and glossary consistency: keep names and terms consistent across the page.
+• Auto-translate selected sites, floating button and keyboard shortcut (Alt+S).
+
+■ Translation engines
+
+• Google Translate: free, no API key needed.
+• Google Gemini: better quality, needs your own API key.
+• Custom model: any OpenAI-compatible endpoint, for example OpenRouter, Groq, or Ollama running on your device.
+
+■ Privacy
+
+• Your settings and API keys are stored only in your browser.
+• Transit has no server of its own and sends no data to the developer.
+• Text to translate goes directly to the engine you choose (Google Translate, Gemini or your custom model).
+• With a local model (for example Ollama), no data goes to third parties.
+• For the full list of network connections, see the privacy policy: https://seanmars.github.io/transit/privacy-policy.html
+
+■ Source code
+
+The source code is public on GitHub: https://github.com/seanmars/transit
