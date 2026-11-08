@@ -74,6 +74,8 @@
 
   /* hero: 真實的 popup 截圖, 裁切到右上角 */
   #hero .hero__media img { --ly-pos: 100% 0%; }
+  /* 中文 h1 只在空格處換行, 不把「字幕」這類詞拆開 */
+  html[lang="zh-Hant"] #hero-h { word-break: keep-all; }
 
   /* 翻譯前後對照: 唯一的效果框, 截圖以原寸置於其上, 由下緣裁切 */
   #compare .compare { position: relative; overflow: hidden; border-radius: var(--r-lg); margin-top: var(--s-7); }
@@ -171,7 +173,7 @@
     <div class="wrap"><div class="hero-text grid hero__grid">
       <div class="hero__text span-6">
         <p class="hero__kicker" data-i18n="hero.kicker">免費 · 8 種目標語言 · Chrome、Edge、Brave</p>
-        <h1 id="hero-h" data-i18n="hero.h1">網頁與 YouTube 字幕翻譯擴充功能</h1>
+        <h1 id="hero-h" data-i18n="hero.h1">網頁與 YouTube 字幕翻譯<wbr>擴充功能</h1>
         <p class="hero__lead" data-i18n="hero.lead">按 Alt+S 翻譯整頁。譯文直接取代原文, 保留排版與連結。沒有 API Key 也能用 Google Translate 翻譯。</p>
         <div class="btn-row">
           <a class="btn btn--primary" href="https://github.com/seanmars/transit/releases/latest"><span data-i18n="action.download">下載 Transit</span><svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
