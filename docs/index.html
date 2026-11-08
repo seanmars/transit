@@ -1,751 +1,469 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant" data-type="software" data-radius="soft" data-ground="sky" data-buttons="arrow" data-motion>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transit｜極速、私密、高品質的網頁翻譯體驗</title>
-  <meta name="description" content="快速、私密的網頁、文件與 YouTube 字幕翻譯擴充功能, 支援 8 種目標語言與多種 AI 引擎, 原地替換文字保留排版, 瀏覽資料不經過第三方伺服器.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+  // 語言: ?lang= 優先, 其次是上次的選擇, 最後看瀏覽器語言。在第一次繪製前決定。
+  (function () {
+    var q = null, saved = null;
+    try { q = new URLSearchParams(location.search).get('lang'); } catch (e) {}
+    try { saved = localStorage.getItem('transit_lang'); } catch (e) {}
+    var nav = (navigator.language || 'en').toLowerCase();
+    var auto = nav.indexOf('zh') === 0 ? 'zh-TW' : 'en';
+    var lang = q || saved || auto;
+    if (lang !== 'en' && lang !== 'zh-TW') lang = 'en';
+    if (q) { try { localStorage.setItem('transit_lang', lang); } catch (e) {} }
+    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hant';
+    document.documentElement.setAttribute('data-lang', lang);
+  })();
+</script>
+<title>Transit: 網頁與 YouTube 字幕翻譯擴充功能</title>
+<meta name="description" content="Transit 是網頁、YouTube 字幕與文件的翻譯擴充功能。譯文直接取代原文, 保留排版與連結, 支援 8 種目標語言, 不用 API Key 也能翻譯。">
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Transit: 網頁與 YouTube 字幕翻譯擴充功能">
+<meta property="og:description" content="譯文直接取代原文, 保留排版與連結。支援 8 種目標語言, 使用本機模型時資料不經過第三方。">
+<meta property="og:url" content="https://seanmars.github.io/transit/">
+<meta property="og:image" content="https://seanmars.github.io/transit/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://seanmars.github.io/transit/og-image.png">
+<link rel="icon" type="image/png" href="icon-128.png">
+<link rel="alternate" hreflang="zh-TW" href="https://seanmars.github.io/transit/?lang=zh-TW">
+<link rel="alternate" hreflang="en" href="https://seanmars.github.io/transit/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://seanmars.github.io/transit/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400..700&family=JetBrains+Mono:wght@400..500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/system.css">
+<link rel="stylesheet" href="assets/ui/cards.css">
+<link rel="stylesheet" href="assets/motion/motion.css">
+<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="assets/layout/layout.css">
+<link rel="stylesheet" href="assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #dfdedb; --p-surface: #d3d2ce; --p-ink: #26251e; --p-muted: #5a5850;
+  --p-accent: #2456d6; --p-accent-ink: #ffffff; --p-action: #2456d6; --p-action-ink: #ffffff;
+  --p-inv-bg: #26251e; --p-inv-surface: #313029; --p-inv-ink: #dfdedb; --p-inv-muted: #9e9d99;
+  --p-inv-accent: #dfdedb; --p-inv-accent-ink: #26251e; --p-inv-action: #dfdedb; --p-inv-action-ink: #26251e;
+  --font-display: "Host Grotesk", system-ui, sans-serif;
+  --font-text: "Host Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 500;
+  --display-tracking: -0.035em;
+  --display-tracking-xl: -0.04em;
+}
+</style>
+<link rel="stylesheet" href="assets/ui/base.css">
+<link rel="stylesheet" href="assets/ui/files/fragment.css">
+<link rel="stylesheet" href="assets/diagrams/diagram.css">
+<script src="assets/backgrounds/backgrounds.js"></script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="assets/moments/moments.js">
+<link rel="modulepreload" href="assets/moments/lib.js">
+<link rel="modulepreload" href="assets/moments/letters-assemble/moment.js">
+<style>
+  /* 中文字形: Host Grotesk 沒有 CJK, 指定各平台的繁中字型接手 */
+  html[lang="zh-Hant"] {
+    --font-display: "Host Grotesk", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+    --font-text: "Host Grotesk", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+  }
+  .nav__logo img { width: 28px; height: 28px; border-radius: 7px; display: block; }
 
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Transit — 網頁翻譯擴充功能">
-  <meta property="og:description" content="用 AI 翻譯網頁、文件與 YouTube 字幕, 保留原始排版, 瀏覽資料不經過第三方伺服器">
-  <meta property="og:image" content="https://seanmars.github.io/transit/og-image.png">
-  <meta property="og:url" content="https://seanmars.github.io/transit/">
+  /* hero: 真實的 popup 截圖, 裁切到右上角 */
+  #hero .hero__media img { --ly-pos: 100% 0%; }
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Transit — 網頁翻譯擴充功能">
-  <meta name="twitter:description" content="用 AI 翻譯網頁、文件與 YouTube 字幕, 保留原始排版, 瀏覽資料不經過第三方伺服器">
-  <meta name="twitter:image" content="https://seanmars.github.io/transit/og-image.png">
+  /* 翻譯前後對照: 唯一的效果框, 截圖以原寸置於其上, 由下緣裁切 */
+  #compare .compare { position: relative; overflow: hidden; border-radius: var(--r-lg); margin-top: var(--s-7); }
+  #compare .compare__shot { position: absolute; left: 48px; right: 48px; top: 48px; width: calc(100% - 96px); height: auto;
+    border-radius: 12px; box-shadow: 0 1px 0 rgb(0 0 0 / .04), 0 12px 32px rgb(20 24 40 / .18); }
+  @media (max-width: 639px) { #compare .compare__shot { left: 16px; right: 16px; top: 24px; width: calc(100% - 32px); } }
 
-  <link rel="icon" type="image/png" href="icon-128.png">
-  <link rel="alternate" hreflang="zh-TW" href="https://seanmars.github.io/transit/?lang=zh-TW">
-  <link rel="alternate" hreflang="en" href="https://seanmars.github.io/transit/?lang=en">
-  <link rel="alternate" hreflang="x-default" href="https://seanmars.github.io/transit/">
+  /* 功能卡片 */
+  #features .panel { --p-h: 336px; }
+  #features .shot { position: absolute; left: 24px; top: 24px; width: 920px; max-width: none; height: auto;
+    border-radius: 12px; box-shadow: 0 12px 32px rgb(20 24 40 / .16); }
 
-  <script>
-    (function () {
-      var supported = ['zh-TW', 'en'];
-      var fromQuery = null;
-      try {
-        var p = new URLSearchParams(location.search);
-        fromQuery = p.get('lang');
-      } catch (e) {}
-      var saved = null;
-      try { saved = localStorage.getItem('transit_lang'); } catch (e) {}
-      var nav = (navigator.language || 'en').toLowerCase();
-      var auto = nav.indexOf('zh') === 0 ? 'zh-TW' : 'en';
-      var lang = fromQuery || saved || auto;
-      if (supported.indexOf(lang) === -1) lang = 'en';
-      document.documentElement.lang = lang;
-      document.documentElement.setAttribute('data-lang', lang);
-    })();
-  </script>
+  /* YouTube 字幕: 播放器畫面 */
+  #subtitles .yt.ui { position: absolute; inset: 0; overflow: hidden; border: 0; border-radius: 0; box-shadow: none; padding: 0; width: auto; height: auto; max-width: none;
+    background: radial-gradient(circle at 50% 46%, #ffcf6b 0 17%, #f39a34 22%, #6a2a12 34%, #120c0a 48%, #07080c 70%); }
+  .yt__planet { position: absolute; left: 41%; top: 40%; width: 4.6%; aspect-ratio: 1; border-radius: 50%; background: #0b0b0d; }
+  .yt__subs { position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); display: grid; gap: 4px; justify-items: center; width: max-content; max-width: 92%; }
+  .yt__subs span { background: rgb(8 8 8 / .78); color: #fff; font: 500 clamp(14px, 1.4vw, 19px)/1.35 var(--font-text); padding: 2px 8px; border-radius: 3px; }
+  .yt__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: linear-gradient(transparent, rgb(0 0 0 / .55)); }
+  .yt__track { flex: 1; height: 3px; border-radius: 2px; background: rgb(255 255 255 / .3); position: relative; }
+  .yt__track i { position: absolute; inset: 0 62% 0 0; background: #f00; border-radius: 2px; }
+  .yt__bar img { width: 22px; height: 16px; }
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", "Noto Sans TC", sans-serif;
-      color: #1a1a1a;
-      background: #fff;
-      line-height: 1.7;
-      -webkit-font-smoothing: antialiased;
-    }
+  /* 簡繁轉換清單: 由面板下緣裁切 */
+  .conv { position: absolute; left: max(24px, 50% - 190px); top: 40px; width: min(380px, calc(100% - 48px)); }
+  .conv .ui-head { gap: 8px; }
+  .conv__switch { margin-left: auto; width: 34px; height: 20px; border-radius: 10px; background: var(--p-ink); position: relative; }
+  .conv__switch::after { content: ""; position: absolute; right: 3px; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+  .conv__rows { list-style: none; margin: 0; padding: 4px 14px 14px; }
+  .conv__rows li { display: grid; grid-template-columns: 1fr 20px 1fr; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--u-line, rgb(0 0 0 / .08)); font-size: 15px; }
+  .conv__rows li:last-child { border-bottom: 0; }
+  .conv__rows .from { color: var(--p-muted); }
+  .conv__rows .arrow { color: var(--p-muted); text-align: center; }
+  .conv__rows li:first-child .to { color: var(--p-accent); font-weight: 500; }
 
-    html[data-lang="en"] [data-only="zh-TW"],
-    html[data-lang="zh-TW"] [data-only="en"] { display: none; }
+  /* 翻譯引擎圖表 */
+  #engines .frame--split .dg { position: absolute; inset: 0; }
+  #subtitles .frame--split { overflow: hidden; border-radius: var(--r-lg); }
+  .facts { list-style: none; margin: var(--s-5) 0; padding: 0; display: grid; gap: var(--s-3); }
+  .facts b { font-weight: 500; }
+  /* 平板: 功能卡片疊成兩屏; 字幕和引擎的框壓低, 各自留在一屏 */
+  @media (min-width: 640px) and (max-width: 1023px) {
+    #features { --h: 2; }
+    #features .panel { --p-h: 400px; }
+    #subtitles .frame--split, #engines .frame--split { --ratio: 50%; }
+  }
+  /* 1024-1279: kit 把三張卡片排成兩張加一張, 這一段需要兩屏 */
+  @media (min-width: 1024px) and (max-width: 1279px) { #features { --h: 2; } }
+  /* 1024 以上, 圖表框填滿這一屏的內容高度 */
+  @media (min-width: 1024px) { :is(#engines, #subtitles) .frame--split { --ratio: 0%; height: calc(100svh - var(--padt) - var(--padb) - var(--bar)); } }
 
-    .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+  /* 隱私宣告: 中文 8 個字, 字級要放得進 .wrap */
+  html[lang="zh-Hant"] #privacy .mo-la__type { font-size: clamp(48px, 10vw, 144px); max-width: none; }
+  #privacy .privacy__grid { margin-top: var(--s-7); }
+  #privacy .privacy__grid .mo-la__sub { margin-top: 0; }
+  #privacy .rows__value { color: var(--muted); text-align: right; }
+  #privacy .t-label { margin-bottom: var(--s-3); }
 
-    .lang-switcher {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      display: flex;
-      gap: 0;
-      font-size: 0.78rem;
-      z-index: 100;
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-    .lang-btn {
-      background: transparent;
-      border: none;
-      color: #555;
-      padding: 6px 12px;
-      cursor: pointer;
-      font: inherit;
-      font-size: 0.78rem;
-      font-weight: 500;
-      line-height: 1;
-      transition: background 0.15s, color 0.15s;
-    }
-    .lang-btn + .lang-btn { border-left: 1px solid #e5e7eb; }
-    .lang-btn:hover { color: #2563eb; }
-    .lang-btn.active {
-      background: #2563eb;
-      color: #fff;
-    }
+  /* 常見問題: 支援的瀏覽器 */
+  #faq .browsers { display: flex; flex-wrap: wrap; gap: var(--s-4); padding: 0; list-style: none; }
+  #faq .browsers li { display: flex; align-items: center; gap: var(--s-2); font-weight: 500; }
+  #faq .browsers img { width: 28px; height: 28px; }
 
-    .hero {
-      padding: 80px 0 48px;
-      text-align: center;
-    }
-    .hero-icon {
-      width: 160px;
-      height: 160px;
-      border-radius: 40px;
-      margin-bottom: 24px;
-    }
-    .hero h1 {
-      font-size: 2.4rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
-    }
-    .hero h1 .hero-subtitle {
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #555;
-      letter-spacing: 0;
-      display: inline-block;
-      vertical-align: middle;
-    }
-    @media (max-width: 600px) {
-      .hero h1 .hero-subtitle {
-        display: block;
-        font-size: 0.95rem;
-        margin-top: 6px;
-      }
-      .hero h1 .hero-sep { display: none; }
-    }
-    .hero .tagline {
-      font-size: 1.15rem;
-      color: #555;
-      max-width: 520px;
-      margin: 0 auto 32px;
-    }
-    .btn-row {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .btn-download {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: #2563eb;
-      color: #fff;
-      font-size: 1.05rem;
-      font-weight: 600;
-      padding: 14px 24px;
-      border-radius: 10px;
-      text-decoration: none;
-      transition: background 0.2s;
-      text-align: center;
-      box-sizing: border-box;
-      min-height: 74px;
-    }
-    .btn-download:hover { background: #1d4ed8; }
-    .btn-download.secondary {
-      background: #fff;
-      color: #2563eb;
-      border: 1.5px solid #2563eb;
-    }
-    .btn-download.secondary:hover {
-      background: #eff6ff;
-    }
-    .btn-download .btn-version {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 400;
-      opacity: 0.85;
-      margin-top: 3px;
-    }
-    @media (max-width: 600px) {
-      .btn-row {
-        grid-template-columns: 1fr;
-        max-width: none;
-      }
-    }
-    .hero-sub {
-      margin-top: 12px;
-      font-size: 0.85rem;
-      color: #888;
-    }
-    .hero-sub a { color: #2563eb; text-decoration: none; }
-    .hero-sub a:hover { text-decoration: underline; }
-
-    .comparison {
-      padding: 16px 0 48px;
-    }
-    .compare-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    .compare-item img {
-      width: 100%;
-      border-radius: 10px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-    }
-    .compare-label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-    .compare-caption {
-      margin-top: 16px;
-      font-size: 0.85rem;
-      color: #888;
-      text-align: center;
-    }
-    .comparison .container { max-width: 960px; }
-    @media (max-width: 600px) {
-      .compare-grid { grid-template-columns: 1fr; }
-    }
-
-    section { padding: 48px 0; }
-    section h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-
-    .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    .step {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-    }
-    .step-num {
-      flex-shrink: 0;
-      width: 36px;
-      height: 36px;
-      background: #eff6ff;
-      color: #2563eb;
-      font-weight: 700;
-      font-size: 1rem;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .step-body h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-    .step-body p {
-      font-size: 0.92rem;
-      color: #555;
-    }
-    .step-body code {
-      background: #f3f4f6;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
-
-    .features {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-    .feature h3 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .feature p {
-      font-size: 0.88rem;
-      color: #555;
-    }
-
-
-    .privacy-hero {
-      background: #f0f5fa;
-      border-radius: 16px;
-      padding: 36px 36px;
-      margin: 8px 0 48px;
-      text-align: left;
-    }
-    .privacy-hero h2 {
-      font-size: 1.35rem;
-      margin-bottom: 12px;
-      text-align: left;
-    }
-    .privacy-hero > p {
-      font-size: 0.95rem;
-      color: #555;
-      margin-bottom: 8px;
-      line-height: 1.7;
-    }
-    .privacy-points {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .privacy-point {
-      font-size: 0.95rem;
-      color: #555;
-      padding-left: 16px;
-      border-left: 3px solid #2563eb;
-    }
-    .privacy-point strong { color: #1a1a1a; }
-
-    footer {
-      padding: 48px 0 32px;
-      text-align: center;
-      font-size: 0.82rem;
-      color: #aaa;
-      border-top: 1px solid #f0f0f0;
-      margin-top: 48px;
-    }
-    footer a { color: #888; text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
-
-    @media (max-width: 600px) {
-      .hero { padding: 64px 0 36px; }
-      .hero h1 { font-size: 1.8rem; }
-      .features { grid-template-columns: 1fr; }
-      .lang-switcher { top: 10px; right: 10px; }
-    }
-  </style>
+  /* 結尾的名稱: 行高留給字母頂端, 不被 overflow 切掉 */
+  .close__word { line-height: 1.02; }
+</style>
 </head>
 <body>
-
-  <div class="lang-switcher" role="group" aria-label="Language">
-    <button class="lang-btn" data-lang="zh-TW" type="button">繁中</button>
-    <button class="lang-btn" data-lang="en" type="button">EN</button>
-  </div>
-
-  <div class="hero">
-    <div class="container">
-      <img src="logo-full.svg" alt="Transit" class="hero-icon">
-      <h1>Transit<span class="hero-sep">｜</span><span class="hero-subtitle" data-i18n="hero.subtitle">極速、私密、高品質的網頁翻譯體驗</span></h1>
-      <p class="tagline" data-i18n="hero.tagline">你的瀏覽內容不該經過別人的伺服器<br>Transit 由你的電腦直接呼叫 Google Gemini 翻譯, 不經過任何第三方</p>
-      <div class="btn-row">
-        <a href="https://github.com/seanmars/transit/releases" class="btn-download secondary">
-          <span data-i18n="btn.github.text">GitHub 下載 beta 版手動安裝</span>
-          <span class="btn-version">v0.1.0 · beta</span>
-        </a>
-      </div>
-      <p class="hero-sub" data-i18n="hero.sub">開放原始碼 · <a href="https://github.com/seanmars/transit#readme">使用說明</a> · <a href="https://github.com/seanmars/transit">GitHub</a></p>
+<!-- type: software
+     deal: hero split, nav nav-centre (re-dealt from nav-cards: no photographs), close close-word, footer footer-columns,
+           rhythm space, buttons arrow, mark: the client's own icon, ground sky, palette stone-blueprint, type host
+     effect: grain-gradient in #compare (the one [data-visual] frame)
+     moments: letters-assemble in #privacy -->
+<header class="nav nav--centre">
+  <div class="wrap nav__bar">
+    <a class="nav__logo" href="#top"><img src="icon-128.png" alt="" width="28" height="28">Transit</a>
+    <nav class="nav__links" aria-label="Main" data-i18n-aria="nav.aria">
+      <div class="nav__item"><a class="nav__link" href="#features" data-i18n="nav.features">功能</a></div>
+      <div class="nav__item"><a class="nav__link" href="#privacy" data-i18n="nav.privacy">隱私</a></div>
+      <div class="nav__item"><a class="nav__link" href="#engines" data-i18n="nav.engines">引擎</a></div>
+      <div class="nav__item"><a class="nav__link" href="#faq" data-i18n="nav.faq">常見問題</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="nav__link" href="?lang=en" hreflang="en" lang="en" data-i18n="nav.lang" data-i18n-href="nav.langHref">English</a>
+      <a class="btn btn--primary" href="https://github.com/seanmars/transit/releases/latest" data-i18n="action.download">下載 Transit</a>
     </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="選單" data-i18n-aria="nav.menu">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
   </div>
+</header>
 
-
-  <div class="container">
-    <div class="privacy-hero">
-      <h2 data-i18n="privacy.heading">為什麼做 Transit?</h2>
-      <p data-i18n="privacy.intro1">既有的沈浸式網頁翻譯工具會把你瀏覽的每一頁內容傳到第三方伺服器——無論你讀了什麼文章、看了什麼信件, 全部都可能被看光</p>
-      <p data-i18n="privacy.intro2">Transit 的出發點就是保護您的隱私:</p>
-      <div class="privacy-points">
-        <div class="privacy-point" data-i18n="privacy.point1">
-          <strong>資料不外傳</strong>: 翻譯請求直連 Google Gemini (選 Google Translate 或自訂模型時則直連你選的服務端點), 不經過任何第三方伺服器
-        </div>
-        <div class="privacy-point" data-i18n="privacy.point2">
-          <strong>設定留在本地</strong>: 設定與快取只留在你的瀏覽器 (設定可隨瀏覽器帳號同步), 不會送到 Transit 的伺服器——因為根本沒有伺服器
-        </div>
-        <div class="privacy-point" data-i18n="privacy.point3">
-          <strong>原始碼完全公開</strong>: 任何人都可以檢視程式碼, 確認沒有後門
+<main id="top">
+  <section class="hero hero--split" id="hero" aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-6">
+        <p class="hero__kicker" data-i18n="hero.kicker">免費 · 8 種目標語言 · Chrome、Edge、Brave</p>
+        <h1 id="hero-h" data-i18n="hero.h1">網頁與 YouTube 字幕翻譯擴充功能</h1>
+        <p class="hero__lead" data-i18n="hero.lead">按 Alt+S 翻譯整頁。譯文直接取代原文, 保留排版與連結。沒有 API Key 也能用 Google Translate 翻譯。</p>
+        <div class="btn-row">
+          <a class="btn btn--primary" href="https://github.com/seanmars/transit/releases/latest"><span data-i18n="action.download">下載 Transit</span><svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+          <a class="btn btn--secondary" href="#features" data-i18n="action.features">查看功能</a>
         </div>
       </div>
-    </div>
-  </div>
-
-  <div class="comparison">
-    <div class="container">
-      <div class="compare-grid">
-        <div class="compare-item">
-          <p class="compare-label" data-i18n="compare.before">翻譯前</p>
-          <img src="screenshot-before.png" alt="翻譯前 — Wikipedia 英文原文" data-i18n-alt="compare.before.alt">
-        </div>
-        <div class="compare-item">
-          <p class="compare-label" data-i18n="compare.after">翻譯後</p>
-          <img src="screenshot-after.png" alt="翻譯後 — Transit 將內容翻譯成繁體中文, 排版完整保留" data-i18n-alt="compare.after.alt">
+      <div class="hero__media span-6 start-7">
+        <img width="1280" height="800" src="img/03-popup.webp" alt="翻譯成繁體中文的 Wikipedia 文章, 右上角開著 Transit 的工具列選單" data-i18n-alt="hero.alt" fetchpriority="high" data-source="client" data-subject="Transit popup over a translated page">
+        <div class="ly-float">
+          <div class="ly-float__row"><span class="ly-live" data-i18n="hero.float.state">翻譯完成</span><span>Google Translate</span></div>
+          <div class="ly-float__title" data-i18n="hero.float.title">Astronomical transit · 英文 → 繁中</div>
         </div>
       </div>
-      <p class="compare-caption" data-i18n="compare.caption">排版、連結、圖片全部保留, 看起來就像原生中文頁面</p>
-    </div>
-  </div>
+    </div></div>
+  </section>
 
-  <section>
-    <div class="container">
-      <h2 data-i18n="features.heading">功能特色</h2>
-      <div class="features">
-        <div class="feature">
-          <h3 data-i18n="feature.fast.title">極速秒翻</h3>
-          <p data-i18n="feature.fast.body">按下翻譯 1 秒看到頁面開始出現譯文, 不用等整批 API 回完再一次塞回頁面 (限 Gemini)</p>
+  <section class="section" id="compare" aria-labelledby="compare-h">
+    <div class="wrap">
+      <div class="grid grid--top">
+        <h2 class="span-6" id="compare-h" data-i18n="compare.h2">原地翻譯, 版面不變</h2>
+        <div class="span-6 start-7">
+          <p class="muted" data-i18n="compare.p">譯文放回原本的段落。字型、圖片和連結都留在原處, 連結仍然可以點。下圖是同一篇 Wikipedia 文章翻譯前後的樣子。</p>
+          <a class="link" href="#features" data-i18n="compare.link">查看其他翻譯功能</a>
         </div>
-        <div class="feature">
-          <h3 data-i18n="feature.layout.title">保留網頁排版</h3>
-          <p data-i18n="feature.layout.body">原地替換文字, 字型、字級、顏色、連結全部保留, 看起來就像原生頁面</p>
+      </div>
+      <div class="frame compare fill" data-visual data-fx="grain-gradient" data-fx-seed="12"
+           data-fx-palette='{"bg":"#c6d3df","surface":"#d6e0e9","ink":"#25303a","muted":"#5d6873","accent":"#3f6a92"}'
+           data-fx-params='{"speed":0,"grainMotion":0,"calm":0.2,"calmX":0.5,"calmY":0.4,"tint":0.6,"contrast":0.55}' style="--calm-k:0%">
+        <img width="1280" height="800" class="compare__shot" src="img/01-before-after.webp" srcset="img/01-before-after-1280.webp 1280w, img/01-before-after.webp 2560w" sizes="(max-width: 639px) 100vw, 1280px" alt="同一篇 Wikipedia 文章, 左邊是英文原文, 右邊是 Transit 翻譯後的繁體中文" data-i18n-alt="compare.alt" loading="lazy" data-source="client" data-subject="before and after translation">
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features" aria-labelledby="features-h" style="--hm: 2">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="features-h"><span data-i18n="features.h2">不只翻譯網頁。</span> <span class="muted" data-i18n="features.h2b">文件、雙語對照與簡繁轉換。</span></h2>
+      </div>
+      <div class="grid">
+        <article class="card card--row card--open span-4 m-nolift">
+            <h3 data-i18n="f.docs.t">翻譯整份文件</h3>
+            <p data-i18n="f.docs.p">拖進 PDF、EPUB、Word 或字幕檔, 整份翻譯後下載。PDF 會保留原本的版面。</p>
+            <div class="panel frame">
+              <div class="stage stage--fade-br"><div class="at-corner wide" style="--w:680px;--ax:32px;--ay:40px" data-ui-loop>
+                <div class="ui ui-files" data-ui="files" data-reading="翻譯中 {n} / {total}" data-i18n-reading="f.docs.reading">
+                  <div class="ui-files__status"><span class="ui-dot"></span><span data-files-status data-i18n="f.docs.status">已翻譯 6 個檔案</span></div>
+                  <ul class="ui-files__grid">
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img width="32" height="32" loading="lazy" data-icon="pdf" src="assets/icons/pdf.svg" alt=""></span><span class="ui-file__name">transit-of-venus.pdf</span><span class="ui-file__kind">PDF</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img width="32" height="32" loading="lazy" data-icon="epub" src="assets/icons/epub.svg" alt=""></span><span class="ui-file__name">cosmos.epub</span><span class="ui-file__kind">EPUB</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img width="32" height="32" loading="lazy" data-icon="docx" src="assets/icons/docx.svg" alt=""></span><span class="ui-file__name">report.docx</span><span class="ui-file__kind">Word</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img width="32" height="32" loading="lazy" data-icon="md" src="assets/icons/md.svg" alt=""></span><span class="ui-file__name">README.md</span><span class="ui-file__kind">Markdown</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img width="32" height="32" loading="lazy" data-icon="html" src="assets/icons/html.svg" alt=""></span><span class="ui-file__name">guide.html</span><span class="ui-file__kind">HTML</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img width="32" height="32" loading="lazy" data-icon="pdf" src="assets/icons/pdf.svg" alt=""></span><span class="ui-file__name">observing-notes.pdf</span><span class="ui-file__kind">PDF</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                  </ul>
+                </div>
+              </div></div>
+            </div>
+          </article>
+        <article class="card card--row card--open span-4 m-nolift">
+            <h3 data-i18n="f.dual.t">在原文下方顯示譯文</h3>
+            <p data-i18n="f.dual.p">切換到雙語對照, 每段原文下方會加上譯文, 適合對照閱讀或學語言。</p>
+            <div class="panel frame">
+              <div class="stage stage--fade-b">
+                <img width="1280" height="800" class="shot" src="img/02-dual.webp" alt="雙語對照模式: 每段英文下方顯示繁體中文譯文" data-i18n-alt="f.dual.alt" loading="lazy" data-source="client" data-subject="bilingual mode">
+              </div>
+            </div>
+          </article>
+        <article class="card card--row card--open span-4 m-nolift">
+          <h3 data-i18n="f.zh.t">免費轉換簡繁中文</h3>
+          <p data-i18n="f.zh.p">內建 OpenCC 字典在本機轉換, 不呼叫任何 API。詞組使用台灣慣用詞。</p>
+          <div class="panel frame">
+            <div class="stage stage--fade-b">
+              <div class="ui ui-panel conv">
+                <div class="ui-head"><div class="ui-title" data-i18n="f.zh.toggle">簡繁自動互轉（免費）</div><span class="conv__switch" aria-hidden="true"></span></div>
+                <ul class="conv__rows">
+                  <li><span class="from">软件</span><span class="arrow">→</span><span class="to">軟體</span></li>
+                  <li><span class="from">视频</span><span class="arrow">→</span><span class="to">影片</span></li>
+                  <li><span class="from">内存</span><span class="arrow">→</span><span class="to">記憶體</span></li>
+                  <li><span class="from">网络</span><span class="arrow">→</span><span class="to">網路</span></li>
+                  <li><span class="from">数据</span><span class="arrow">→</span><span class="to">資料</span></li>
+                  <li><span class="from">打印机</span><span class="arrow">→</span><span class="to">印表機</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="subtitles" aria-labelledby="subtitles-h">
+    <div class="wrap grid grid--top">
+      <div class="span-6">
+        <h2 id="subtitles-h" data-i18n="subs.h2">即時翻譯 YouTube 字幕</h2>
+        <p class="t-lead" data-i18n="subs.lead">自動抓取字幕並即時翻譯。切換到雙語對照時, 原文和譯文會同時顯示。</p>
+        <ul class="facts">
+          <li data-i18n="subs.f1"><b>AI 分句</b>: 用 Gemini 把自動產生的破碎字幕重組成完整句子</li>
+          <li data-i18n="subs.f2"><b>原生樣式</b>: 譯文字幕和 YouTube 字幕的樣式一致</li>
+          <li data-i18n="subs.f3"><b>其他平台</b>: Google Drive 和 X 的影片也適用</li>
+        </ul>
+        <a class="link" href="https://github.com/seanmars/transit#youtube-字幕翻譯" data-i18n="subs.link" data-i18n-href="subs.href">閱讀字幕翻譯說明</a>
+      </div>
+      <div class="frame frame--split span-6 start-7">
+        <div class="yt ui ui-yt" role="img" aria-label="YouTube 影片上同時顯示英文與繁體中文字幕" data-i18n-aria="f.yt.alt">
+          <span class="yt__planet"></span>
+          <div class="yt__subs"><span>Venus crosses the face of the Sun.</span><span>金星從太陽表面經過。</span></div>
+          <div class="yt__bar"><span class="yt__track"><i></i></span><img width="32" height="32" loading="lazy" data-icon="youtube" src="assets/icons/youtube.svg" alt=""></div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="privacy" data-moment="letters-assemble" data-moment-opts='{"spread": 0.6}' aria-labelledby="privacy-h">
+    <div class="wrap">
+      <h2 class="mo-la__type" id="privacy-h" data-i18n="privacy.h2">沒有自己的伺服器</h2>
+      <div class="grid grid--top privacy__grid">
+        <div class="span-6">
+          <p class="mo-la__sub" data-i18n="privacy.p">Transit 不經過任何中繼伺服器。要翻譯的文字直接送到你選擇的翻譯引擎, 使用本機模型時資料不經過第三方。</p>
+          <p><a class="link" href="privacy-policy.html" data-i18n="privacy.link" data-i18n-href="privacy.href">閱讀隱私權政策</a></p>
         </div>
-        <div class="feature">
-          <h3 data-i18n="feature.hover.title">懸停翻譯</h3>
-          <p data-i18n="feature.hover.body">按住修飾鍵 (Shift / Option / Control 任選)、游標停在段落上就只翻那一段, 譯文原地顯示; 想先自己讀、只看部分內容時不用翻整頁. 預設關閉, 設定頁一鍵開啟</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.dual.title">雙語對照</h3>
-          <p data-i18n="feature.dual.body">原文與譯文並列顯示, 一眼對照學語言或核對譯文; 單語覆蓋與雙語對照可隨時切換</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.multilang.title">多語翻譯 + 多語介面</h3>
-          <p data-i18n="feature.multilang.body">翻譯目標支援繁體中文 / 簡體中文 / 英文 / 日文 / 韓文 / 西班牙文 / 法文 / 德文, 介面語言也跟著切換</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.docs.title">文件翻譯</h3>
-          <p data-i18n="feature.docs.body">PDF / EPUB / Word / TXT / Markdown / HTML / 字幕檔整份翻譯, 全部在瀏覽器本機解析; PDF 保留原版面、Word 譯文寫回原檔、EPUB 與字幕可輸出雙語版</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.gdocs.title">Google Docs 翻譯</h3>
-          <p data-i18n="feature.gdocs.body">打開 Google 文件按翻譯, 自動切到可翻譯的閱讀版並翻譯整份, 編輯模式下的動態畫面也能讀</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.youtube.title">YouTube 字幕翻譯</h3>
-          <p data-i18n="feature.youtube.body">看影片時字幕即時翻譯成你的目標語言, 樣式跟原生字幕一致; 自動產生的字幕先經 AI 依語意重新分句, 從破碎的詞變完整句子. 可選雙語對照、可放大字幕, 直播連結、Google Drive 與 X (Twitter) 影片也適用</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.spa.title">跨頁自動延續翻譯</h3>
-          <p data-i18n="feature.spa.body">翻譯過的頁面點連結開新分頁、按返回鍵、或在同一頁內站內導航都自動接著翻; 往下捲動才載入的新內容也會補翻, 不用每頁再按一次</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.autosites.title">自動翻譯指定網站</h3>
-          <p data-i18n="feature.autosites.body">把常看的網域加進清單, 之後開啟該網站就自動翻譯, 不用每次按快速鍵; 支援萬用字元, 通知會標示「自動翻譯」讓你知道是清單觸發</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.floating.title">懸浮按鈕</h3>
-          <p data-i18n="feature.floating.body">頁面邊緣的懸浮按鈕點一下翻譯、長按切換引擎或叫出選單, 位置、大小、透明度可調</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.edit.title">編輯譯文</h3>
-          <p data-i18n="feature.edit.body">翻譯完成後直接在頁面上修改譯文, 翻得不理想的地方手動改掉; 要列印、存 PDF 或讓閱讀器擷取前先修好</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.glossary.title">固定術語表</h3>
-          <p data-i18n="feature.glossary.body">自訂翻譯對照表, 專有名詞一律用你指定的譯名. 分全域與網域兩層, 網域規則覆蓋全域; 網域後面加路徑 (如 <code>example.com/news</code>) 可限定到該站的某個專欄或作品</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.termconsist.title">全文術語一致化</h3>
-          <p data-i18n="feature.termconsist.body">翻譯前先掃全文擷取人名與專有名詞對照表, 同一個名字從頭到尾翻法一致, 長篇報導、小說、人名多的文章最有感. 預設關閉, 設定頁開啟</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.blocklist.title">禁用詞清單</h3>
-          <p data-i18n="feature.blocklist.body">可編輯的禁用詞清單 (預設 26 條, 例如視頻 / 軟件 / 數據), 可只填禁用詞、或一併指定替換詞, 明確要求 LLM 不要使用</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.preview.title">只翻文章開頭</h3>
-          <p data-i18n="feature.preview.body">先翻前幾段預覽再決定是否讀完整篇, 大幅節省 token</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.cache.title">翻譯快取</h3>
-          <p data-i18n="feature.cache.body">翻過的段落自動快取, 同一頁再開不花錢</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.cost.title">費用透明</h3>
-          <p data-i18n="feature.cost.body">每次翻譯即時顯示花費多少錢, 設定頁可回查過去每一筆翻譯紀錄的 token 用量與費用, 支援圖表與 CSV 匯出</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.engines.title">三翻譯引擎</h3>
-          <p data-i18n="feature.engines.body">Gemini + Google Translate + <strong>自訂模型</strong>(OpenAI 相容端點, 可接 OpenRouter / Together / Ollama 本機等百種模型) 並存, 依場景自由切換</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.zhconvert.title">簡繁互轉完全免費</h3>
-          <p data-i18n="feature.zhconvert.body">內建 OpenCC 字典本地轉換——<strong>不需 API Key、不打 API、離線可用</strong>, 詞組級涵蓋台灣慣用詞 (軟件→軟體、視頻→影片). 自動互轉預設開啟, 目標是繁體時簡體網頁載入即轉繁體, 目標是簡體時反向轉換</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.shortcuts.title">一鍵翻譯 + 自動 Failback</h3>
-          <p data-i18n="feature.shortcuts.body">按 <code>Alt+S</code> 翻譯本頁. 主要翻譯 (預設 Gemini) 無法使用或失敗時, 自動改用 Failback 翻譯 (預設 Google Translate), <strong>沒有 API Key 也能翻譯</strong>; 快速鍵與兩組引擎都可自訂</p>
-        </div>
-        <div class="feature">
-          <h3 data-i18n="feature.notranslate.title">尊重「不要翻譯」標記</h3>
-          <p data-i18n="feature.notranslate.body">網站作者用 <code>translate="no"</code> 或 <code>notranslate</code> 標成不翻的人名、代號、程式碼原樣保留、不送 API; 用字型顯示的圖示也不會被翻成文字而消失</p>
+        <div class="span-6 start-7">
+          <p class="t-label" data-i18n="privacy.rows">翻譯時送出的資料</p>
+          <ul class="rows">
+            <li><span class="rows__name">Google Translate</span><span class="rows__value" data-i18n="privacy.r1">要翻譯的文字</span></li>
+            <li><span class="rows__name">Gemini API</span><span class="rows__value" data-i18n="privacy.r2">要翻譯的文字、你的 API Key</span></li>
+            <li><span class="rows__name" data-i18n="privacy.r3n">自訂模型</span><span class="rows__value" data-i18n="privacy.r3">要翻譯的文字、該服務的 API Key</span></li>
+            <li><span class="rows__name" data-i18n="privacy.r4n">本機模型 (Ollama)</span><span class="rows__value" data-i18n="privacy.r4">不離開你的電腦</span></li>
+            <li><span class="rows__name" data-i18n="privacy.r5n">Transit 開發者</span><span class="rows__value" data-i18n="privacy.r5">無使用者資料</span></li>
+            <li><span class="rows__name" data-i18n="privacy.r6n">API Key 與翻譯快取</span><span class="rows__value" data-i18n="privacy.r6">只存在這個瀏覽器</span></li>
+          </ul>
         </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="container">
-      <h2 data-i18n="install.heading">Beta 版手動安裝步驟</h2>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-body">
-            <h3 data-i18n="install.step1.title">下載並解壓縮</h3>
-            <p data-i18n="install.step1.body">從上方按鈕下載 <code>.zip</code> 檔案, 解壓縮到任意位置</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-body">
-            <h3 data-i18n="install.step2.title">載入擴充功能</h3>
-            <p data-i18n="install.step2.body">開啟 Chrome, 前往 <code>chrome://extensions/</code>, 打開右上角「開發人員模式」, 點「載入未封裝項目」, 選擇解壓縮後的 <code>transit</code> 資料夾</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-body">
-            <h3 data-i18n="install.step3.title">設定 API Key (選填)</h3>
-            <p data-i18n="install.step3.body">點工具列的 Transit 圖示 → 設定 → 貼上你的 Gemini API Key (到 <a href="https://aistudio.google.com/api-keys" style="color:#2563eb;">aistudio.google.com/api-keys</a> 免費建立, <a href="https://github.com/seanmars/transit/blob/main/docs/API-KEY-SETUP.md" style="color:#2563eb;">詳細教學</a>) 完成! 按 <code>Alt+S</code> 翻譯本頁. 不設定 API Key 也能直接按 <code>Alt+S</code>, Transit 會自動改用免費的 Google Translate</p>
-          </div>
-        </div>
+  <section class="section" id="engines" aria-labelledby="engines-h">
+    <div class="wrap grid grid--top">
+      <div class="span-6">
+        <h2 id="engines-h" data-i18n="engines.h2">三種翻譯引擎, 自動備援</h2>
+        <p class="t-lead" data-i18n="engines.lead">先用主要翻譯, 失敗時自動改用備援翻譯。沒有 API Key 時, 直接用免費的 Google Translate。</p>
+        <ul class="facts">
+          <li data-i18n="engines.f1"><b>Google Translate</b>: 免費, 不需要 API Key</li>
+          <li data-i18n="engines.f2"><b>Gemini</b>: 自備 API Key, 品質較好</li>
+          <li data-i18n="engines.f3"><b>自訂模型</b>: OpenAI 相容端點, 例如 Ollama</li>
+        </ul>
+        <a class="link" href="https://github.com/seanmars/transit/blob/main/docs/API-KEY-SETUP.md" data-i18n="engines.link" data-i18n-href="engines.href">閱讀 API Key 申請教學</a>
+      </div>
+      <div class="frame frame--split span-6 start-7">
+        <div class="dg" data-diagram='{"layout":"hub","alt":"Transit: Google Translate, Gemini, OpenRouter, Groq, Ollama","center":{"label":"Transit","icon":"ui:languages"},"spokes":[{"label":"Google Translate","icon":"si:googletranslate"},{"label":"Gemini","icon":"gemini"},{"label":"OpenRouter","icon":"openrouter"},{"label":"Groq","icon":"groq"},{"label":"Ollama","icon":"ollama"}]}'></div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="container">
-      <h2 data-i18n="report.heading">回報問題</h2>
-      <p style="text-align:center; color:#555;" data-i18n="report.body">遇到 bug 或有功能建議? 歡迎到 <a href="https://github.com/seanmars/transit/issues" style="color:#2563eb;">GitHub Issues</a>回報</p>
+  <section class="section g2m" id="faq" aria-labelledby="faq-h">
+    <div class="wrap grid grid--top">
+      <div class="span-6">
+        <h2 id="faq-h" data-i18n="faq.h2">常見問題</h2>
+        <p class="muted" data-i18n="faq.p">找不到答案時, 請在 GitHub 開一個 issue。</p>
+        <a class="link" href="https://github.com/seanmars/transit/issues" data-i18n="faq.link">回報問題</a>
+        <p class="t-label muted" style="margin-top: var(--s-8)" data-i18n="faq.browsers">支援的瀏覽器</p>
+        <ul class="browsers" style="margin-top: var(--s-3)">
+          <li><img width="32" height="32" loading="lazy" data-icon="google-chrome" src="assets/icons/google-chrome.svg" alt="">Chrome</li>
+          <li><img width="32" height="32" loading="lazy" data-icon="microsoft-edge" src="assets/icons/microsoft-edge.svg" alt="">Edge</li>
+          <li><img width="32" height="32" loading="lazy" data-icon="brave" src="assets/icons/brave.svg" alt="">Brave</li>
+        </ul>
+      </div>
+      <div class="faq span-6 start-7">
+        <div class="faq__item"><h3 data-i18n="faq.q1">Transit 要付費嗎?</h3><p data-i18n="faq.a1">不用, Transit 免費。使用 Gemini 時, API 費用由 Google 向你的帳號收取。</p></div>
+        <div class="faq__item"><h3 data-i18n="faq.q2">一定要有 API Key 嗎?</h3><p data-i18n="faq.a2">網頁和 YouTube 字幕不用, 沒有 API Key 時會用 Google Translate 翻譯。翻譯文件需要 Gemini 或自訂模型的 API Key。</p></div>
+        <div class="faq__item"><h3 data-i18n="faq.q3">我的資料會送到哪裡?</h3><p data-i18n="faq.a3">只送到你選擇的翻譯引擎。Transit 沒有自己的伺服器, 也不收集使用資料。</p></div>
+        <div class="faq__item"><h3 data-i18n="faq.q4">可以翻譯成哪些語言?</h3><p data-i18n="faq.a4">繁體中文、簡體中文、英文、日文、韓文、西班牙文、法文和德文。</p></div>
+        <div class="faq__item"><h3 data-i18n="faq.q5">要怎麼安裝?</h3><p data-i18n="faq.a5">從 GitHub 下載 zip 並解壓縮。在 chrome://extensions 開啟開發人員模式, 再載入未封裝項目。</p></div>
+      </div>
     </div>
   </section>
+</main>
 
-  <footer>
-    <div class="container">
-      <p data-i18n="footer.license">Transit 採用 <a href="https://github.com/seanmars/transit/blob/main/LICENSE">Elastic License 2.0</a> 授權 · <a href="privacy-policy.html">隱私權政策</a> · <a href="https://github.com/seanmars/transit">原始碼</a></p>
-      <p style="margin-top:8px; font-style:italic;">No coding skills were harmed in the making of this shit.</p>
+<footer class="footer closing" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--word">
+      <div class="section-head--split">
+        <div><h2 id="close-h" data-i18n="close.h2">免費的網頁翻譯擴充功能</h2><p class="t-lead" data-i18n="close.p">支援 Chrome、Edge 與 Brave。安裝後按 Alt+S 就能翻譯。</p></div>
+        <a class="btn btn--primary" href="https://github.com/seanmars/transit/releases/latest"><span data-i18n="action.download">下載 Transit</span><svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+      </div>
+      <p class="close__word" aria-hidden="true">Transit</p>
     </div>
-  </footer>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo" href="#top"><img src="icon-128.png" alt="" width="28" height="28">Transit</a>
+          <p class="footer__lede" data-i18n="footer.lede">網頁、字幕與文件的翻譯擴充功能</p>
+        </div>
+        <div class="span-2 footer__col"><h4 data-i18n="nav.features">功能</h4><ul><li><a href="#compare" data-i18n="footer.compare">翻譯前後</a></li><li><a href="#features" data-i18n="footer.features">文件與雙語對照</a></li><li><a href="#subtitles" data-i18n="footer.subs">YouTube 字幕</a></li></ul></div>
+        <div class="span-2 footer__col"><h4 data-i18n="nav.privacy">隱私</h4><ul><li><a href="#privacy" data-i18n="footer.privacy">隱私宣告</a></li><li><a href="privacy-policy.html" data-i18n="footer.policy" data-i18n-href="privacy.href">隱私權政策</a></li></ul></div>
+        <div class="span-2 footer__col"><h4 data-i18n="nav.engines">引擎</h4><ul><li><a href="#engines" data-i18n="footer.engines">翻譯引擎</a></li><li><a href="https://github.com/seanmars/transit/blob/main/docs/API-KEY-SETUP.md" data-i18n="footer.apikey" data-i18n-href="engines.href">API Key 教學</a></li></ul></div>
+        <div class="span-2 footer__col"><h4 data-i18n="nav.faq">常見問題</h4><ul><li><a href="#faq" data-i18n="footer.faq">常見問題</a></li><li><a href="https://github.com/seanmars/transit" data-i18n="footer.source">原始碼</a></li><li><a href="https://github.com/seanmars/transit/releases" data-i18n="footer.releases">更新紀錄</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 seanmars &nbsp; <a href="privacy-policy.html" data-i18n="footer.policy" data-i18n-href="privacy.href">隱私權政策</a> &nbsp; <span data-i18n="footer.fork">修改自 Jimmy Su 的 <a href="https://github.com/jimmysu0309/shinkansen">Shinkansen</a></span></span>
+        <div class="socials"></div>
+        <span class="credits" data-i18n="footer.tm">截圖取自 Wikipedia「Astronomical transit」(CC BY-SA 4.0) · 產品名稱與標誌為其所有者的商標</span>
+      </div>
+    </div>
+  </div>
+</footer>
 
-  <script>
-    (function () {
-      var I18N = {
-        'zh-TW': {
-          'meta.title': 'Transit｜極速、私密、高品質的網頁翻譯體驗',
-          'meta.description': '快速、私密的網頁、文件與 YouTube 字幕翻譯擴充功能, 支援 8 種目標語言與多種 AI 引擎, 原地替換文字保留排版, 瀏覽資料不經過第三方伺服器.',
-          'og.title': 'Transit — 網頁翻譯擴充功能',
-          'og.description': '用 AI 翻譯網頁、文件與 YouTube 字幕, 保留原始排版, 瀏覽資料不經過第三方伺服器',
-
-          'hero.subtitle': '極速、私密、高品質的網頁翻譯體驗',
-          'hero.tagline': '你的瀏覽內容不該經過別人的伺服器<br>Transit 由你的電腦直接呼叫 Google Gemini 翻譯, 不經過任何第三方',
-          'btn.github.text': 'GitHub 下載 beta 版手動安裝',
-          'hero.sub': '開放原始碼 · <a href="https://github.com/seanmars/transit#readme">使用說明</a> · <a href="https://github.com/seanmars/transit">GitHub</a>',
-
-
-          'privacy.heading': '為什麼做 Transit?',
-          'privacy.intro1': '既有的沈浸式網頁翻譯工具會把你瀏覽的每一頁內容傳到第三方伺服器——無論你讀了什麼文章、看了什麼信件, 全部都可能被看光',
-          'privacy.intro2': 'Transit 的出發點就是保護您的隱私:',
-          'privacy.point1': '<strong>資料不外傳</strong>: 翻譯請求直連 Google Gemini (選 Google Translate 或自訂模型時則直連你選的服務端點), 不經過任何第三方伺服器',
-          'privacy.point2': '<strong>設定留在本地</strong>: 設定與快取只留在你的瀏覽器 (設定可隨瀏覽器帳號同步), 不會送到 Transit 的伺服器——因為根本沒有伺服器',
-          'privacy.point3': '<strong>原始碼完全公開</strong>: 任何人都可以檢視程式碼, 確認沒有後門',
-
-          'compare.before': '翻譯前',
-          'compare.after': '翻譯後',
-          'compare.before.alt': '翻譯前 — Wikipedia 英文原文',
-          'compare.after.alt': '翻譯後 — Transit 將內容翻譯成繁體中文, 排版完整保留',
-          'compare.caption': '排版、連結、圖片全部保留, 看起來就像原生中文頁面',
-
-          'features.heading': '功能特色',
-          'feature.fast.title': '極速秒翻',
-          'feature.fast.body': '按下翻譯 1 秒看到頁面開始出現譯文, 不用等整批 API 回完再一次塞回頁面 (限 Gemini)',
-          'feature.layout.title': '保留網頁排版',
-          'feature.layout.body': '原地替換文字, 字型、字級、顏色、連結全部保留, 看起來就像原生頁面',
-          'feature.hover.title': '懸停翻譯',
-          'feature.hover.body': '按住修飾鍵 (Shift / Option / Control 任選)、游標停在段落上就只翻那一段, 譯文原地顯示; 想先自己讀、只看部分內容時不用翻整頁. 預設關閉, 設定頁一鍵開啟',
-          'feature.dual.title': '雙語對照',
-          'feature.dual.body': '原文與譯文並列顯示, 一眼對照學語言或核對譯文; 單語覆蓋與雙語對照可隨時切換',
-          'feature.multilang.title': '多語翻譯 + 多語介面',
-          'feature.multilang.body': '翻譯目標支援繁體中文 / 簡體中文 / 英文 / 日文 / 韓文 / 西班牙文 / 法文 / 德文, 介面語言也跟著切換',
-          'feature.docs.title': '文件翻譯',
-          'feature.docs.body': 'PDF / EPUB / Word / TXT / Markdown / HTML / 字幕檔整份翻譯, 全部在瀏覽器本機解析; PDF 保留原版面、Word 譯文寫回原檔、EPUB 與字幕可輸出雙語版',
-          'feature.gdocs.title': 'Google Docs 翻譯',
-          'feature.gdocs.body': '打開 Google 文件按翻譯, 自動切到可翻譯的閱讀版並翻譯整份, 編輯模式下的動態畫面也能讀',
-          'feature.youtube.title': 'YouTube 字幕翻譯',
-          'feature.youtube.body': '看影片時字幕即時翻譯成你的目標語言, 樣式跟原生字幕一致; 自動產生的字幕先經 AI 依語意重新分句, 從破碎的詞變完整句子. 可選雙語對照、可放大字幕, 直播連結、Google Drive 與 X (Twitter) 影片也適用',
-          'feature.spa.title': '跨頁自動延續翻譯',
-          'feature.spa.body': '翻譯過的頁面點連結開新分頁、按返回鍵、或在同一頁內站內導航都自動接著翻; 往下捲動才載入的新內容也會補翻, 不用每頁再按一次',
-          'feature.autosites.title': '自動翻譯指定網站',
-          'feature.autosites.body': '把常看的網域加進清單, 之後開啟該網站就自動翻譯, 不用每次按快速鍵; 支援萬用字元, 通知會標示「自動翻譯」讓你知道是清單觸發',
-          'feature.floating.title': '懸浮按鈕',
-          'feature.floating.body': '頁面邊緣的懸浮按鈕點一下翻譯、長按切換引擎或叫出選單, 位置、大小、透明度可調',
-          'feature.edit.title': '編輯譯文',
-          'feature.edit.body': '翻譯完成後直接在頁面上修改譯文, 翻得不理想的地方手動改掉; 要列印、存 PDF 或讓閱讀器擷取前先修好',
-          'feature.glossary.title': '固定術語表',
-          'feature.glossary.body': '自訂翻譯對照表, 專有名詞一律用你指定的譯名. 分全域與網域兩層, 網域規則覆蓋全域; 網域後面加路徑 (如 <code>example.com/news</code>) 可限定到該站的某個專欄或作品',
-          'feature.termconsist.title': '全文術語一致化',
-          'feature.termconsist.body': '翻譯前先掃全文擷取人名與專有名詞對照表, 同一個名字從頭到尾翻法一致, 長篇報導、小說、人名多的文章最有感. 預設關閉, 設定頁開啟',
-          'feature.blocklist.title': '禁用詞清單',
-          'feature.blocklist.body': '可編輯的禁用詞清單 (預設 26 條, 例如視頻 / 軟件 / 數據), 可只填禁用詞、或一併指定替換詞, 明確要求 LLM 不要使用',
-          'feature.preview.title': '只翻文章開頭',
-          'feature.preview.body': '先翻前幾段預覽再決定是否讀完整篇, 大幅節省 token',
-          'feature.cache.title': '翻譯快取',
-          'feature.cache.body': '翻過的段落自動快取, 同一頁再開不花錢',
-          'feature.cost.title': '費用透明',
-          'feature.cost.body': '每次翻譯即時顯示花費多少錢, 設定頁可回查過去每一筆翻譯紀錄的 token 用量與費用, 支援圖表與 CSV 匯出',
-          'feature.engines.title': '三翻譯引擎',
-          'feature.engines.body': 'Gemini + Google Translate + <strong>自訂模型</strong>(OpenAI 相容端點, 可接 OpenRouter / Together / Ollama 本機等百種模型) 並存, 依場景自由切換',
-          'feature.zhconvert.title': '簡繁互轉完全免費',
-          'feature.zhconvert.body': '內建 OpenCC 字典本地轉換——<strong>不需 API Key、不打 API、離線可用</strong>, 詞組級涵蓋台灣慣用詞 (軟件→軟體、視頻→影片). 自動互轉預設開啟, 目標是繁體時簡體網頁載入即轉繁體, 目標是簡體時反向轉換',
-          'feature.shortcuts.title': '一鍵翻譯 + 自動 Failback',
-          'feature.shortcuts.body': '按 <code>Alt+S</code> 翻譯本頁. 主要翻譯 (預設 Gemini) 無法使用或失敗時, 自動改用 Failback 翻譯 (預設 Google Translate), <strong>沒有 API Key 也能翻譯</strong>; 快速鍵與兩組引擎都可自訂',
-          'feature.notranslate.title': '尊重「不要翻譯」標記',
-          'feature.notranslate.body': '網站作者用 <code>translate="no"</code> 或 <code>notranslate</code> 標成不翻的人名、代號、程式碼原樣保留、不送 API; 用字型顯示的圖示也不會被翻成文字而消失',
-
-          'install.heading': 'Beta 版手動安裝步驟',
-          'install.step1.title': '下載並解壓縮',
-          'install.step1.body': '從上方按鈕下載 <code>.zip</code> 檔案, 解壓縮到任意位置',
-          'install.step2.title': '載入擴充功能',
-          'install.step2.body': '開啟 Chrome, 前往 <code>chrome://extensions/</code>, 打開右上角「開發人員模式」, 點「載入未封裝項目」, 選擇解壓縮後的 <code>transit</code> 資料夾',
-          'install.step3.title': '設定 API Key (選填)',
-          'install.step3.body': '點工具列的 Transit 圖示 → 設定 → 貼上你的 Gemini API Key (到 <a href="https://aistudio.google.com/api-keys" style="color:#2563eb;">aistudio.google.com/api-keys</a> 免費建立, <a href="https://github.com/seanmars/transit/blob/main/docs/API-KEY-SETUP.md" style="color:#2563eb;">詳細教學</a>) 完成! 按 <code>Alt+S</code> 翻譯本頁. 不設定 API Key 也能直接按 <code>Alt+S</code>, Transit 會自動改用免費的 Google Translate',
-
-          'report.heading': '回報問題',
-          'report.body': '遇到 bug 或有功能建議? 歡迎到 <a href="https://github.com/seanmars/transit/issues" style="color:#2563eb;">GitHub Issues</a>回報',
-
-          'footer.license': 'Transit 採用 <a href="https://github.com/seanmars/transit/blob/main/LICENSE">Elastic License 2.0</a> 授權 · <a href="privacy-policy.html">隱私權政策</a> · <a href="https://github.com/seanmars/transit">原始碼</a>'
-        },
-        'en': {
-          'meta.title': 'Transit | Fast, private, high-quality web translation',
-          'meta.description': 'A fast, privacy-first translation extension for web pages, documents and YouTube subtitles. 8 target languages, multiple AI engines. In-place text replacement preserves the original layout; your browsing never touches a third-party server.',
-          'og.title': 'Transit — web translation extension',
-          'og.description': 'AI translation for web pages, documents and YouTube subtitles. Original layout preserved. Browsing data never touches a third-party server.',
-
-          'hero.subtitle': 'Fast, private, high-quality web translation',
-          'hero.tagline': 'Your browsing should not pass through someone else\'s server.<br>Transit calls Google Gemini directly from your browser — no third party in between.',
-          'btn.github.text': 'Manual install (beta from GitHub)',
-          'hero.sub': 'Open source · <a href="https://github.com/seanmars/transit#readme">Documentation</a> · <a href="https://github.com/seanmars/transit">GitHub</a>',
-
-
-          'privacy.heading': 'Why Transit?',
-          'privacy.intro1': 'Existing immersive web-translation tools forward every page you read to a third-party server — every article, every email, all of it potentially visible to someone else.',
-          'privacy.intro2': 'Transit exists to protect your privacy:',
-          'privacy.point1': '<strong>No data forwarding</strong>: translation requests go directly to Google Gemini (or, with Google Translate or a custom model, straight to the endpoint you chose). No third-party server in between.',
-          'privacy.point2': '<strong>Settings stay local</strong>: settings and cache stay in your browser (settings may sync with your browser account); nothing goes to a Transit server — there isn\'t one.',
-          'privacy.point3': '<strong>Fully open source</strong>: anyone can read the code and verify there is no backdoor.',
-
-          'compare.before': 'Before',
-          'compare.after': 'After',
-          'compare.before.alt': 'Before — Wikipedia English original',
-          'compare.after.alt': 'After — Transit translates the content into Traditional Chinese while preserving the layout',
-          'compare.caption': 'Layout, links, and images are preserved — it looks like a native Chinese page.',
-
-          'features.heading': 'Features',
-          'feature.fast.title': 'Instant translation',
-          'feature.fast.body': 'See the page start showing the translation within 1 second of pressing translate. No need to wait for the entire batch to return (Gemini only).',
-          'feature.layout.title': 'Preserves page layout',
-          'feature.layout.body': 'In-place text replacement keeps fonts, sizes, colors, and links intact — it looks like a native page in your language.',
-          'feature.hover.title': 'Hover translation',
-          'feature.hover.body': 'Hold a modifier key (Shift, Option or Control) and rest the cursor on a paragraph to translate just that one, in place — read ahead or sample a page without translating all of it. Off by default; enable it in Settings.',
-          'feature.dual.title': 'Bilingual side-by-side',
-          'feature.dual.body': 'Original and translation shown together for language learning or proofreading. Switch between overlay and bilingual modes anytime.',
-          'feature.multilang.title': 'Multi-language translation + UI',
-          'feature.multilang.body': 'Translate into Traditional Chinese / Simplified Chinese / English / Japanese / Korean / Spanish / French / German, with the UI switching language too.',
-          'feature.docs.title': 'Document translation',
-          'feature.docs.body': 'PDF / EPUB / Word / TXT / Markdown / HTML / subtitle files, parsed entirely in your browser — PDFs keep their layout, Word output is written back into the original file, EPUB and subtitles can be exported bilingual.',
-          'feature.gdocs.title': 'Google Docs translation',
-          'feature.gdocs.body': 'Press translate on a Google Doc and it switches to the readable view and translates the whole document — even docs that are otherwise locked in the dynamic editor canvas.',
-          'feature.youtube.title': 'YouTube subtitle translation',
-          'feature.youtube.body': 'Captions are translated live into your target language, styled like native captions; auto-generated captions are first re-segmented by AI from broken fragments into full sentences. Optional bilingual display and larger subtitle size; live-stream links, Google Drive and X (Twitter) videos work too.',
-          'feature.spa.title': 'Auto-translate across pages',
-          'feature.spa.body': 'Once a page is translated, opening links in new tabs, pressing Back and navigating within the same app all keep translating; content loaded later as you scroll is picked up too — no need to trigger translation per page.',
-          'feature.autosites.title': 'Auto-translate chosen sites',
-          'feature.autosites.body': 'Add the sites you read often and they translate automatically on load — no shortcut needed. Wildcards are supported, and the notification is tagged so you know it was triggered by your list.',
-          'feature.floating.title': 'Floating button',
-          'feature.floating.body': 'A draggable button at the page edge: tap to translate, long-press to switch engines or open the menu. Position, size and opacity are adjustable.',
-          'feature.edit.title': 'Edit translations in place',
-          'feature.edit.body': 'After translation finishes, edit any passage right on the page to fix awkward wording — before you print, save as PDF or send it to a reader app.',
-          'feature.glossary.title': 'Custom glossary',
-          'feature.glossary.body': 'Pin terms to your preferred translations. Two layers: global and per-domain, with domain rules taking precedence; append a path (e.g. <code>example.com/news</code>) to scope a glossary to one section or series of a site.',
-          'feature.termconsist.title': 'Document-wide term consistency',
-          'feature.termconsist.body': 'Before translating, the whole article is scanned for names and proper nouns so each one is rendered the same way from start to finish — most noticeable in long reports, fiction and name-heavy pieces. Off by default; enable it in Settings.',
-          'feature.blocklist.title': 'Blocked-word list',
-          'feature.blocklist.body': 'An editable list of words you don\'t want in the translation (26 defaults). Block a word on its own, or pair it with a required replacement — the LLM is explicitly instructed to comply.',
-          'feature.preview.title': 'Translate opening only',
-          'feature.preview.body': 'Preview the first few paragraphs before deciding whether to translate the whole article — saves tokens.',
-          'feature.cache.title': 'Translation cache',
-          'feature.cache.body': 'Already-translated paragraphs are cached automatically — re-opening the same page costs nothing.',
-          'feature.cost.title': 'Transparent pricing',
-          'feature.cost.body': 'Cost is shown live during translation. The settings page tracks token usage and cost for every past run, with charts and CSV export.',
-          'feature.engines.title': 'Three translation engines',
-          'feature.engines.body': 'Gemini + Google Translate + <strong>custom models</strong> (any OpenAI-compatible endpoint — OpenRouter / Together / local Ollama, etc.) coexist. Switch freely depending on context.',
-          'feature.zhconvert.title': 'Free Chinese variant conversion',
-          'feature.zhconvert.body': 'Built-in OpenCC dictionaries convert between Simplified and Traditional Chinese locally — <strong>no API key, no API calls, works offline</strong> — with phrase-level Taiwan-convention mapping. Auto-convert is on by default: Simplified pages convert to Traditional when that is your target, and the other way round when Simplified is.',
-          'feature.shortcuts.title': 'One-key translation + automatic failback',
-          'feature.shortcuts.body': 'Press <code>Alt+S</code> to translate the page. If the primary engine (Gemini by default) is unavailable or fails, Transit switches to the failback engine (Google Translate by default) automatically, so <strong>it works without an API key</strong>. The shortcut and both engines are customizable.',
-          'feature.notranslate.title': 'Respects do-not-translate markup',
-          'feature.notranslate.body': 'Names, codes and snippets the site marks with <code>translate="no"</code> or <code>notranslate</code> stay untouched and are never sent to the API; icon-font glyphs are never turned into text.',
-
-          'install.heading': 'Beta manual install',
-          'install.step1.title': 'Download and unzip',
-          'install.step1.body': 'Download the <code>.zip</code> from the button above and unzip it anywhere.',
-          'install.step2.title': 'Load the extension',
-          'install.step2.body': 'Open Chrome, go to <code>chrome://extensions/</code>, enable Developer mode (top right), click "Load unpacked", and select the unzipped <code>transit</code> folder.',
-          'install.step3.title': 'Set up your API key (optional)',
-          'install.step3.body': 'Click the Transit icon in the toolbar → Settings → paste your Gemini API key (create one for free at <a href="https://aistudio.google.com/api-keys" style="color:#2563eb;">aistudio.google.com/api-keys</a>, <a href="https://github.com/seanmars/transit/blob/main/docs/API-KEY-SETUP.en.md" style="color:#2563eb;">step-by-step guide</a>). Done! Press <code>Alt+S</code> to translate the page. Without an API key, <code>Alt+S</code> still works: Transit uses the free Google Translate automatically.',
-
-          'report.heading': 'Report an issue',
-          'report.body': 'Found a bug or have a feature request? Report it on <a href="https://github.com/seanmars/transit/issues" style="color:#2563eb;">GitHub Issues</a>.',
-
-          'footer.license': 'Transit is licensed under <a href="https://github.com/seanmars/transit/blob/main/LICENSE">Elastic License 2.0</a> · <a href="privacy-policy.en.html">Privacy policy</a> · <a href="https://github.com/seanmars/transit">Source code</a>'
-        }
-      };
-
-      function applyI18n(lang) {
-        var dict = I18N[lang] || I18N['en'];
-        document.documentElement.lang = lang;
-        document.documentElement.setAttribute('data-lang', lang);
-
-        if (dict['meta.title']) document.title = dict['meta.title'];
-        var sel = function (q) { return document.querySelector(q); };
-        var setMeta = function (q, v) { var el = sel(q); if (el && v) el.setAttribute('content', v); };
-        setMeta('meta[name="description"]', dict['meta.description']);
-        setMeta('meta[property="og:title"]', dict['og.title']);
-        setMeta('meta[property="og:description"]', dict['og.description']);
-        setMeta('meta[name="twitter:title"]', dict['og.title']);
-        setMeta('meta[name="twitter:description"]', dict['og.description']);
-
-        var nodes = document.querySelectorAll('[data-i18n]');
-        for (var i = 0; i < nodes.length; i++) {
-          var key = nodes[i].getAttribute('data-i18n');
-          if (dict[key] !== undefined) nodes[i].innerHTML = dict[key];
-        }
-        var altNodes = document.querySelectorAll('[data-i18n-alt]');
-        for (var j = 0; j < altNodes.length; j++) {
-          var akey = altNodes[j].getAttribute('data-i18n-alt');
-          if (dict[akey] !== undefined) altNodes[j].setAttribute('alt', dict[akey]);
-        }
-
-        var btns = document.querySelectorAll('.lang-btn');
-        for (var k = 0; k < btns.length; k++) {
-          btns[k].classList.toggle('active', btns[k].getAttribute('data-lang') === lang);
-        }
-      }
-
-      function setLang(lang) {
-        try { localStorage.setItem('transit_lang', lang); } catch (e) {}
-        applyI18n(lang);
-      }
-
-      var initial = document.documentElement.getAttribute('data-lang') || 'en';
-      applyI18n(initial);
-
-      var btns = document.querySelectorAll('.lang-btn');
-      for (var i = 0; i < btns.length; i++) {
-        btns[i].addEventListener('click', function () {
-          setLang(this.getAttribute('data-lang'));
-        });
-      }
-    })();
-  </script>
-
+<script>
+  // 英文版: 在 kit 的 module 執行前換掉文字, 讓逐字動畫和圖表讀到正確語言。
+  (function () {
+    if (document.documentElement.getAttribute('data-lang') !== 'en') return;
+    var T = {
+      'meta.title': 'Transit: web page and YouTube subtitle translator',
+      'meta.description': 'Transit translates web pages, YouTube subtitles and documents. The translation replaces the original text and keeps the layout and links. 8 target languages, works without an API key.',
+      'nav.aria': 'Main', 'nav.menu': 'Menu',
+      'nav.features': 'Features', 'nav.privacy': 'Privacy', 'nav.engines': 'Engines', 'nav.faq': 'FAQ',
+      'nav.lang': '中文', 'nav.langHref': '?lang=zh-TW',
+      'action.download': 'Download Transit', 'action.features': 'See features',
+      'hero.kicker': 'Free · 8 target languages · Chrome, Edge, Brave',
+      'hero.h1': 'Web page and YouTube subtitle translator',
+      'hero.lead': 'Press Alt+S to translate the page. The translation replaces the original text and keeps the layout and links. Without an API key, Google Translate does the work.',
+      'hero.alt': 'A Wikipedia article translated into Traditional Chinese, with the Transit toolbar menu open at the top right',
+      'hero.float.state': 'Translated',
+      'hero.float.title': 'Astronomical transit · English → Chinese',
+      'compare.h2': 'In-place translation keeps the layout',
+      'compare.p': 'The translation goes back into the original paragraphs. Fonts, images and links stay where they were, and links still work. Below is one Wikipedia article before and after.',
+      'compare.link': 'See what else it translates',
+      'compare.alt': 'One Wikipedia article: the English original on the left, the Traditional Chinese translation by Transit on the right',
+      'features.h2': 'More than web pages.', 'features.h2b': 'Documents, bilingual reading and Chinese conversion.',
+      'subs.h2': 'Live YouTube subtitle translation',
+      'subs.lead': 'Transit picks up the subtitles and translates them live. In bilingual mode the original and the translation show together.',
+      'subs.f1': '<b>AI sentences</b>: Gemini rebuilds broken auto-generated captions into whole sentences',
+      'subs.f2': '<b>Native look</b>: translated subtitles match the YouTube subtitle style',
+      'subs.f3': '<b>Other sites</b>: works on Google Drive and X videos too',
+      'subs.link': 'Read about subtitle translation', 'subs.href': 'https://github.com/seanmars/transit/blob/main/README.en.md#youtube-subtitle-translation',
+      'f.docs.t': 'Translates whole documents',
+      'f.docs.p': 'Drop in a PDF, EPUB, Word or subtitle file and download the translation. PDF keeps its original layout.',
+      'f.docs.reading': 'Translating {n} of {total}', 'f.docs.status': '6 files translated',
+      'f.dual.t': 'Shows the translation under the original',
+      'f.dual.p': 'In bilingual mode each paragraph gets its translation below it, for side-by-side reading or language study.',
+      'f.dual.alt': 'Bilingual mode: the Traditional Chinese translation under each English paragraph',
+      'f.yt.t': 'Translates YouTube subtitles',
+      'f.yt.p': 'Picks up the subtitles and translates them live, with the original line above. Google Drive and X videos too.',
+      'f.yt.alt': 'A YouTube video with English and Traditional Chinese subtitles at once',
+      'f.zh.t': 'Converts Chinese variants for free',
+      'f.zh.p': 'The built-in OpenCC dictionary converts on your device with no API calls, using Taiwan wording.',
+      'f.zh.toggle': 'Auto-convert Chinese variants (free)',
+      'privacy.h2': 'No server of our own',
+      'privacy.p': 'Transit uses no relay server. Text to translate goes straight to the engine you choose, and with a local model no data goes to third parties.',
+      'privacy.link': 'Read the privacy policy', 'privacy.href': 'privacy-policy.en.html',
+      'privacy.rows': 'What leaves your browser when you translate',
+      'privacy.r1': 'The text to translate', 'privacy.r2': 'The text to translate and your API key',
+      'privacy.r3n': 'Custom model', 'privacy.r3': 'The text to translate and that service’s API key',
+      'privacy.r4n': 'Local model (Ollama)', 'privacy.r4': 'Nothing leaves your computer',
+      'privacy.r5n': 'Transit developer', 'privacy.r5': 'No user data',
+      'privacy.r6n': 'API keys and translation cache', 'privacy.r6': 'Stay in this browser',
+      'faq.browsers': 'Supported browsers',
+      'engines.h2': 'Three engines with automatic fallback',
+      'engines.lead': 'Transit tries the primary engine first and uses the Failback engine when it fails. Without an API key it uses free Google Translate.',
+      'engines.f1': '<b>Google Translate</b>: free, no API key',
+      'engines.f2': '<b>Gemini</b>: your own API key, better quality',
+      'engines.f3': '<b>Custom model</b>: any OpenAI-compatible endpoint, such as Ollama',
+      'engines.link': 'Read the API key guide', 'engines.href': 'https://github.com/seanmars/transit/blob/main/docs/API-KEY-SETUP.en.md',
+      'faq.h2': 'Questions', 'faq.p': 'If your answer is not here, open an issue on GitHub.', 'faq.link': 'Report a problem',
+      'faq.q1': 'Does Transit cost money?', 'faq.a1': 'No, Transit is free. With Gemini, Google bills the API use to your own account.',
+      'faq.q2': 'Do I need an API key?', 'faq.a2': 'Not for web pages and YouTube subtitles: without a key, Transit uses Google Translate. Translating documents needs a Gemini or custom model API key.',
+      'faq.q3': 'Where does my data go?', 'faq.a3': 'Only to the engine you choose. Transit has no server of its own and collects no usage data.',
+      'faq.q4': 'Which languages can it translate into?', 'faq.a4': 'Traditional and Simplified Chinese, English, Japanese, Korean, Spanish, French and German.',
+      'faq.q5': 'How do I install it?', 'faq.a5': 'Download the zip from GitHub and unzip it. Turn on Developer mode at chrome://extensions, then load the unpacked folder.',
+      'close.h2': 'A free web page translator', 'close.p': 'Works in Chrome, Edge and Brave. After you install it, press Alt+S to translate.',
+      'footer.lede': 'Translation for web pages, subtitles and documents',
+      'footer.compare': 'Before and after', 'footer.features': 'Documents and bilingual', 'footer.subs': 'YouTube subtitles',
+      'footer.privacy': 'Privacy statement', 'footer.policy': 'Privacy policy',
+      'footer.engines': 'Translation engines', 'footer.apikey': 'API key guide',
+      'footer.faq': 'Questions', 'footer.source': 'Source code', 'footer.releases': 'Release notes',
+      'footer.fork': 'Based on <a href="https://github.com/jimmysu0309/shinkansen">Shinkansen</a> by Jimmy Su',
+      'footer.tm': 'Screenshots show the Wikipedia article Astronomical transit (CC BY-SA 4.0) · Product names and logos are trademarks of their owners'
+    };
+    function each(attr, fn) { document.querySelectorAll('[' + attr + ']').forEach(function (el) { var v = T[el.getAttribute(attr)]; if (v != null) fn(el, v); }); }
+    each('data-i18n', function (el, v) { el.innerHTML = v; });
+    each('data-i18n-alt', function (el, v) { el.alt = v; });
+    each('data-i18n-aria', function (el, v) { el.setAttribute('aria-label', v); });
+    each('data-i18n-href', function (el, v) { el.setAttribute('href', v); });
+    each('data-i18n-reading', function (el, v) { el.setAttribute('data-reading', v); });
+    var lang = document.querySelector('[data-i18n="nav.lang"]');
+    if (lang) { lang.setAttribute('hreflang', 'zh-TW'); lang.setAttribute('lang', 'zh-Hant'); }
+    document.title = T['meta.title'];
+    var d = document.querySelector('meta[name="description"]'); if (d) d.content = T['meta.description'];
+  })();
+</script>
+<script type="module" src="assets/system.js"></script>
+<script type="module" src="assets/motion/motion.js"></script>
+<script type="module" src="assets/layout/layout.js"></script>
+<script type="module" src="assets/diagrams/mount.js"></script>
 </body>
 </html>
