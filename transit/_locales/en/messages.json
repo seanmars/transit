@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extDescription": {
-    "message": "Fast, smooth web page & YouTube subtitle translation. 8 target languages, multiple AI engines, data stays local."
+    "message": "Fast, smooth web page & YouTube subtitle translation. 8 languages, multiple AI engines. Local models send no data to third parties."
   },
   "actionTitle": {
     "message": "Transit Translate",

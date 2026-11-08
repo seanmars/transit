@@ -4,7 +4,7 @@
     "description": "Nombre de la extensión"
   },
   "extDescription": {
-    "message": "Traducción rápida y fluida de webs y subtítulos de YouTube. 8 idiomas, varios motores de IA. Datos locales."
+    "message": "Traducción rápida y fluida de webs y subtítulos de YouTube. 8 idiomas, varios motores IA. Con modelo local, sin datos a terceros."
   },
   "actionTitle": {
     "message": "Transit Traducir",

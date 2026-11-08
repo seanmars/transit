@@ -2,13 +2,13 @@
 
 # Transit
 
-A fast, privacy-first translation extension for web pages and YouTube subtitles. Supports 8 target languages and multiple AI engines (Google Gemini, Google Translate, OpenAI-compatible custom models). In-place text replacement keeps the original layout; your browsing never touches a third-party server.
+A fast, privacy-first translation extension for web pages and YouTube subtitles. Supports 8 target languages and multiple AI engines (Google Gemini, Google Translate, OpenAI-compatible custom models). In-place text replacement keeps the original layout; with a local model, no data goes to third parties.
 
 This project is modified from [Shinkansen](https://github.com/jimmysu0309/shinkansen) by Jimmy Su and is maintained by seanmars.
 
 ## Why Transit
 
-Most web translation tools forward every page you read to a third-party server, putting your privacy out of your control. Transit was designed privacy-first from day one: every setting and piece of data lives on your own computer; aside from your own Gemini API key talking directly to Google, nothing is forwarded to anyone else; the source is fully open, anyone can audit it.
+Most web translation tools forward every page you read to a third-party server, putting your privacy out of your control. Transit was designed privacy-first from day one: every setting and piece of data lives on your own computer; text to translate goes only to the engine you choose (Google Translate, Gemini or a custom model), and with a local model no data goes to third parties; the source is fully open, anyone can audit it.
 
 ## Features
 

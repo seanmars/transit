@@ -4,7 +4,7 @@
     "description": "Name der Erweiterung"
   },
   "extDescription": {
-    "message": "Schnelle, flüssige Übersetzung für Webseiten und YouTube-Untertitel. 8 Zielsprachen, Daten bleiben im Browser."
+    "message": "Schnelle, flüssige Übersetzung für Webseiten und YouTube-Untertitel. 8 Zielsprachen. Mit lokalem Modell gehen keine Daten an Dritte."
   },
   "actionTitle": {
     "message": "Transit Übersetzen",
