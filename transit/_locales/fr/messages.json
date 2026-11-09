@@ -4,7 +4,7 @@
     "description": "Nom de l'extension"
   },
   "extDescription": {
-    "message": "Traduction rapide du web et des sous-titres YouTube. 8 langues, plusieurs moteurs IA. Avec un modèle local, rien ne va à des tiers."
+    "message": "Traduit pages web, sous-titres vidéo et documents sur place et garde la mise en page. Service gratuit ou votre propre modèle d’IA."
   },
   "actionTitle": {
     "message": "Transit Traduire",

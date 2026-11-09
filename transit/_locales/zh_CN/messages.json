@@ -4,7 +4,7 @@
     "description": "扩展功能名称"
   },
   "extDescription": {
-    "message": "快速、流畅的网页、YouTube 字幕翻译扩展功能。支持 8 种目标语言与多种 AI 引擎，使用本地模型时数据不经过第三方。"
+    "message": "在原位置翻译网页、视频字幕与文档，保留原本的排版。可使用免费翻译，也可以接入自己的 AI 模型。"
   },
   "actionTitle": {
     "message": "Transit 翻译",
