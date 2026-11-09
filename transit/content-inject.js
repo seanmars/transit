@@ -855,6 +855,50 @@
     return contentHeight > 0 && contentHeight < lineHeight * 1.6;
   }
 
+  // 父層是 CSS grid 時, afterend 的 wrapper 會被 auto-placement 放進同一列剩下的窄欄
+  // (例如原文 grid-column: 4 / span 6, wrapper 被塞進第 10 欄).
+  // 複製 anchor 的欄位置, 讓 wrapper 換到下一列並與原文同寬對齊. 不複製 grid-row, 避免與原文重疊.
+  // anchor 本身是 auto-placed (例如卡片 grid) 時沒有欄位置可複製, 維持原本行為.
+  function copyGridPlacement(wrapper, anchor) {
+    const parent = wrapper.parentElement;
+    const win = wrapper.ownerDocument?.defaultView;
+    if (!parent || !anchor || !win) return;
+    const display = win.getComputedStyle(parent).display;
+    if (display !== 'grid' && display !== 'inline-grid') return;
+    const acs = win.getComputedStyle(anchor);
+    if (acs.gridColumnStart === 'auto' && acs.gridColumnEnd === 'auto') return;
+    wrapper.style.gridColumnStart = acs.gridColumnStart;
+    wrapper.style.gridColumnEnd = acs.gridColumnEnd;
+    // justify-self 不是 stretch 時 grid item 會縮成 fit-content, 補上 width 讓寬度與原文一致.
+    const js = acs.justifySelf;
+    if (js && js !== 'auto' && js !== 'normal' && js !== 'stretch') {
+      wrapper.style.justifySelf = js;
+      wrapper.style.width = '100%';
+    }
+    if (acs.maxWidth && acs.maxWidth !== 'none' && !wrapper.style.maxWidth) {
+      wrapper.style.maxWidth = acs.maxWidth;
+    }
+  }
+
+  // sr-only 樣式: 脫離版面流 (absolute / fixed), 並用 clip 或 1px 尺寸藏起來.
+  function isVisuallyHidden(el) {
+    const win = el.ownerDocument?.defaultView;
+    const cs = win?.getComputedStyle?.(el);
+    if (!cs || (cs.position !== 'absolute' && cs.position !== 'fixed')) return false;
+    if (cs.clipPath && cs.clipPath !== 'none') return true;
+    if (cs.clip && cs.clip !== 'auto') return true;
+    const rect = el.getBoundingClientRect();
+    return rect.width <= 1 && rect.height <= 1;
+  }
+
+  // inline 譯文是短標籤, slot 複製進來的 icon (例如按鈕的下拉箭頭) 會重複出現,
+  // 且 display: flex 的 icon 會讓 inline 譯文換行. 移除沒有文字的元素.
+  function removeTextlessElements(inner) {
+    for (const el of Array.from(inner.querySelectorAll('*'))) {
+      if (inner.contains(el) && !el.textContent.trim()) el.remove();
+    }
+  }
+
   // append 模式的 wrapper 在表格內是 fit-content 寬度, 用 margin 對齊原文的 text-align.
   function applyAppendAlignment(wrapper, cs) {
     const align = cs.textAlign;
@@ -930,6 +974,12 @@
       return;
     }
 
+    // sr-only 元素 (例如 skip link) 在畫面上看不到, 在後面插入可見的 wrapper 會多出一段文字並撐寬版面.
+    if (isVisuallyHidden(original)) {
+      original.setAttribute('data-transit-dual-source', '1');
+      return;
+    }
+
     SK.snapshotOnce(original);
 
     const inner = buildDualInner(tag, original, translation, slots);
@@ -954,6 +1004,7 @@
     if (isInlineMode) {
       wrapper.setAttribute('data-sk-inline', '');
       inner.style.display = 'inline';
+      removeTextlessElements(inner);
     } else if (csLayout && isAppendMode) {
       // wrapper 在原文元素內部, 已經吃到原文元素的 padding, 不再複製 margin / padding.
       applyAppendAlignment(wrapper, csLayout);
@@ -992,11 +1043,13 @@
         }
         insertPoint.insertAdjacentElement('afterend', wrapper);
         insertMode = 'afterend-block-ancestor';
+        copyGridPlacement(wrapper, blockAncestor);
       } else {
         original.insertAdjacentElement('afterend', wrapper);
         insertMode = 'afterend';
       }
     }
+    if (insertMode === 'afterend') copyGridPlacement(wrapper, original);
 
     neutralizeInheritedFlip(wrapper);
 
