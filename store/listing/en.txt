@@ -1,29 +1,29 @@
-Transit translates web pages, YouTube subtitles and documents. It replaces text in place and keeps the original fonts, layout and links. It supports 8 target languages: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, Spanish, French and German.
+Transit shows the translation right where the original text was. It works on web pages, video subtitles and documents, and keeps the original fonts, layout and links. You can choose from 8 target languages.
 
 ■ Features
 
-• Web page translation: replaces text in place and keeps the original layout. Links still work. Bold and italic text stay the same.
-• Replace or Bilingual: switch with one click in the toolbar menu. Bilingual mode shows the translation below each original paragraph.
-• YouTube subtitle translation: translates subtitles in real time. It can also show the original and the translation as two lines. Works with Google Drive and X videos too.
-• Translate document: PDF, EPUB, Word (.docx), TXT, Markdown, HTML and subtitle files (SRT / WebVTT / ASS). PDF output keeps the original page layout.
-• Hover translate and selection translate: translate only the paragraph under the cursor, or only the text you select.
-• Auto-convert Chinese variants (free): converts between Traditional and Simplified Chinese on your device with the built-in OpenCC dictionary. No API calls, works offline.
-• Primary and Failback: if the primary engine is not available or fails, Transit uses the Failback engine. You can translate without an API key.
-• Fixed glossary, forbidden terms and glossary consistency: keep names and terms consistent across the page.
-• Auto-translate selected sites, floating button and keyboard shortcut (Alt+S).
+• Web pages: replaces foreign text in place and keeps the layout. Links still work. Bold and italic text stay the same.
+• Replace or Bilingual: switch with one click in the toolbar menu. Bilingual mode shows the result below each source paragraph.
+• YouTube subtitles: converts subtitles in real time while the video plays. It can also show both languages as two lines.
+• Documents: upload an e-book, a document or a video subtitle file, and download the full result. PDF output keeps the original page layout. Subtitles keep their original timing.
+• Hover and selection: process only the paragraph under the cursor, or only the text you select.
+• Chinese script conversion (free): converts between Traditional and Simplified Chinese on your device with a built-in dictionary. Works offline.
+• Failback: if the primary service fails, Transit switches to a backup automatically. It works without an API key.
+• Consistent names: set your own wording for names and terms, and block words you do not want, so names stay the same across the page.
+• Per-site automation: Transit starts automatically on sites you choose. You can also start it with the floating button or the keyboard shortcut (Alt+S).
 
-■ Translation engines
+■ Engines
 
-• Google Translate: free, no API key needed.
+• Free option: Google Translate, no API key needed.
 • Google Gemini: better quality, needs your own API key.
-• Custom model: any OpenAI-compatible endpoint, for example OpenRouter, Groq, or Ollama running on your device.
+• Custom model: any OpenAI-compatible endpoint, including a model that runs on your own computer.
 
 ■ Privacy
 
 • Your settings and API keys are stored only in your browser.
 • Transit has no server of its own and sends no data to the developer.
-• Text to translate goes directly to the engine you choose (Google Translate, Gemini or your custom model).
-• With a local model (for example Ollama), no data goes to third parties.
+• Text goes directly to the service you choose.
+• With a local model, your data does not leave your computer.
 • For the full list of network connections, see the privacy policy: https://seanmars.github.io/transit/privacy-policy.html
 
 ■ Source code
