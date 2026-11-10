@@ -55,6 +55,7 @@ Transit 是一款 Chrome 擴充功能, 將英文 (或其他外語) 網頁翻譯�
 | Debug 工具 | ✅ | Log buffer 1000 筆 + 持久化 100 筆 (跨 SW 重啟); 設定頁 Debug 分頁瀏覽 |
 | Google Docs 支援 | ✅ | 偵測編輯頁自動導向 `/mobilebasic` 閱讀版再翻譯 |
 | Gmail 郵件內容翻譯 | ✅ | `mail.google.com` 整頁翻譯只收郵件主旨與每封展開郵件的內文, Gmail 介面不翻; 未開啟郵件時範圍為收件匣列表 (`role="main"`); 懸停翻譯不受此範圍限制; 詳見 §5 |
+| GitHub README 翻譯 | ✅ | `github.com` 頁面有 README / Markdown 文件 (`article.markdown-body`) 或 About 描述時整頁翻譯只收這兩者, 檔案列表、導覽列與 About 下方其他欄位不翻; 沒有時 (issue / PR 等) 照常整頁翻譯; 詳見 §5 |
 | 選取翻譯 (右鍵選單) | ✅ | 選取文字後按右鍵「用 Transit 翻譯選取的文字」, 就地翻譯選取範圍涵蓋的段落; 顯示方式沿用懸停翻譯; 詳見 §10.2 |
 | 自動語言偵測 | ✅ | 跳過已是目標語言的頁面; target-aware (各 target 跳對應源語言) |
 | 翻譯目標語言 | ✅ | 8 語: zh-TW / zh-CN / en / ja / ko / es / fr / de; 詳見 §3.9 |
@@ -266,7 +267,7 @@ single 模式譯文**一律注入回原 element** (不做 sibling overlay——�
 - **技術性排除**: script / style / 程式碼區塊 (含語法高亮 `<pre>`) / 表單控制項 / 站底 footer (無文章祖先時) / ARIA search 等; `<nav>` 不硬排除 (交給 prompt)
 - **頁面作者宣告的不翻譯訊號**: HTML 標準 `translate="no"` 屬性與 `notranslate` class (Google Translate 慣例) 整顆跳過, `translate="yes"` 可在其中重新開放; 段落內 inline 的同類元素 (人名、代號) 原樣保留不送翻譯. 掛在 `<html>` / `<body>` 或涵蓋頁面大半文字的 app root 上的文件級宣告不採信 (那是 SPA 避開 Google Translate 改 DOM 的 workaround, 不代表內容不可翻)
 - **icon 字型 ligature**: 以文字當 icon 名的元素 (computed font-family 為 icon / symbol 類字型、內容為單一識別字 token, 如 Material Icons 的 `star`) 不翻譯也不送翻譯, 避免 icon 變成中文字
-- **站點翻譯範圍**: 部分站點的整頁翻譯 (含 SPA 補翻與續翻) 只在站點內容容器內收段落, 不收站點介面. 目前只有 Gmail: 郵件主旨 + 每封展開郵件的內文, 找不到時退回主內容區; iframe 內不套用
+- **站點翻譯範圍**: 部分站點的整頁翻譯 (含 SPA 補翻與續翻) 只在站點內容容器內收段落, 不收站點介面. 目前有 Gmail (郵件主旨 + 每封展開郵件的內文, 找不到時退回主內容區) 與 GitHub (README / Markdown 文件 + About 描述, 找不到時照常整頁翻譯); iframe 內不套用
 - **可見性**: 隱藏元素與 a11y visually-hidden 元素不收; 純圖示按鈕 (唯一文字是 visually-hidden 標籤) 整顆不收, 圖示與按鈕尺寸維持原樣
 
 ---

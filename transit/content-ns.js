@@ -369,10 +369,16 @@ if (window.__transit_loaded) {
   };
 
   // Site translate scope: page translation only collects inside these roots (Gmail: subject + message bodies).
+  // No fallback + no match → null (translate whole page as usual).
   SK.SCOPE_SELECTORS = {
     'mail.google.com': {
       content: 'h2[data-thread-perm-id], h2.hP, div.a3s',
       fallback: '[role="main"]',
+    },
+    // GitHub: README / rendered .md + About description only; skip file list, nav and other sidebar fields.
+    // Issue/PR pages match nothing → whole page. Sidebar uses CSS Modules hashed classes, so match by name prefix.
+    'github.com': {
+      content: 'article.markdown-body, [class*="sidebarSection__"] > p[class*="description__"]',
     },
   };
   SK.getScopeRoots = function getScopeRoots(hostnameOverride, doc) {
@@ -382,7 +388,10 @@ if (window.__transit_loaded) {
     if (!cfg) return null;
     const d = doc || document;
     let roots = Array.from(d.querySelectorAll(cfg.content));
-    if (roots.length === 0 && cfg.fallback) roots = Array.from(d.querySelectorAll(cfg.fallback));
+    if (roots.length === 0) {
+      if (!cfg.fallback) return null;
+      roots = Array.from(d.querySelectorAll(cfg.fallback));
+    }
     return roots.filter((r) => !roots.some((o) => o !== r && o.contains(r)));
   };
 
