@@ -7,7 +7,7 @@
 - 最後更新: 2026-11-07
 - 目標平台: Chrome (Manifest V3)
 - 作業系統: macOS 26
-- 目前 Extension 版本: 0.1.3
+- 目前 Extension 版本: 0.1.4
 
 ---
 
