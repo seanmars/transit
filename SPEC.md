@@ -206,7 +206,7 @@ target 為中文變體時, 偵測為**相反變體**的段落不送 LLM, 改走�
 | 其他 | 不分流, 全走 LLM |
 
 - 混合頁兩路並存: 可轉段落走本地轉換、其餘照走 LLM; 轉換結果不寫翻譯快取、不記用量 (零 API)
-- **自動模式** (`settings.autoConvertZh`, 預設開): 頁面載入 / SPA 導航自動轉換 (只跑本地轉換、絕不打 API); popup toggle「簡繁自動互轉 (免費)」只在 target 為中文變體時顯示, 切換即時生效 (取消時僅還原本地轉換結果, LLM 翻譯成果不受影響)
+- **自動模式** (`settings.autoConvertZh`, 預設關): 頁面載入 / SPA 導航自動轉換 (只跑本地轉換、絕不打 API); popup toggle「簡繁自動互轉 (免費)」只在 target 為中文變體時顯示, 切換即時生效 (取消時僅還原本地轉換結果, LLM 翻譯成果不受影響)
 - toast 文案與 LLM 翻譯完全分開: 進行中「簡繁本地轉換中⋯ (不使用 AI 翻譯)」、完成「簡繁本地轉換完成」+「只做字典簡繁轉換, 未觸發 AI 翻譯 · 免費」、SPA 新內容「簡繁本地轉換新內容⋯」/「已本地轉換 N 段新內容 (未使用 AI)」; 混合頁完整翻譯時標示其中 N 段是字典轉換未經 AI. 完成通知預設不顯示 (`hideZhConvertToast: true`, 設定頁可關閉此隱藏), 進行中 toast 仍顯示
 - 轉換後按翻譯: 自動轉換是背景行為, 不算「已翻譯」狀態——工具列 icon 不亮紅點; 頁面只被本地轉換過 (`translatedBy = 'opencc-local'`) 且還有任何未翻段落時, 按翻譯 (快速鍵 / 工具列圖示選單按鈕 / 懸浮按鈕) 第一下就直接翻譯剩餘內容、已轉換段不還原, 工具列圖示選單的按鈕也顯示「翻譯本頁」; 再按一次才整頁還原 (含轉換段). 整頁完全沒有其他可翻內容 (純簡體頁) 才維持 toggle 還原
 - **實作**: `lib/zh-convert.js` + `lib/vendor/opencc/` (字典 10 檔約 1.1MB, lazy load)
@@ -219,8 +219,8 @@ target 為中文變體時, 偵測為**相反變體**的段落不送 LLM, 改走�
 
 兩種模式並存, 由 `displayMode` 設定切換 (popup 即時切換):
 
-- **`single` (預設, 單語覆蓋)**: 原文段落的文字節點替換成譯文, 元素本身保留不動 (字體 / 大小 / 顏色 / 排版全部沿用原文)
-- **`dual` (雙語對照)**: 原文保留, 譯文以 `<transit-translation>` wrapper 附在原段落之後 (列表 / 表格等特殊元素內嵌避免破版). 原段落內容完全不動
+- **`single` (單語覆蓋)**: 原文段落的文字節點替換成譯文, 元素本身保留不動 (字體 / 大小 / 顏色 / 排版全部沿用原文)
+- **`dual` (預設, 雙語對照)**: 原文保留, 譯文以 `<transit-translation>` wrapper 附在原段落之後 (列表 / 表格等特殊元素內嵌避免破版). 原段落內容完全不動
 
 **視覺標記** (`translationMarkStyle`, dual 模式譯文標記):
 
@@ -411,7 +411,7 @@ transit/
   },
   "domainRules": { "whitelist": [] },
   "autoTranslate": false,
-  "autoConvertZh": true,
+  "autoConvertZh": false,
   "debugLog": false,
   "translateDoc": {
     "engine": "gemini",
@@ -450,7 +450,7 @@ transit/
   "toastAutoHide": true,
   "showProgressToast": true,
   "hideZhConvertToast": true,
-  "displayMode": "single",
+  "displayMode": "dual",
   "displayCurrency": "TWD",
   "translationMarkStyle": "tint",
   "dualAccentColor": "auto",

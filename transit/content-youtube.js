@@ -256,7 +256,7 @@
     SK.YT.config = {
       ...DEFAULT_YT_CONFIG,
       ...(saved.ytSubtitle || {}),
-      bilingualMode: saved.displayMode === 'dual',
+      bilingualMode: (saved.displayMode ?? 'dual') === 'dual',
     };
     return SK.YT.config;
   }

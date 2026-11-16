@@ -426,7 +426,7 @@
       _autoTranslateEnabled = ytSubtitle.autoTranslate !== false;
       _engine = _normalizeDriveEngine(ytSubtitle.engine);
       _ytModel = ytSubtitle.model || '';
-      DRIVE.bilingualMode = displayMode === 'dual';
+      DRIVE.bilingualMode = (displayMode ?? 'dual') === 'dual';
       SK.sendLog('info', 'drive', 'settings loaded (from ytSubtitle)', {
         autoTranslate: _autoTranslateEnabled,
         engine: _engine,

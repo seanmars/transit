@@ -255,7 +255,7 @@ export const DEFAULT_SETTINGS = {
   },
   domainRules: { whitelist: [] },
   autoTranslate: false,
-  autoConvertZh: true,
+  autoConvertZh: false,
   debugLog: false,
   translateDoc: {
     engine: 'gemini',
@@ -297,7 +297,7 @@ export const DEFAULT_SETTINGS = {
   toastAutoHide: true,
   showProgressToast: true,
   hideZhConvertToast: true,
-  displayMode: 'single',
+  displayMode: 'dual',
   displayCurrency: 'TWD',
   translationMarkStyle: 'tint',
   dualAccentColor: 'auto',
