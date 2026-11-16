@@ -216,7 +216,7 @@ async function init() {
     } catch {   }
   }
 
-  const { autoTranslate = false, displayMode = 'single', uiLanguage, targetLanguage, autoConvertZh = true } = await browser.storage.sync.get(['autoTranslate', 'displayMode', 'uiLanguage', 'targetLanguage', 'autoConvertZh']);
+  const { autoTranslate = false, displayMode = 'dual', uiLanguage, targetLanguage, autoConvertZh = false } = await browser.storage.sync.get(['autoTranslate', 'displayMode', 'uiLanguage', 'targetLanguage', 'autoConvertZh']);
   $('auto').checked = autoTranslate;
 
   if ($('targetLanguage')) {

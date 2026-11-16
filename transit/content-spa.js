@@ -129,7 +129,7 @@
     }
 
     try {
-      const { autoTranslate = false, autoConvertZh = true } = await browser.storage.sync.get(['autoTranslate', 'autoConvertZh']);
+      const { autoTranslate = false, autoConvertZh = false } = await browser.storage.sync.get(['autoTranslate', 'autoConvertZh']);
       if (autoTranslate && await SK.isDomainWhitelisted()) {
         SK.sendLog('info', 'spa', 'SPA nav: domain in auto-translate list, translating', { url: location.href });
         if (typeof SK.handleTranslate === 'function') {

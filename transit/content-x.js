@@ -426,7 +426,7 @@
       XV.autoTranslate = ytSubtitle.autoTranslate !== false;
       SK._xSetEngine(ytSubtitle.engine);
       XV.model = ytSubtitle.model || '';
-      XV.bilingualMode = displayMode === 'dual';
+      XV.bilingualMode = (displayMode ?? 'dual') === 'dual';
     } catch {   }
   })();
 

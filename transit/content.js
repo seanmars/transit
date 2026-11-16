@@ -2632,7 +2632,7 @@
         }
       }
 
-      const { autoTranslate = false, autoConvertZh = true } = await browser.storage.sync.get(['autoTranslate', 'autoConvertZh']);
+      const { autoTranslate = false, autoConvertZh = false } = await browser.storage.sync.get(['autoTranslate', 'autoConvertZh']);
       if (autoTranslate && await SK.isDomainWhitelisted()) {
         SK.sendLog('info', 'system', 'domain in auto-translate list, translating on load', { url: location.href });
         handleTranslate();
