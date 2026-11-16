@@ -185,7 +185,7 @@
   SK._langHintDecision = langHintDecision;
 
   function isCandidateText(el) {
-    const text = el.textContent?.trim();
+    const text = SK.textOutsideMath(el).trim();
     if (!text || text.length < 2) return false;
     if (!/[\p{L}]/u.test(text)) return false;
     const target = SK.STATE?.targetLanguage || 'zh-TW';

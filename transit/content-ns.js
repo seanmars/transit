@@ -627,7 +627,28 @@ if (window.__transit_loaded) {
     return false;
   };
 
+  // 數學公式: MathML, KaTeX, MathJax v2/v3, Wikipedia. 內含 LaTeX annotation, 不可拆成文字翻譯.
+  SK.MATH_SELECTOR = 'math, .katex, mjx-container, .MathJax, .MathJax_Display, .MathJax_Preview, .mwe-math-element';
+
+  SK.isMathElement = function isMathElement(el) {
+    return !!el && el.nodeType === Node.ELEMENT_NODE && el.matches(SK.MATH_SELECTOR);
+  };
+
+  // 回傳 el 的文字, 但略過數學公式內的文字.
+  SK.textOutsideMath = function textOutsideMath(el) {
+    if (!el.querySelector(SK.MATH_SELECTOR)) return el.textContent || '';
+    let out = '';
+    (function walk(node) {
+      for (const c of node.childNodes) {
+        if (c.nodeType === Node.TEXT_NODE) out += c.nodeValue;
+        else if (c.nodeType === Node.ELEMENT_NODE && !SK.isMathElement(c)) walk(c);
+      }
+    })(el);
+    return out;
+  };
+
   SK.isAtomicPreserve = function isAtomicPreserve(el) {
+    if (SK.isMathElement(el)) return true;
     if (el.tagName === 'SUP' && el.classList && el.classList.contains('reference')) return true;
     if (el.tagName === 'HR') return true;
     if (SK.isNoTranslateMarked(el) || SK.isIconFontLigature(el)) return true;
