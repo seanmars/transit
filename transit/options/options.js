@@ -165,6 +165,11 @@ async function load() {
   const yt = { ...DEFAULTS.ytSubtitle, ...(s.ytSubtitle || {}) };
   const ytEngineEl = $('ytEngine');
   if (ytEngineEl) ytEngineEl.value = yt.engine || 'gemini';
+  const ytFallbackEl = $('ytFallbackEngine');
+  if (ytFallbackEl) {
+    const fb = yt.fallbackEngine || '';
+    ytFallbackEl.value = [...ytFallbackEl.options].some(o => o.value === fb) ? fb : '';
+  }
   $('ytAutoTranslate').checked       = yt.autoTranslate       === true;
   $('ytAsrProgressive').checked = yt.asrMode !== 'heuristic';
   $('ytApplyFixedGlossary').checked  = yt.applyFixedGlossary  === true;
@@ -731,6 +736,7 @@ async function _saveImpl() {
     ytSubtitle: {
       ...(existing.ytSubtitle || {}),
       engine: ($('ytEngine')?.value || 'gemini'),
+      fallbackEngine: ($('ytFallbackEngine')?.value || ''),
       autoTranslate:      $('ytAutoTranslate').checked,
       asrMode: $('ytAsrProgressive').checked ? 'progressive' : 'heuristic',
       applyFixedGlossary:  $('ytApplyFixedGlossary').checked,

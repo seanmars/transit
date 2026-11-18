@@ -203,6 +203,10 @@ For X (Twitter) videos that have auto-generated captions, Transit translates the
 - **Engine and model** follow the "Video translation" tab settings; bilingual display follows the display mode
 - Captions already in the target language are not sent for translation; videos for which X provides no captions cannot be translated
 
+### Video translation failback
+
+When subtitle translation on YouTube, Google Drive, or X fails (for example an API error or exhausted quota), the failback engine translates the failed batch again. By default it is the same as the web page Failback (Google Translate); change it or turn it off under "Video translation → Failback" in settings.
+
 ### Bilingual subtitles
 
 Subtitle bilingual display follows the display mode setting: click the Transit toolbar icon and pick the "Bilingual" display mode (default) — subtitles will then show both original and translation simultaneously (English on top, Chinese below). The "Replace" mode shows Chinese only. Page translation and subtitles share the same display mode, no separate setting needed.

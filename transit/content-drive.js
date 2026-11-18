@@ -208,7 +208,7 @@
   }
 
   async function _runOneBatchLlm(batch, batchIdx, totalBatches, msgType, engineLabel, runId) {
-    if (batch.length === 0) return;
+    if (batch.length === 0) return true;
 
     const lastSeg = batch[batch.length - 1];
     const batchEndMs = SK.ASR.batchEndMs(lastSeg.startMs, DRIVE.rawSegments);
@@ -224,19 +224,19 @@
       SK.sendLog('warn', 'drive', `batch ${batchIdx + 1}/${totalBatches} ${engineLabel} sendMessage failed`, {
         error: e?.message || String(e),
       });
-      return;
+      return false;
     }
 
     if (!res?.ok) {
       SK.sendLog('warn', 'drive', `batch ${batchIdx + 1}/${totalBatches} ${engineLabel} failed`, {
         error: res?.error || 'unknown',
       });
-      return;
+      return false;
     }
 
     _logDriveUsage(batch.length, res.usage, engineLabel);
 
-    if (_isStaleRun(runId, batchIdx, totalBatches, engineLabel)) return;
+    if (_isStaleRun(runId, batchIdx, totalBatches, engineLabel)) return true;
 
     const rawText = res.result?.[0] || '';
     let entries;
@@ -247,7 +247,7 @@
         error: e?.message || String(e),
         rawHead: rawText.slice(0, 200),
       });
-      return;
+      return false;
     }
 
     const { cues, droppedCount } = SK.ASR.resolveEntryTimeline(entries, batch, batchEndMs);
@@ -269,10 +269,11 @@
       totalOverlayEntries: DRIVE.entries.length,
       usage: res.usage,
     });
+    return true;
   }
 
   async function _runOneBatchGoogle(batch, batchIdx, totalBatches, runId) {
-    if (batch.length === 0) return;
+    if (batch.length === 0) return true;
 
     const texts = batch.map(seg => seg.text);
 
@@ -286,17 +287,17 @@
       SK.sendLog('warn', 'drive', `batch ${batchIdx + 1}/${totalBatches} google sendMessage failed`, {
         error: e?.message || String(e),
       });
-      return;
+      return false;
     }
 
     if (!res?.ok) {
       SK.sendLog('warn', 'drive', `batch ${batchIdx + 1}/${totalBatches} google failed`, {
         error: res?.error || 'unknown',
       });
-      return;
+      return false;
     }
 
-    if (_isStaleRun(runId, batchIdx, totalBatches, 'google')) return;
+    if (_isStaleRun(runId, batchIdx, totalBatches, 'google')) return true;
 
     const translations = Array.isArray(res.result) ? res.result : [];
     let pushedCount = 0;
@@ -319,6 +320,16 @@
       totalOverlayEntries: DRIVE.entries.length,
       usage: res.usage,
     });
+    return true;
+  }
+
+  // 依引擎送出一批字幕; 回傳 false 表示這批翻譯失敗 (可改用備援引擎重試)
+  function _runOneBatch(engine, batch, batchIdx, totalBatches, runId) {
+    if (engine === 'google') return _runOneBatchGoogle(batch, batchIdx, totalBatches, runId);
+    if (engine === 'openai-compat') {
+      return _runOneBatchLlm(batch, batchIdx, totalBatches, 'TRANSLATE_DRIVE_ASR_SUBTITLE_BATCH_CUSTOM', 'openai-compat', runId);
+    }
+    return _runOneBatchLlm(batch, batchIdx, totalBatches, 'TRANSLATE_DRIVE_ASR_SUBTITLE_BATCH', 'gemini', runId);
   }
 
   async function _handleCaptionsMessage(message) {
@@ -387,12 +398,14 @@
           SK.sendLog('info', 'drive', 'track switched mid-translation, old run stops dispatching', { runId, currentRunId: DRIVE.runId });
           return;
         }
-        if (engine === 'google') {
-          await _runOneBatchGoogle(batches[idx], idx, totalBatches, runId);
-        } else if (engine === 'openai-compat') {
-          await _runOneBatchLlm(batches[idx], idx, totalBatches, 'TRANSLATE_DRIVE_ASR_SUBTITLE_BATCH_CUSTOM', 'openai-compat', runId);
-        } else {
-          await _runOneBatchLlm(batches[idx], idx, totalBatches, 'TRANSLATE_DRIVE_ASR_SUBTITLE_BATCH', 'gemini', runId);
+        const ok = await _runOneBatch(engine, batches[idx], idx, totalBatches, runId);
+        if (!ok && runId === DRIVE.runId) {
+          // 主要引擎失敗: 改用影片翻譯的備援引擎重翻這一批
+          const fbEngine = await SK.getVideoFallbackEngine();
+          if (fbEngine && fbEngine !== engine) {
+            SK.sendLog('warn', 'drive', `batch ${idx + 1}/${totalBatches} retry with fallback engine`, { engine: fbEngine });
+            await _runOneBatch(fbEngine, batches[idx], idx, totalBatches, runId);
+          }
         }
       }
     }

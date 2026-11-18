@@ -1016,6 +1016,21 @@
       </label>
     </section>
 
+    <section>
+      <h2 data-i18n="options.video.fallback.heading">備援翻譯</h2>
+      <p class="muted" data-i18n="options.video.fallback.intro">上方的翻譯引擎翻譯某一批字幕失敗時（例如 API 錯誤、額度用完、回應格式錯誤），改用備援引擎重新翻譯這一批字幕。每批只重試一次</p>
+      <label>
+        <span data-i18n="options.video.fallback.label">備援引擎</span>
+        <select id="ytFallbackEngine">
+          <option value="" data-i18n="options.video.fallback.same">與網頁翻譯的備援翻譯相同（預設）</option>
+          <option value="google" data-i18n="options.video.fallback.google">Google Translate（免費，不需 API Key）</option>
+          <option value="gemini" data-i18n="options.video.fallback.gemini">Gemini（需要 API Key）</option>
+          <option value="openai-compat" data-i18n="options.video.fallback.custom">自訂模型（與「自訂模型」分頁共用設定）</option>
+          <option value="none" data-i18n="options.video.fallback.none">不使用備援翻譯</option>
+        </select>
+        <small class="muted" data-i18n="options.video.fallback.hint">備援引擎與上方翻譯引擎相同，或備援引擎無法使用（例如沒有設定 API Key）時，不會重試。YouTube 的 AI 分句不會改用 Google Translate 重試，該段時間改顯示原始分句的譯文</small>
+      </label>
+    </section>
 
     <div id="yt-gemini-only-sections">
       <section>

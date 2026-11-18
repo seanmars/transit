@@ -1,4 +1,4 @@
-import { TARGET_LANGUAGES, UI_LANGUAGES, DOC_ENGINE_IDS, normalizeTranslateEngines } from '../lib/storage.js';
+import { TARGET_LANGUAGES, UI_LANGUAGES, DOC_ENGINE_IDS, VIDEO_FALLBACK_CHOICES, normalizeTranslateEngines } from '../lib/storage.js';
 
 export function sanitizeImport(raw, _t, SC = globalThis.__SKShortcuts) {
   const clean = {};
@@ -267,6 +267,7 @@ export function sanitizeImport(raw, _t, SC = globalThis.__SKShortcuts) {
       debugToast:          { type: 'boolean' },
       onTheFly:            { type: 'boolean' },
       engine:              { type: 'string', oneOf: ['gemini', 'google', 'openai-compat'] },
+      fallbackEngine:      { type: 'string', oneOf: VIDEO_FALLBACK_CHOICES },
       model:               { type: 'string' },
       applyFixedGlossary:  { type: 'boolean' },
       applyForbiddenTerms: { type: 'boolean' },

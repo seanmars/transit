@@ -41,6 +41,7 @@ Transit 是一款 Chrome 擴充功能, 將英文 (或其他外語) 網頁翻譯�
 | 影片翻譯: YouTube | ✅ | 自動偵測字幕即時翻譯; ASR (自動字幕) AI 分句, 譯文字幕統一比語音提前 1 秒出現; 時間視窗批次; 雙語 overlay; 字幕大小與顏色跟隨原生設定; 行動版 `m.youtube.com` 支援; `/watch` 與 `/live/<id>` (直播 / 直播存檔分享連結) 路徑皆支援; 詳見 §18 |
 | 影片翻譯: Google Drive | ✅ | Drive 影片的自動產生字幕, 取得字幕後一次翻譯整部影片; AI 分句; 譯文以 overlay 顯示在播放器上; 雙語跟隨顯示模式; 詳見 §18 |
 | 影片翻譯: X (Twitter) | ✅ | X 自動產生字幕 (auto-generated) 的影片, 開聲音播放時自動翻譯 (時間軸上自動靜音播放不翻); AI 分句後以譯文字幕軌顯示, 外觀同 X 原生字幕; X 的 CC 鈕兼當譯文字幕開關; 雙語跟隨顯示模式; 引擎 / 模型沿用影片翻譯設定; 沒有字幕軌的影片不支援; 詳見 §18 |
+| 影片翻譯備援 | ✅ | 影片翻譯引擎翻譯某批字幕失敗時改用備援引擎重翻該批; 預設與網頁翻譯的 Failback 翻譯相同; 詳見 §18.3 |
 | SPA 支援 | ✅ | 站內導航自動偵測; 動態載入內容補翻; 譯文防覆蓋保護; 續翻模式 |
 | 段落偵測 | ✅ | 結構化 DOM walker; 技術性排除 (code / 表單 / 站底 footer); 尊重頁面宣告的 `translate="no"` / `notranslate` 與 icon 字型; 內容品味判斷交給 system prompt |
 | 佔位符序列化 | ✅ | 行內元素 (連結 / 粗斜體等) 與媒體在譯文中完整保留 |
@@ -439,7 +440,8 @@ transit/
     "applyForbiddenTerms": false,
     "asrMode": "progressive",
     "preferOriginalTrack": true,
-    "captionScale": 100
+    "captionScale": 100,
+    "fallbackEngine": ""
   },
   "maxRetries": 3,
   "maxConcurrentBatches": 30,
@@ -488,7 +490,7 @@ transit/
 - **API Key** 存 `chrome.storage.local` (key `apiKey`), 不跨裝置同步. 存在 sync 的 Key 會自動遷移至 local
 - manifest `commands` 預設快捷鍵由 Chrome 原生管理不存設定; 翻譯快速鍵的**自訂**鍵位存 `customShortcuts` (key 沿用 `2`, in-page recorder, §10.1)
 - `translateEngines`: 網頁翻譯的主要 / failback 引擎 (engine 為 `gemini` / `google` / `openai-compat`, 只有 gemini 有 model). 兩者相同時視為沒有 failback (§10)
-- `ytSubtitle`: 影片翻譯設定 (YouTube / Google Drive / X 共用; key 名稱沿用舊名)
+- `ytSubtitle`: 影片翻譯設定 (YouTube / Google Drive / X 共用; key 名稱沿用舊名). `ytSubtitle.fallbackEngine`: 影片翻譯的備援引擎, `""` (預設) = 與 `translateEngines.fallback` 相同, `none` = 不使用, 或指定 `gemini` / `google` / `openai-compat` (§18.3)
 - `translateDoc.engine` / `translateDoc.model`: 文件翻譯引擎, 只接受 `gemini` / `openai-compat` (§17.5)
 - **舊版 preset 遷移**: 舊版的 `translatePresets` / `popupButtonSlot` / `autoTranslateSlot` (sync) 與 `translateDocPresetSlot` (local) 在 `onInstalled` 轉成 `translateEngines` (舊 slot 2 → 主要, slot 3 → failback; 與主要相同時改用 slot 1) 與 `translateDoc.engine`, 然後刪除舊 key (`lib/storage.js` `migrateTranslateEnginesIfNeeded`)
 - `maxTranslateUnits`: 單頁翻譯段落數上限, 超過截斷 (0 = 不限制)
@@ -820,7 +822,7 @@ Failback 規則:
 | Google Drive (`drive.google.com/file/*`) | 自動產生字幕 | 取得字幕後一次翻譯整部影片; LLM 引擎一律 AI 分句 | 播放器上的字幕 overlay |
 | X (Twitter) | 自動產生字幕 | 開聲音播放時才翻譯整部影片 (時間軸上自動靜音播放不翻); LLM 引擎一律 AI 分句 | X 原生字幕軌; CC 鈕兼當譯文字幕開關 |
 
-- 三個平台共用: 自動翻譯開關 (`autoTranslate`)、翻譯引擎 (`engine`)、Gemini 模型與計價
+- 三個平台共用: 自動翻譯開關 (`autoTranslate`)、翻譯引擎 (`engine`)、Gemini 模型與計價、備援引擎 (`fallbackEngine`)
 - 只有 YouTube 使用: AI 分句開關、字幕翻譯 Prompt、固定術語表 / 禁用詞套用、分批參數 (`windowSizeS` / `lookaheadS`)、字幕大小
 - 沒有字幕軌的影片不支援
 
@@ -828,3 +830,26 @@ Failback 規則:
 
 - 可選 Gemini (預設)、Google Translate、自訂模型
 - 選 Google Translate 時無法使用 AI 分句, 一律使用原始分句
+
+### 18.3 備援翻譯 (Fallback)
+
+影片翻譯引擎翻譯某一批字幕失敗時, 改用備援引擎重新翻譯這一批字幕.
+
+**備援引擎設定** (`ytSubtitle.fallbackEngine`, 設定頁「影片翻譯 › 備援翻譯」):
+
+| 值 | 說明 |
+|----|------|
+| `""` (預設) | 與網頁翻譯的 Failback 翻譯相同 (`translateEngines.fallback`, §10). 網頁翻譯的主要與 Failback 相同 (視為沒有 Failback) 時, 影片翻譯也不使用備援 |
+| `google` / `gemini` / `openai-compat` | 指定備援引擎. Gemini 使用影片翻譯的模型設定 |
+| `none` | 不使用備援翻譯 |
+
+**觸發條件**: 一批字幕的翻譯請求失敗 (API 錯誤、逾時、額度用完、背景回傳 `ok: false`). Google Drive 與 X 的 AI 分句回應無法解析時也算失敗.
+
+**處理方式**:
+
+1. 主要引擎失敗後, 才向 background 解析備援引擎 (`GET_VIDEO_FALLBACK_ENGINE`); 成功的批次不多發請求
+2. 以下情況不重試, 保留原本的失敗處理 (log + 錯誤提示, 該視窗留待下次重試): 備援設為 `none`; 備援引擎與影片翻譯引擎相同; 備援引擎無法使用 (Gemini 沒有 API Key、自訂模型沒有 Base URL)
+3. 每批只用備援引擎重試一次, 備援也失敗時照原本的失敗處理
+4. YouTube 一般字幕、ASR heuristic 分句、on-the-fly 即時翻譯: 改用備援引擎的字幕批次重送同一批文字. Streaming 首批失敗會先改走非 streaming 批次, 再套用同一個備援規則
+5. YouTube ASR 的 AI 分句批次: 備援引擎是 LLM 時以 AI 分句格式重送; 備援引擎是 Google Translate 時不重送 (AI 分句需要 LLM), 該段時間顯示 heuristic 分句的譯文 (heuristic 批次本身已套用備援)
+6. Google Drive 與 X: AI 分句批次失敗且備援是 Google Translate 時, 改為逐條字幕翻譯 (沿用原始分句與時間軸); 備援是 LLM 時以 AI 分句格式重送
