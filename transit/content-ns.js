@@ -258,6 +258,39 @@ if (window.__transit_loaded) {
     return 'TRANSLATE_SUBTITLE_BATCH';
   };
 
+  // 影片翻譯的備援引擎 (engine id 或 null). 只在主要引擎失敗時才查詢, 設定由 background 解析
+  SK.getVideoFallbackEngine = async function getVideoFallbackEngine() {
+    try {
+      const resp = await SK.safeSendMessage({ type: 'GET_VIDEO_FALLBACK_ENGINE' });
+      return (resp?.ok && resp.engine) ? resp.engine : null;
+    } catch (_) {
+      return null;
+    }
+  };
+
+  // 送出字幕批次. 主要引擎失敗 (拋錯或 ok=false) 時改用備援引擎重送一次.
+  // typeForEngine(engine) 回傳備援引擎的 message type; 回傳 null 表示這個引擎不適用, 保留原本的失敗結果
+  SK.sendVideoBatchWithFallback = async function sendVideoBatchWithFallback(type, payload, typeForEngine, logCategory) {
+    let res = null;
+    let err = null;
+    try {
+      res = await SK.safeSendMessage({ type, payload });
+    } catch (e) {
+      err = e;
+    }
+    if (!err && res?.ok) return res;
+    const fbEngine = await SK.getVideoFallbackEngine();
+    const fbType = fbEngine ? typeForEngine(fbEngine) : null;
+    if (!fbType || fbType === type) {
+      if (err) throw err;
+      return res;
+    }
+    SK.sendLog('warn', logCategory, 'video fallback: retry batch with fallback engine', {
+      engine: fbEngine, type: fbType, error: err?.message || res?.error || 'unknown',
+    });
+    return SK.safeSendMessage({ type: fbType, payload });
+  };
+
   SK.getGlossaryExtractType = function getGlossaryExtractType(engine) {
     if (engine === 'openai-compat') return 'EXTRACT_GLOSSARY_CUSTOM';
     return 'EXTRACT_GLOSSARY';

@@ -176,7 +176,7 @@ Document translation shares the same translation cache and usage tracking as web
 
 Open a YouTube video with captions (manual or auto-generated), make sure CC is on, click the Transit toolbar icon — the menu will show a "YouTube subtitle translation" toggle. Turn it on. Captions are progressively replaced with your target language (Traditional Chinese by default) without affecting playback; styling matches native YouTube captions exactly. Captions already in the target language are not sent for translation.
 
-If you watch a lot of English YouTube content, enable auto-translate in the "YouTube subtitles" tab in settings — translation will start automatically whenever you open a video, no manual toggling.
+If you watch a lot of English YouTube content, enable auto-translate in the "Video translation" tab in settings — translation will start automatically whenever you open a video, no manual toggling.
 
 On YouTube video pages, the toolbar icon menu shows a "Caption size" dropdown to enlarge the translated captions (100%–200%)
 
@@ -189,7 +189,7 @@ Transit has a dedicated pipeline for ASR captions:
 - **AI-driven re-segmentation**: the entire batch of ASR fragments is sent to Gemini, which re-segments by meaning (merges short fragments into full sentences, adds punctuation), then translates. Chinese subtitles go from "shattered words" to "complete sentences".
 - **Default "hybrid mode"**: a fast local heuristic shows segmented captions immediately (subsecond, no waiting), while AI segmentation runs in the background and replaces them with the polished version when ready — best of both worlds.
 - **Stable subtitle overlay**: Transit's own overlay completely bypasses YouTube's native caption-segment rendering (which causes "word-by-word popup" behavior); whole sentences appear and disappear cleanly. Auto-shifts up to avoid the progress bar when the controls appear.
-- **Toggleable**: if you only want minimum latency with YouTube's original segmentation, uncheck "AI segmentation mode" in the "YouTube subtitles" tab.
+- **Toggleable**: if you only want minimum latency with YouTube's original segmentation, uncheck "AI segmentation mode" in the "Video translation" tab.
 - **Automatically disabled with the Google Translate engine**: AI segmentation needs an LLM, which would call Gemini and incur cost. When the free engine is selected, YouTube's original segmentation is always used — your API key is never touched behind your back.
 
 Human-uploaded captions (professional / community-contributed) are unaffected by this setting; they continue using the original sentence-by-sentence translation pipeline.
@@ -200,8 +200,12 @@ For X (Twitter) videos that have auto-generated captions, Transit translates the
 
 - **X's CC button doubles as the translated-caption toggle**: "Hide captions" hides the translation, "Show captions" brings it back (showing the translation, not the English original). Right after the translation first appears, the first CC press may do nothing — press it again
 - **Toggle**: on an X post page, the Transit toolbar icon menu shows an "X video subtitle translation" toggle; it shares the same setting as YouTube subtitle translation
-- **Engine and model** follow the YouTube subtitle settings; bilingual display follows the display mode
+- **Engine and model** follow the "Video translation" tab settings; bilingual display follows the display mode
 - Captions already in the target language are not sent for translation; videos for which X provides no captions cannot be translated
+
+### Video translation failback
+
+When subtitle translation on YouTube, Google Drive, or X fails (for example an API error or exhausted quota), the failback engine translates the failed batch again. By default it is the same as the web page Failback (Google Translate); change it or turn it off under "Video translation → Failback" in settings.
 
 ### Bilingual subtitles
 
@@ -224,7 +228,7 @@ Subtitle translation shares the same billing logic and usage tracking as web tra
 ### Notes
 
 - The video must have captions (manually uploaded or auto-generated)
-- Subtitle translation uses an independent system prompt, customizable in the "YouTube subtitles" tab
+- Subtitle translation uses an independent system prompt, customizable in the "Video translation" tab
 - If CC is off, Transit turns it on for you (only once per video session, to respect manual user opt-out afterward)
 - After switching videos, you'll need to toggle the switch on again (or enable auto-translate)
 

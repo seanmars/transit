@@ -14,7 +14,7 @@
 
       <nav class="tab-bar">
         <button class="tab-btn active" data-tab="settings" data-i18n="options.tab.settings">一般設定</button>
-        <button class="tab-btn" data-tab="youtube" data-i18n="options.tab.youtube">YouTube 字幕</button>
+        <button class="tab-btn" data-tab="video" data-i18n="options.tab.video">影片翻譯</button>
         <button class="tab-btn" data-tab="gemini" data-i18n="options.tab.gemini">Gemini</button>
         <button class="tab-btn" data-tab="custom-provider" data-i18n="options.tab.customProvider">自訂模型</button>
         <button class="tab-btn" data-tab="glossary" data-i18n="options.tab.glossary">術語表</button>
@@ -949,16 +949,35 @@
 
     </div>
 
-    <div id="tab-youtube" class="tab-panel">
-    <h1 class="panel-title" data-i18n="options.tab.youtube">YouTube 字幕</h1>
+    <div id="tab-video" class="tab-panel">
+    <h1 class="panel-title" data-i18n="options.tab.video">影片翻譯</h1>
+
+    <section>
+      <h2 data-i18n="options.video.platforms.heading">支援的影片平台</h2>
+      <p class="muted" data-i18n="options.video.platforms.intro">本分頁的設定套用到以下所有平台的影片字幕翻譯。字幕是否雙語對照，跟隨「一般設定」的顯示模式</p>
+      <div class="video-platform-list">
+        <div class="video-platform-row">
+          <strong>YouTube</strong>
+          <span data-i18n="options.video.platforms.youtube">翻譯人工字幕與自動產生字幕；自動產生字幕可用 AI 分句。依播放進度分批翻譯，譯文以字幕 overlay 顯示，字幕大小與顏色跟隨 YouTube 設定。支援行動版 m.youtube.com 與直播存檔</span>
+        </div>
+        <div class="video-platform-row">
+          <strong>Google Drive</strong>
+          <span data-i18n="options.video.platforms.drive">翻譯 Drive 影片的自動產生字幕。取得字幕後一次翻譯整部影片，譯文以字幕 overlay 顯示在播放器上</span>
+        </div>
+        <div class="video-platform-row">
+          <strong>X (Twitter)</strong>
+          <span data-i18n="options.video.platforms.x">翻譯 X 影片的自動產生字幕。開聲音播放時才翻譯（時間軸上自動靜音播放的影片不翻）；譯文以 X 原生字幕軌顯示，CC 鈕可開關譯文字幕。沒有字幕軌的影片不支援</span>
+        </div>
+      </div>
+    </section>
 
     <section>
       <h2 data-i18n="options.yt.auto.heading">自動翻譯</h2>
-      <p class="muted" data-i18n="options.yt.auto.hint">開啟後進入 YouTube 影片頁面時，會自動開始翻譯字幕，不需要從工具列圖示手動開啟</p>
+      <p class="muted" data-i18n="options.yt.auto.hint">開啟後進入支援平台的影片頁面時，會自動開始翻譯字幕，不需要從工具列圖示手動開啟</p>
       <label class="checkbox-label">
         <input type="checkbox" id="ytAutoTranslate">
         <div class="checkbox-body">
-        <span data-i18n="options.yt.auto.toggle">偵測到 YouTube 影片時自動翻譯字幕</span>
+        <span data-i18n="options.yt.auto.toggle">偵測到支援平台的影片時自動翻譯字幕</span>
         </div>
       </label>
     </section>
@@ -966,7 +985,7 @@
     <section>
       <h2 data-i18n="options.yt.asr.heading">AI 分句</h2>
       <p class="muted" data-i18n-html="options.yt.asr.intro.html">
-        僅影響 YouTube <strong>自動產生</strong>的字幕，人工字幕不受此設定影響
+        僅影響 YouTube <strong>自動產生</strong>的字幕，人工字幕不受此設定影響。Google Drive 與 X 使用 LLM 引擎時一律使用 AI 分句
       </p>
       <label class="checkbox-label">
         <input type="checkbox" id="ytAsrProgressive" checked>
@@ -994,6 +1013,22 @@
         <small class="muted" data-i18n-html="options.yt.engine.hint.html">
           選擇 Google Translate 時，下方模型、計價、Prompt 設定都不會生效（Google Translate 不支援自訂 Prompt）。<br>選擇「自訂模型」時，會使用「自訂模型」分頁設定的 Base URL / 模型 ID / API Key / Prompt（與文章翻譯共用同一組）；下方模型、計價也不會生效
         </small>
+      </label>
+    </section>
+
+    <section>
+      <h2 data-i18n="options.video.fallback.heading">備援翻譯</h2>
+      <p class="muted" data-i18n="options.video.fallback.intro">上方的翻譯引擎翻譯某一批字幕失敗時（例如 API 錯誤、額度用完、回應格式錯誤），改用備援引擎重新翻譯這一批字幕。每批只重試一次</p>
+      <label>
+        <span data-i18n="options.video.fallback.label">備援引擎</span>
+        <select id="ytFallbackEngine">
+          <option value="" data-i18n="options.video.fallback.same">與網頁翻譯的備援翻譯相同（預設）</option>
+          <option value="google" data-i18n="options.video.fallback.google">Google Translate（免費，不需 API Key）</option>
+          <option value="gemini" data-i18n="options.video.fallback.gemini">Gemini（需要 API Key）</option>
+          <option value="openai-compat" data-i18n="options.video.fallback.custom">自訂模型（與「自訂模型」分頁共用設定）</option>
+          <option value="none" data-i18n="options.video.fallback.none">不使用備援翻譯</option>
+        </select>
+        <small class="muted" data-i18n="options.video.fallback.hint">備援引擎與上方翻譯引擎相同，或備援引擎無法使用（例如沒有設定 API Key）時，不會重試。YouTube 的 AI 分句不會改用 Google Translate 重試，該段時間改顯示原始分句的譯文</small>
       </label>
     </section>
 
@@ -1068,7 +1103,7 @@
     <section>
       <details class="advanced-details">
         <summary data-i18n="options.yt.advanced.batch.summary">進階：字幕分批翻譯參數</summary>
-        <p class="muted" data-i18n="options.yt.advanced.batch.intro">字幕依時間分批翻譯。每批翻譯涵蓋一段時間內的字幕，在快用完前提前翻好下一批。一般使用者不需要動，維持預設即可</p>
+        <p class="muted" data-i18n="options.yt.advanced.batch.intro">YouTube 字幕依時間分批翻譯。每批翻譯涵蓋一段時間內的字幕，在快用完前提前翻好下一批。Google Drive 與 X 一次翻譯整部影片，不受此設定影響。一般使用者不需要動，維持預設即可</p>
         <label>
           <span data-i18n="options.yt.advanced.batch.windowLabel">每批涵蓋秒數</span>
           <input type="number" id="ytWindowSizeS" step="5" min="10" max="120">

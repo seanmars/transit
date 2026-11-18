@@ -235,20 +235,20 @@
       });
     } catch (e) {
       SK.sendLog('warn', 'x', `batch ${label} ${engineLabel} sendMessage failed`, { error: e?.message || String(e) });
-      return;
+      return false;
     }
     if (!res?.ok) {
       SK.sendLog('warn', 'x', `batch ${label} ${engineLabel} failed`, { error: res?.error || 'unknown' });
-      return;
+      return false;
     }
     _logUsage(mediaId, batch.length, res.usage, engineLabel);
-    if (runId !== rec.runId) return;
+    if (runId !== rec.runId) return true;
     let entries;
     try {
       entries = SK.ASR.parseLlmOutput(res.result?.[0] || '', batch, batchEndMs);
     } catch (e) {
       SK.sendLog('warn', 'x', `batch ${label} parse failed (${engineLabel})`, { error: e?.message || String(e) });
-      return;
+      return false;
     }
     const { cues, droppedCount } = SK.ASR.resolveEntryTimeline(entries, batch, batchEndMs);
     const starts = batch.map(s => s.startMs);
@@ -261,6 +261,7 @@
     SK.sendLog('info', 'x', `batch ${label} done (${engineLabel})`, {
       mediaId, llmEntryCount: entries.length, droppedMisaligned: droppedCount, totalEntries: rec.entries.length,
     });
+    return true;
   }
 
   async function _runBatchGoogle(rec, mediaId, batch, label, runId) {
@@ -269,13 +270,13 @@
       res = await SK.safeSendMessage({ type: 'TRANSLATE_X_BATCH_GOOGLE', payload: { texts: batch.map(s => s.text), glossary: null } });
     } catch (e) {
       SK.sendLog('warn', 'x', `batch ${label} google sendMessage failed`, { error: e?.message || String(e) });
-      return;
+      return false;
     }
     if (!res?.ok) {
       SK.sendLog('warn', 'x', `batch ${label} google failed`, { error: res?.error || 'unknown' });
-      return;
+      return false;
     }
-    if (runId !== rec.runId) return;
+    if (runId !== rec.runId) return true;
     const tr = Array.isArray(res.result) ? res.result : [];
     for (let i = 0; i < batch.length; i++) {
       const text = String(tr[i] || '').trim();
@@ -286,6 +287,16 @@
     }
     rec.entries.sort((a, b) => a.startMs - b.startMs);
     SK.sendLog('info', 'x', `batch ${label} done (google)`, { mediaId, totalEntries: rec.entries.length });
+    return true;
+  }
+
+  // 依引擎送出一批字幕; 回傳 false 表示這批翻譯失敗 (可改用備援引擎重試)
+  function _runBatch(engine, rec, mediaId, batch, label, runId) {
+    if (engine === 'google') return _runBatchGoogle(rec, mediaId, batch, label, runId);
+    if (engine === 'openai-compat') {
+      return _runBatchLlm(rec, mediaId, batch, label, 'TRANSLATE_X_ASR_SUBTITLE_BATCH_CUSTOM', 'openai-compat', runId);
+    }
+    return _runBatchLlm(rec, mediaId, batch, label, 'TRANSLATE_X_ASR_SUBTITLE_BATCH', 'gemini', runId);
   }
 
   async function _translateMedia(mediaId, rec) {
@@ -304,12 +315,14 @@
         const idx = next++;
         if (idx >= batches.length || !XV.autoTranslate || runId !== rec.runId) return;
         const label = `${idx + 1}/${batches.length}`;
-        if (engine === 'google') {
-          await _runBatchGoogle(rec, mediaId, batches[idx], label, runId);
-        } else if (engine === 'openai-compat') {
-          await _runBatchLlm(rec, mediaId, batches[idx], label, 'TRANSLATE_X_ASR_SUBTITLE_BATCH_CUSTOM', 'openai-compat', runId);
-        } else {
-          await _runBatchLlm(rec, mediaId, batches[idx], label, 'TRANSLATE_X_ASR_SUBTITLE_BATCH', 'gemini', runId);
+        const ok = await _runBatch(engine, rec, mediaId, batches[idx], label, runId);
+        if (!ok && runId === rec.runId) {
+          // 主要引擎失敗: 改用影片翻譯的備援引擎重翻這一批
+          const fbEngine = await SK.getVideoFallbackEngine();
+          if (fbEngine && fbEngine !== engine) {
+            SK.sendLog('warn', 'x', `batch ${label} retry with fallback engine`, { mediaId, engine: fbEngine });
+            await _runBatch(fbEngine, rec, mediaId, batches[idx], label, runId);
+          }
         }
         if (runId === rec.runId) _renderMedia(rec);
       }

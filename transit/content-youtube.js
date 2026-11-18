@@ -1736,14 +1736,12 @@
     const inputJson = _buildAsrLlmInput(subSegs);
 
     const _asrMsgType = SK.getSubtitleBatchType(SK.YT.config?.engine, true);
-    const res = await SK.safeSendMessage({
-      type: _asrMsgType,
-      payload: {
-        texts: [inputJson],
-        glossary: null,
-        sourceLanguage: SK.YT.captionLang || 'en',
-      },
-    });
+    // 備援引擎是 Google Translate 時不重送: AI 分句需要 LLM, 而同一個視窗的 heuristic 字幕已有備援
+    const res = await SK.sendVideoBatchWithFallback(_asrMsgType, {
+      texts: [inputJson],
+      glossary: null,
+      sourceLanguage: SK.YT.captionLang || 'en',
+    }, (engine) => (engine === 'google' ? null : SK.getSubtitleBatchType(engine, true)), 'youtube');
     const elapsed = Date.now() - _t0Window;
     if (batchApiMsRef) batchApiMsRef[batchIdx] = elapsed;
 
@@ -1900,10 +1898,9 @@
     const _heuristicMsgType = SK.getSubtitleBatchType(SK.YT.config?.engine, false);
 
     const _runBatch = (batchUnits, b) =>
-      SK.safeSendMessage({
-        type: _heuristicMsgType,
-        payload: { texts: batchUnits.map(u => u.text), glossary: null },
-      }).then(res => {
+      SK.sendVideoBatchWithFallback(_heuristicMsgType,
+        { texts: batchUnits.map(u => u.text), glossary: null },
+        (engine) => SK.getSubtitleBatchType(engine, false), 'youtube').then(res => {
         const elapsed = Date.now() - _t0;
         _batchApiMs[b] = elapsed;
         if (!res?.ok) throw new Error(SK.i18n.bgErrorMessage(res) || SK.t('common.errorUnknown'));
@@ -2189,10 +2186,9 @@
         };
 
         const _runBatch = (batchUnits, b) =>
-          SK.safeSendMessage({
-            type: _subtitleMsgType,
-            payload: { texts: batchUnits.map(u => u.text), glossary: null },
-          }).then(res => {
+          SK.sendVideoBatchWithFallback(_subtitleMsgType,
+            { texts: batchUnits.map(u => u.text), glossary: null },
+            (engine) => SK.getSubtitleBatchType(engine, false), 'youtube').then(res => {
             const elapsed = Date.now() - _t0;
             _batchApiMs[b] = elapsed;
             if (!res?.ok) throw new Error(SK.i18n.bgErrorMessage(res) || SK.t('common.errorUnknown'));
@@ -2695,10 +2691,9 @@
 
     try {
       const _onTheFlyMsgType = SK.getSubtitleBatchType(YT.config?.engine, false);
-      const res = await SK.safeSendMessage({
-        type: _onTheFlyMsgType,
-        payload: { texts, glossary: null },
-      });
+      const res = await SK.sendVideoBatchWithFallback(_onTheFlyMsgType,
+        { texts, glossary: null },
+        (engine) => SK.getSubtitleBatchType(engine, false), 'youtube');
       if (!res?.ok) throw new Error(SK.i18n.bgErrorMessage(res) || SK.t('common.errorUnknown'));
       if (!SK.YT.active || _myGen !== (SK.YT.captionSourceGen || 0)) {
         YT.flushing = false;

@@ -3,7 +3,7 @@ import { translateBatch, extractGlossary, extractTermRenderings, translateBatchS
 import { translateBatch as translateBatchCustom, extractGlossary as extractGlossaryCustom, resolveChatCompletionsUrl } from './lib/openai-compat.js';
 import { translateGoogleBatch } from './lib/google-translate.js';
 import { emptyUsage } from './lib/llm-common.js';
-import { getSettingsCached, setSettings, DEFAULT_SUBTITLE_SYSTEM_PROMPT, DEFAULT_ASR_SUBTITLE_SYSTEM_PROMPT, DEFAULT_DOC_SYSTEM_PROMPT, DOC_INLINE_MARKER_INSTRUCTION, getEffectiveSystemPrompt, getEffectiveSubtitleSystemPrompt, getEffectiveAsrSubtitleSystemPrompt, getEffectiveDocSystemPrompt, getEffectiveGlossaryPrompt, LANG_LABELS, isPromptUnchangedFromAnyTargetDefault, DEFAULT_SETTINGS, resolveTranslateChain, migrateTranslateEnginesIfNeeded } from './lib/storage.js';
+import { getSettingsCached, setSettings, DEFAULT_SUBTITLE_SYSTEM_PROMPT, DEFAULT_ASR_SUBTITLE_SYSTEM_PROMPT, DEFAULT_DOC_SYSTEM_PROMPT, DOC_INLINE_MARKER_INSTRUCTION, getEffectiveSystemPrompt, getEffectiveSubtitleSystemPrompt, getEffectiveAsrSubtitleSystemPrompt, getEffectiveDocSystemPrompt, getEffectiveGlossaryPrompt, LANG_LABELS, isPromptUnchangedFromAnyTargetDefault, DEFAULT_SETTINGS, resolveTranslateChain, resolveVideoFallbackEngine, migrateTranslateEnginesIfNeeded } from './lib/storage.js';
 import { debugLog, getLogs, clearLogs, getPersistedLogs, getAnomalyLogs, clearPersistedLogs } from './lib/logger.js';
 import * as cache from './lib/cache.js';
 import * as usageDB from './lib/usage-db.js';
@@ -662,6 +662,13 @@ const messageHandlers = {
     handler: async () => {
       const settings = await getSettingsCached();
       return { ok: true, chain: resolveTranslateChain(settings) };
+    },
+  },
+  GET_VIDEO_FALLBACK_ENGINE: {
+    async: true,
+    handler: async () => {
+      const settings = await getSettingsCached();
+      return { ok: true, engine: resolveVideoFallbackEngine(settings) };
     },
   },
   STICKY_QUERY: {

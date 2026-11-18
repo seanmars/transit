@@ -283,6 +283,7 @@ export const DEFAULT_SETTINGS = {
     asrMode: 'progressive',
     preferOriginalTrack: true,
     captionScale: 100,
+    fallbackEngine: '',
   },
   maxRetries: 3,
   maxConcurrentBatches: 30,
@@ -513,6 +514,27 @@ export function resolveTranslateChain(settings) {
     primaryReason: engineUnavailableReason(primary, settings),
     fallbackReason: fallback ? engineUnavailableReason(fallback, settings) : null,
   };
+}
+
+// 影片翻譯的備援引擎選項: '' = 與網頁翻譯的備援翻譯相同 (預設), 'none' = 不使用
+export const VIDEO_FALLBACK_CHOICES = ['', 'none', ...TRANSLATE_ENGINE_IDS];
+
+// 影片翻譯 (字幕) 的備援引擎. 回傳 engine id, 不使用備援時回傳 null:
+// 設為 'none'、跟影片翻譯引擎相同、或備援引擎無法使用 (例如沒有 API Key)
+export function resolveVideoFallbackEngine(settings) {
+  const yt = settings?.ytSubtitle || {};
+  const primary = TRANSLATE_ENGINE_IDS.includes(yt.engine) ? yt.engine : 'gemini';
+  const choice = VIDEO_FALLBACK_CHOICES.includes(yt.fallbackEngine) ? yt.fallbackEngine : '';
+  if (choice === 'none') return null;
+  let spec;
+  if (choice === '') {
+    spec = resolveTranslateChain(settings).fallback;
+  } else {
+    spec = { engine: choice };
+  }
+  if (!spec || spec.engine === primary) return null;
+  if (engineUnavailableReason(spec, settings)) return null;
+  return spec.engine;
 }
 
 // 主要和 failback 都無法使用時回傳 true
