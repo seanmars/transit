@@ -114,6 +114,11 @@ function checkI18nSubset() {
   if (r.status !== 0) fail(`i18n: ${(r.stderr || r.stdout || '').trim()}`);
 }
 
+function checkThemeCss() {
+  const r = spawnSync(process.execPath, [path.join(ROOT, 'tools', 'build', 'generate-theme-css.mjs'), '--check'], { encoding: 'utf8' });
+  if (r.status !== 0) fail(`theme: ${(r.stderr || r.stdout || '').trim()}`);
+}
+
 const tag = argValue('--tag');
 const syntaxCount = checkSyntax();
 const manifest = checkManifest(tag);
@@ -121,6 +126,7 @@ const entries = checkScriptTags();
 if (manifest?.background?.type === 'module') entries.unshift(path.join(EXT, manifest.background.service_worker));
 const moduleCount = await checkModuleGraph(entries);
 checkI18nSubset();
+checkThemeCss();
 
 console.log(`語法檢查 ${syntaxCount} 個檔案,module graph ${moduleCount} 個 module,manifest version ${manifest?.version ?? '?'}`);
 if (failures.length) {

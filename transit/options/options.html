@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title data-i18n="options.pageTitle">Transit 設定</title>
   <link rel="stylesheet" href="options.css">
+  <script src="../lib/theme.js"></script>
 </head>
 <body>
   <div id="save-bar" class="save-bar" hidden></div>
@@ -15,8 +16,7 @@
       <nav class="tab-bar">
         <button class="tab-btn active" data-tab="settings" data-i18n="options.tab.settings">一般設定</button>
         <button class="tab-btn" data-tab="video" data-i18n="options.tab.video">影片翻譯</button>
-        <button class="tab-btn" data-tab="gemini" data-i18n="options.tab.gemini">Gemini</button>
-        <button class="tab-btn" data-tab="custom-provider" data-i18n="options.tab.customProvider">自訂模型</button>
+        <button class="tab-btn" data-tab="model" data-i18n="options.tab.model">模型</button>
         <button class="tab-btn" data-tab="glossary" data-i18n="options.tab.glossary">術語表</button>
         <button class="tab-btn" data-tab="forbidden" data-i18n="options.tab.forbidden">禁用詞清單</button>
         <button class="tab-btn" data-tab="usage" data-i18n="options.tab.usage">用量紀錄</button>
@@ -56,6 +56,16 @@
         </select>
         <small class="muted" data-i18n="options.uiLanguage.hint">控制工具列圖示、設定頁、翻譯進度通知等擴充功能介面字串的語言。與工具列圖示選單中的「翻譯成」各自獨立，互不影響</small>
       </label>
+    </section>
+
+    <section>
+      <h2 data-i18n="options.theme.heading">介面主題</h2>
+      <p class="muted" data-i18n="options.theme.hint">套用到設定頁、工具列選單、文件翻譯頁，以及網頁上的翻譯進度通知、浮動按鈕與編輯工具列。深色為 Dracula，淺色為 Alucard</p>
+      <div class="segmented theme-mode-options">
+        <label><input type="radio" name="themeMode" value="system" checked><span data-i18n="options.theme.system">跟隨系統</span></label>
+        <label><input type="radio" name="themeMode" value="light"><span data-i18n="options.theme.light">淺色</span></label>
+        <label><input type="radio" name="themeMode" value="dark"><span data-i18n="options.theme.dark">深色</span></label>
+      </div>
     </section>
 
     <section>
@@ -354,8 +364,15 @@
 
     </div>
 
-    <div id="tab-gemini" class="tab-panel">
-    <h1 class="panel-title" data-i18n="options.tab.gemini">Gemini</h1>
+    <div id="tab-model" class="tab-panel">
+    <h1 class="panel-title" data-i18n="options.tab.model">模型</h1>
+
+    <div class="model-tab-bar" role="tablist">
+      <button type="button" class="model-tab-btn active" role="tab" id="model-tab-gemini" aria-controls="model-panel-gemini" aria-selected="true" data-i18n="options.tab.gemini">Gemini</button>
+      <button type="button" class="model-tab-btn" role="tab" id="model-tab-custom" aria-controls="model-panel-custom" aria-selected="false" data-i18n="options.tab.customProvider">自訂模型</button>
+    </div>
+
+    <div id="model-panel-gemini" class="model-panel active" role="tabpanel" aria-labelledby="model-tab-gemini">
 
     <section>
       <h2 data-i18n="options.gemini.pricing.heading">模型計價</h2>
@@ -506,110 +523,7 @@
 
     </div>
 
-    <div id="tab-glossary" class="tab-panel">
-    <h1 class="panel-title" data-i18n="options.tab.glossary">術語表</h1>
-
-    <section>
-      <h2 data-i18n="options.glossary.fixed.heading">固定術語表</h2>
-      <p class="muted" data-i18n="options.glossary.fixed.intro">手動指定「原文 → 譯文」對照。每次翻譯時會加入翻譯 Prompt，強制模型遵守你指定的譯法。固定術語的優先順序高於自動擷取的術語</p>
-
-      <h3 class="glossary-scope-title" data-i18n="options.glossary.fixed.globalTitle">全域（所有網站共用）</h3>
-      <div class="glossary-table-wrapper">
-        <table class="glossary-edit-table" id="fixed-global-table">
-          <thead>
-            <tr>
-              <th data-i18n="options.glossary.fixed.colSource">原文</th>
-              <th data-i18n="options.glossary.fixed.colTarget">譯文</th>
-              <th class="glossary-col-action"></th>
-            </tr>
-          </thead>
-          <tbody id="fixed-global-tbody"></tbody>
-        </table>
-      </div>
-      <button id="fixed-global-add" class="secondary glossary-add-btn" data-i18n="options.glossary.fixed.addRow">＋ 新增一列</button>
-
-      <h3 class="glossary-scope-title" data-i18n="options.glossary.fixed.domainTitle">網域專用（覆蓋全域同名術語）</h3>
-      <div class="glossary-domain-controls">
-        <select id="fixed-domain-select">
-          <option value="" data-i18n="options.glossary.fixed.domainSelectPlaceholder">選擇網域…</option>
-        </select>
-        <input type="text" id="fixed-domain-input" data-i18n-attr-placeholder="options.glossary.fixed.domainInputPlaceholder" placeholder="或輸入新網域，例如 medium.com">
-        <button id="fixed-domain-add-btn" class="secondary" data-i18n="options.glossary.fixed.domainAdd">新增網域</button>
-      </div>
-      <p class="muted" data-i18n="options.glossary.fixed.domainHint">網域後面可加路徑限定範圍，例如 example.com/news 只對該路徑之下的頁面生效，並覆蓋整站規則</p>
-      <div id="fixed-domain-panel" hidden>
-        <div class="glossary-domain-header">
-          <span id="fixed-domain-label" class="glossary-domain-name"></span>
-          <button id="fixed-domain-delete" class="secondary btn-danger glossary-delete-domain-btn" data-i18n="options.glossary.fixed.domainDelete">刪除此網域</button>
-        </div>
-        <div class="glossary-table-wrapper">
-          <table class="glossary-edit-table" id="fixed-domain-table">
-            <thead>
-              <tr>
-                <th data-i18n="options.glossary.fixed.colSource">原文</th>
-                <th data-i18n="options.glossary.fixed.colTarget">譯文</th>
-                <th class="glossary-col-action"></th>
-              </tr>
-            </thead>
-            <tbody id="fixed-domain-tbody"></tbody>
-          </table>
-        </div>
-        <button id="fixed-domain-add-row" class="secondary glossary-add-btn" data-i18n="options.glossary.fixed.addRow">＋ 新增一列</button>
-      </div>
-    </section>
-
-    <section>
-      <h2 data-i18n="options.glossary.auto.heading">自動術語擷取</h2>
-      <p class="muted" data-i18n-html="options.glossary.auto.intro.html">長文翻譯時，先呼叫翻譯引擎擷取全文專有名詞建立對照表，確保分批翻譯的名詞譯名一致。短文（1 批以內）自動跳過。預設不開啟。開啟後術語翻譯會跳過翻譯 Prompt 的部分指示（例如「英文人名保留不翻」會失效）。詳細說明見 <a href="https://github.com/seanmars/transit#術語表一致化" target="_blank" rel="noopener">README</a></p>
-      <label class="checkbox-label">
-        <input type="checkbox" id="glossaryEnabled">
-        <div class="checkbox-body">
-        <span data-i18n="options.glossary.auto.toggle">啟用自動術語擷取</span>
-        </div>
-      </label>
-      <label>
-        <span data-i18n="options.glossary.auto.modelLabel">術語擷取模型</span>
-        <select id="glossaryModel">
-          <option value="gemini-3.1-flash-lite" data-i18n="options.glossary.auto.modelLite">Gemini 3.1 Flash Lite（預設，快又便宜）</option>
-          <option value="gemini-3-flash-preview" data-i18n="options.glossary.auto.modelFlash">Gemini 3 Flash（較慢但語意理解較強）</option>
-          <option value="gemini-3.8-flash" data-i18n="options.glossary.auto.modelPro">Gemini 3.8 Flash（$0.75 / $3.75）</option>
-          <option value="" data-i18n="options.glossary.auto.modelSame">與主翻譯模型相同</option>
-        </select>
-        <small class="muted" data-i18n="options.glossary.auto.modelHint">術語擷取是任務簡單的單次請求，Flash Lite 通常已夠用，且比 Flash 快 1.5-3 倍、便宜 5 倍</small>
-      </label>
-      <details class="advanced-details">
-        <summary data-i18n="options.glossary.auto.advSummary">進階設定（等待門檻、Temperature、逾時時間、術語擷取 Prompt）</summary>
-        <label>
-          <span data-i18n="options.glossary.auto.blockingLabel">術語表等待門檻（批次數）</span>
-          <input type="number" id="glossaryBlockingThreshold" step="1" min="0" max="50">
-          <small class="muted" data-i18n="options.glossary.auto.blockingHint">決定多長的文章要先等術語表擷取完成再開始翻譯。文章批次數超過此值時，先等術語表完成再翻譯（整篇譯名一致）；未超過時，翻譯與擷取同時進行（第一段譯文較快出現，但前後段譯名可能略不一致）。預設 10。設 0 = 一律同時進行，第一段譯文最快出現；設高（例如 50）= 幾乎都先等，譯名最一致</small>
-        </label>
-        <label>
-          <span data-i18n="options.glossary.auto.tempLabel">術語表 Temperature</span>
-          <input type="number" id="glossaryTemperature" step="0.1" min="0" max="2">
-          <small class="muted" data-i18n="options.glossary.auto.tempHint">控制術語擷取的穩定度，越低越穩定。預設 0.1，一般不需調整</small>
-        </label>
-        <label>
-          <span data-i18n="options.glossary.auto.timeoutLabel">逾時時間（秒）</span>
-          <input type="number" id="glossaryTimeout" step="1" min="3" max="60">
-          <small class="muted" data-i18n="options.glossary.auto.timeoutHint">長文等待術語表的最長時間。超過則放棄術語表直接翻譯，預設 60 秒</small>
-        </label>
-        <label>
-          <span data-i18n="options.glossary.auto.promptLabel">術語擷取 Prompt</span>
-          <textarea id="glossaryPrompt" rows="10" class="mono"></textarea>
-          <small class="muted" data-i18n="options.glossary.auto.promptHint">控制翻譯引擎擷取哪些類型的專有名詞。進階使用者可自行調整</small>
-          <small id="glossaryPrompt-target-hint" class="muted target-mismatch-hint" hidden data-i18n-html="options.glossary.auto.targetMismatch.html">
-            ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位（系統會自動改用對應預設）
-          </small>
-        </label>
-      </details>
-    </section>
-
-
-    </div>
-
-    <div id="tab-custom-provider" class="tab-panel">
-    <h1 class="panel-title" data-i18n="options.tab.customProvider">自訂模型</h1>
+    <div id="model-panel-custom" class="model-panel" role="tabpanel" aria-labelledby="model-tab-custom">
 
     <section>
       <h2 data-i18n="options.cp.heading">自訂 OpenAI 相容模型</h2>
@@ -744,6 +658,109 @@
           各家公告：Anthropic 90%、新 OpenAI（GPT-5+）90%、DeepSeek 98%、xAI 75-90%、舊 OpenAI 50%。留空時依 Base URL 自動判斷
         </small>
       </label>
+    </section>
+
+    </div>
+
+    </div>
+
+    <div id="tab-glossary" class="tab-panel">
+    <h1 class="panel-title" data-i18n="options.tab.glossary">術語表</h1>
+
+    <section>
+      <h2 data-i18n="options.glossary.fixed.heading">固定術語表</h2>
+      <p class="muted" data-i18n="options.glossary.fixed.intro">手動指定「原文 → 譯文」對照。每次翻譯時會加入翻譯 Prompt，強制模型遵守你指定的譯法。固定術語的優先順序高於自動擷取的術語</p>
+
+      <h3 class="glossary-scope-title" data-i18n="options.glossary.fixed.globalTitle">全域（所有網站共用）</h3>
+      <div class="glossary-table-wrapper">
+        <table class="glossary-edit-table" id="fixed-global-table">
+          <thead>
+            <tr>
+              <th data-i18n="options.glossary.fixed.colSource">原文</th>
+              <th data-i18n="options.glossary.fixed.colTarget">譯文</th>
+              <th class="glossary-col-action"></th>
+            </tr>
+          </thead>
+          <tbody id="fixed-global-tbody"></tbody>
+        </table>
+      </div>
+      <button id="fixed-global-add" class="secondary glossary-add-btn" data-i18n="options.glossary.fixed.addRow">＋ 新增一列</button>
+
+      <h3 class="glossary-scope-title" data-i18n="options.glossary.fixed.domainTitle">網域專用（覆蓋全域同名術語）</h3>
+      <div class="glossary-domain-controls">
+        <select id="fixed-domain-select">
+          <option value="" data-i18n="options.glossary.fixed.domainSelectPlaceholder">選擇網域…</option>
+        </select>
+        <input type="text" id="fixed-domain-input" data-i18n-attr-placeholder="options.glossary.fixed.domainInputPlaceholder" placeholder="或輸入新網域，例如 medium.com">
+        <button id="fixed-domain-add-btn" class="secondary" data-i18n="options.glossary.fixed.domainAdd">新增網域</button>
+      </div>
+      <p class="muted" data-i18n="options.glossary.fixed.domainHint">網域後面可加路徑限定範圍，例如 example.com/news 只對該路徑之下的頁面生效，並覆蓋整站規則</p>
+      <div id="fixed-domain-panel" hidden>
+        <div class="glossary-domain-header">
+          <span id="fixed-domain-label" class="glossary-domain-name"></span>
+          <button id="fixed-domain-delete" class="secondary btn-danger glossary-delete-domain-btn" data-i18n="options.glossary.fixed.domainDelete">刪除此網域</button>
+        </div>
+        <div class="glossary-table-wrapper">
+          <table class="glossary-edit-table" id="fixed-domain-table">
+            <thead>
+              <tr>
+                <th data-i18n="options.glossary.fixed.colSource">原文</th>
+                <th data-i18n="options.glossary.fixed.colTarget">譯文</th>
+                <th class="glossary-col-action"></th>
+              </tr>
+            </thead>
+            <tbody id="fixed-domain-tbody"></tbody>
+          </table>
+        </div>
+        <button id="fixed-domain-add-row" class="secondary glossary-add-btn" data-i18n="options.glossary.fixed.addRow">＋ 新增一列</button>
+      </div>
+    </section>
+
+    <section>
+      <h2 data-i18n="options.glossary.auto.heading">自動術語擷取</h2>
+      <p class="muted" data-i18n-html="options.glossary.auto.intro.html">長文翻譯時，先呼叫翻譯引擎擷取全文專有名詞建立對照表，確保分批翻譯的名詞譯名一致。短文（1 批以內）自動跳過。預設不開啟。開啟後術語翻譯會跳過翻譯 Prompt 的部分指示（例如「英文人名保留不翻」會失效）。詳細說明見 <a href="https://github.com/seanmars/transit#術語表一致化" target="_blank" rel="noopener">README</a></p>
+      <label class="checkbox-label">
+        <input type="checkbox" id="glossaryEnabled">
+        <div class="checkbox-body">
+        <span data-i18n="options.glossary.auto.toggle">啟用自動術語擷取</span>
+        </div>
+      </label>
+      <label>
+        <span data-i18n="options.glossary.auto.modelLabel">術語擷取模型</span>
+        <select id="glossaryModel">
+          <option value="gemini-3.1-flash-lite" data-i18n="options.glossary.auto.modelLite">Gemini 3.1 Flash Lite（預設，快又便宜）</option>
+          <option value="gemini-3-flash-preview" data-i18n="options.glossary.auto.modelFlash">Gemini 3 Flash（較慢但語意理解較強）</option>
+          <option value="gemini-3.8-flash" data-i18n="options.glossary.auto.modelPro">Gemini 3.8 Flash（$0.75 / $3.75）</option>
+          <option value="" data-i18n="options.glossary.auto.modelSame">與主翻譯模型相同</option>
+        </select>
+        <small class="muted" data-i18n="options.glossary.auto.modelHint">術語擷取是任務簡單的單次請求，Flash Lite 通常已夠用，且比 Flash 快 1.5-3 倍、便宜 5 倍</small>
+      </label>
+      <details class="advanced-details">
+        <summary data-i18n="options.glossary.auto.advSummary">進階設定（等待門檻、Temperature、逾時時間、術語擷取 Prompt）</summary>
+        <label>
+          <span data-i18n="options.glossary.auto.blockingLabel">術語表等待門檻（批次數）</span>
+          <input type="number" id="glossaryBlockingThreshold" step="1" min="0" max="50">
+          <small class="muted" data-i18n="options.glossary.auto.blockingHint">決定多長的文章要先等術語表擷取完成再開始翻譯。文章批次數超過此值時，先等術語表完成再翻譯（整篇譯名一致）；未超過時，翻譯與擷取同時進行（第一段譯文較快出現，但前後段譯名可能略不一致）。預設 10。設 0 = 一律同時進行，第一段譯文最快出現；設高（例如 50）= 幾乎都先等，譯名最一致</small>
+        </label>
+        <label>
+          <span data-i18n="options.glossary.auto.tempLabel">術語表 Temperature</span>
+          <input type="number" id="glossaryTemperature" step="0.1" min="0" max="2">
+          <small class="muted" data-i18n="options.glossary.auto.tempHint">控制術語擷取的穩定度，越低越穩定。預設 0.1，一般不需調整</small>
+        </label>
+        <label>
+          <span data-i18n="options.glossary.auto.timeoutLabel">逾時時間（秒）</span>
+          <input type="number" id="glossaryTimeout" step="1" min="3" max="60">
+          <small class="muted" data-i18n="options.glossary.auto.timeoutHint">長文等待術語表的最長時間。超過則放棄術語表直接翻譯，預設 60 秒</small>
+        </label>
+        <label>
+          <span data-i18n="options.glossary.auto.promptLabel">術語擷取 Prompt</span>
+          <textarea id="glossaryPrompt" rows="10" class="mono"></textarea>
+          <small class="muted" data-i18n="options.glossary.auto.promptHint">控制翻譯引擎擷取哪些類型的專有名詞。進階使用者可自行調整</small>
+          <small id="glossaryPrompt-target-hint" class="muted target-mismatch-hint" hidden data-i18n-html="options.glossary.auto.targetMismatch.html">
+            ⚠ 你已客製化此 prompt；切換目標語言<strong>不會自動覆蓋</strong>你的版本。要套用新目標語言預設，請清空欄位（系統會自動改用對應預設）
+          </small>
+        </label>
+      </details>
     </section>
 
 

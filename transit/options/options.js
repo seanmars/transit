@@ -1,5 +1,5 @@
 import { browser } from '../lib/compat.js';
-import { DEFAULT_SETTINGS, normalizeTranslateEngines, normalizeTranslateDoc, docEngineFields, sanitizeEngineSpec, DEFAULT_SYSTEM_PROMPT, DEFAULT_GLOSSARY_PROMPT, DEFAULT_SUBTITLE_SYSTEM_PROMPT, DEFAULT_FORBIDDEN_TERMS, TARGET_LANGUAGES, UI_LANGUAGES, getEffectiveSystemPrompt, getEffectiveSubtitleSystemPrompt, getEffectiveGlossaryPrompt, isPromptUnchangedFromDefault, isPromptUnchangedFromAnyTargetDefault, LOCAL_SETTINGS_KEYS, migrateLargeKeysToLocalIfNeeded, overlayLocalSettings, splitSettingsPatch } from '../lib/storage.js';
+import { DEFAULT_SETTINGS, normalizeTranslateEngines, normalizeTranslateDoc, docEngineFields, sanitizeEngineSpec, DEFAULT_SYSTEM_PROMPT, DEFAULT_GLOSSARY_PROMPT, DEFAULT_SUBTITLE_SYSTEM_PROMPT, DEFAULT_FORBIDDEN_TERMS, TARGET_LANGUAGES, UI_LANGUAGES, THEME_MODES, getEffectiveSystemPrompt, getEffectiveSubtitleSystemPrompt, getEffectiveGlossaryPrompt, isPromptUnchangedFromDefault, isPromptUnchangedFromAnyTargetDefault, LOCAL_SETTINGS_KEYS, migrateLargeKeysToLocalIfNeeded, overlayLocalSettings, splitSettingsPatch } from '../lib/storage.js';
 import { formatTokens, formatUSD, formatMoney, parseUserNum, buildUsageCsvFilename, formatYmdHms } from '../lib/format.js';
 import { sanitizeImport as sanitizeImportImpl, importChangesCustomProviderOrigin } from './import-sanitize.js';
 import { isWorthNotifying, buildUpdateDownloadUrl } from '../lib/update-check.js';
@@ -126,6 +126,11 @@ async function load() {
     r.checked = (r.value === savedCurrency);
   }
   refreshExchangeRateDisplay();
+
+  const savedThemeMode = THEME_MODES.includes(s.themeMode) ? s.themeMode : 'system';
+  for (const r of document.querySelectorAll('input[name="themeMode"]')) {
+    r.checked = (r.value === savedThemeMode);
+  }
 
   fixedGlossary = {
     global: Array.isArray(s.fixedGlossary?.global) ? s.fixedGlossary.global : [],
@@ -956,6 +961,20 @@ $('uiLanguage')?.addEventListener('change', async () => {
   }
 });
 
+// 介面主題: 立即套用到本頁, 並存到 storage.sync (其他頁面與網頁內元件透過 TransitTheme.bind 跟著更新)
+for (const r of document.querySelectorAll('input[name="themeMode"]')) {
+  r.addEventListener('change', async () => {
+    if (!r.checked) return;
+    const mode = THEME_MODES.includes(r.value) ? r.value : 'system';
+    globalThis.TransitTheme?.apply(document.documentElement, mode);
+    try {
+      await browser.storage.sync.set({ themeMode: mode });
+    } catch (err) {
+      console.error('[transit] themeMode set failed', err);
+    }
+  });
+}
+
 function isForbiddenTermsDefaultFor(terms, tl, defaults) {
   if (!Array.isArray(terms)) return false;
   if (terms.length === 0) return tl !== 'zh-TW';
@@ -1076,7 +1095,7 @@ function markDirty() {
   if (bar.classList.contains('saved') && !bar.hidden) return;
   showSaveBar('dirty', _t('options.action.dirtyBar'));
 }
-for (const id of ['tab-settings', 'tab-gemini', 'tab-glossary', 'tab-forbidden', 'tab-custom-provider', 'tab-video']) {
+for (const id of ['tab-settings', 'tab-model', 'tab-glossary', 'tab-forbidden', 'tab-video']) {
   const tab = document.getElementById(id);
   tab.addEventListener('input', markDirty);
   tab.addEventListener('change', markDirty);
@@ -1532,6 +1551,20 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     }
     if (btn.dataset.tab === 'log') startLogPolling();
     else stopLogPolling();
+  });
+});
+
+// 「模型」分頁內的子分頁: Gemini / 自訂模型
+document.querySelectorAll('.model-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.model-tab-btn').forEach(b => {
+      const selected = b === btn;
+      b.classList.toggle('active', selected);
+      b.setAttribute('aria-selected', String(selected));
+    });
+    document.querySelectorAll('.model-panel').forEach(p => {
+      p.classList.toggle('active', p.id === btn.getAttribute('aria-controls'));
+    });
   });
 });
 

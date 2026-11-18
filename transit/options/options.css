@@ -2,18 +2,12 @@
    Transit 設定頁
    版面: 左側 sidebar 導覽 + 右側內容區; 每個 section 是一張卡片,
    設定項目是「左: 名稱與說明 / 右: 控制項」的列.
-   共用 token 在 lib/ui-tokens.css; options.js 的圖表也讀同一組 token.
+   共用 token 在 lib/ui-tokens.css, 顏色來自 lib/theme.css; options.js 的圖表也讀 --chart-* token.
    ========================================================================== */
 
 @import url("../lib/ui-tokens.css");
 
 :root {
-  /* 圖表 (options.js 讀取) */
-  --chart-1: var(--accent);
-  --chart-1-fill: rgb(37 99 235 / 0.08);
-  --chart-2: #0f9d6b;
-  --chart-2-fill: rgb(15 157 107 / 0.08);
-
   /* 設定頁專用尺寸 */
   --control-h: 36px;
   --col-control: minmax(220px, 300px);
@@ -157,15 +151,14 @@ small { font-size: 13px; line-height: 1.5; }
 .tab-btn.active {
   background: var(--side-active);
   color: var(--side-ink);
-  box-shadow: inset 3px 0 0 var(--side-accent);
+  box-shadow: inset 3px 0 0 var(--side-accent), inset -3px 0 0 var(--side-accent);
 }
 .tab-btn.active::before { opacity: 1; color: var(--side-accent); }
 .tab-btn:focus-visible { outline-color: var(--side-accent); outline-offset: -2px; }
 
 .tab-btn[data-tab="settings"]        { --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4'/></svg>"); }
 .tab-btn[data-tab="video"]           { --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='5' width='18' height='14' rx='3'/><path d='M7 15h4M15 15h2M7 11h2M13 11h4'/></svg>"); }
-.tab-btn[data-tab="gemini"]          { --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z'/><path d='M19 15v4M17 17h4'/></svg>"); }
-.tab-btn[data-tab="custom-provider"] { --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22v-5M9 8V2M15 8V2'/><path d='M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z'/></svg>"); }
+.tab-btn[data-tab="model"]           { --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 8V4H8'/><rect x='4' y='8' width='16' height='12' rx='2'/><path d='M2 14h2M20 14h2M15 13v2M9 13v2'/></svg>"); }
 .tab-btn[data-tab="glossary"]        { --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z'/><path d='M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z'/></svg>"); }
 .tab-btn[data-tab="forbidden"]       { --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><path d='M5.6 5.6l12.8 12.8'/></svg>"); }
 .tab-btn[data-tab="usage"]           { --icon: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='M18 17V9M13 17V5M8 17v-3'/></svg>"); }
@@ -174,7 +167,7 @@ small { font-size: 13px; line-height: 1.5; }
 .sidebar-links {
   margin: auto 0 0;
   padding: 14px 10px 0;
-  border-top: 1px solid rgb(255 255 255 / 0.08);
+  border-top: 1px solid var(--side-line);
   font-size: 12.5px;
   line-height: 1.7;
   color: var(--side-muted);
@@ -194,6 +187,35 @@ small { font-size: 13px; line-height: 1.5; }
 
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
+
+/* 「模型」分頁內的子分頁 (Gemini / 自訂模型) */
+.model-tab-bar {
+  display: flex;
+  gap: 4px;
+  margin: -8px 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+.model-tab-btn {
+  min-height: 38px;
+  margin-bottom: -1px;
+  padding: 0 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--ink-2);
+  font: 500 14px var(--font-ui);
+  cursor: pointer;
+  transition: color var(--m-out) var(--m-ease), border-color var(--m-out) var(--m-ease);
+}
+.model-tab-btn:hover { color: var(--ink); }
+.model-tab-btn.active {
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+}
+.model-tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.model-panel { display: none; }
+.model-panel.active { display: block; }
 
 .panel-title {
   margin: 0 0 24px;
@@ -360,13 +382,13 @@ label { display: block; margin: 0; font-size: 14px; color: var(--ink); }
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 2px rgb(19 25 35 / 0.25);
+  background: var(--toggle-knob);
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / 0.25);
   transition: transform 180ms var(--m-ease);
 }
 .checkbox-label > input[type="checkbox"]:checked { background: var(--accent); }
 .checkbox-label > input[type="checkbox"]:checked::before { transform: translateX(16px); }
-.checkbox-label:hover > input[type="checkbox"]:not(:checked) { background: #b9c2cf; }
+.checkbox-label:hover > input[type="checkbox"]:not(:checked) { background: var(--toggle-off-hover); }
 
 /* ==========================================================================
    表單控制項
@@ -391,14 +413,14 @@ textarea {
   font: 14px/1.4 var(--font-ui);
   transition: border-color var(--m-out) var(--m-ease), box-shadow var(--m-out) var(--m-ease);
 }
-:is(input, select, textarea):hover { border-color: #b3bcc9; }
+:is(input, select, textarea):hover { border-color: var(--line-hover); }
 :is(input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], select, textarea):focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-ring);
   transition-duration: var(--m-in);
 }
-::placeholder { color: #8b95a5; }
+::placeholder { color: var(--faint); }
 
 select {
   appearance: none;
@@ -458,7 +480,7 @@ input[type="range"] { margin: 0; cursor: pointer; }
 .segmented > label:has(input:checked) {
   background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 1px 2px rgb(19 25 35 / 0.1), 0 0 0 1px rgb(19 25 35 / 0.06);
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / 0.1), 0 0 0 1px rgb(var(--shadow-rgb) / 0.06);
 }
 .segmented > label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
 
@@ -476,7 +498,7 @@ section > .segmented { margin: 12px 0 4px; }
   padding: 6px 10px;
   background: var(--surface);
   border-radius: var(--r-md);
-  box-shadow: 0 4px 14px rgb(19 25 35 / 0.16);
+  box-shadow: 0 4px 14px rgb(var(--shadow-rgb) / 0.16);
 }
 .toast-demo-line { width: 48px; height: 6px; border-radius: 3px; background: var(--line-strong); }
 .toast-demo-bar { width: 24px; height: 4px; border-radius: 2px; background: var(--accent); }
@@ -513,14 +535,14 @@ button.secondary,
 }
 :is(button.secondary, .ghost-btn, #usage-to-now, .update-banner-dismiss):hover {
   background: var(--surface-2);
-  border-color: #aeb8c6;
+  border-color: var(--line-hover);
   transform: translateY(-1px);
   transition-duration: var(--m-in);
 }
 button.primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-weight: 600;
 }
 button.primary:hover {
@@ -534,7 +556,7 @@ button.primary:hover {
   transition-duration: var(--m-press);
 }
 :is(button.secondary, .ghost-btn):disabled {
-  color: #a3acba;
+  color: var(--faint);
   background: var(--surface-2);
   border-color: var(--line);
   cursor: not-allowed;
@@ -615,11 +637,11 @@ section > button.secondary { margin-top: 4px; }
   padding: 10px 18px 10px 14px;
   transform: translateX(-50%);
   border-radius: 999px;
-  background: var(--ink);
-  color: #fff;
+  background: var(--float-bg);
+  color: var(--float-ink);
   font-size: 13px;
   font-weight: 500;
-  box-shadow: 0 10px 30px rgb(19 25 35 / 0.22);
+  box-shadow: 0 10px 30px rgb(var(--shadow-rgb) / 0.22);
   animation: save-bar-in var(--m-out) var(--m-ease);
 }
 body:has(.sidebar) .save-bar { left: calc(50% + var(--side-w) / 2); }
@@ -628,9 +650,9 @@ body:has(.sidebar) .save-bar { left: calc(50% + var(--side-w) / 2); }
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #f5b740;
+  background: var(--warn);
 }
-.save-bar.saved::before { background: #3ccf86; }
+.save-bar.saved::before { background: var(--ok); }
 @keyframes save-bar-in {
   from { opacity: 0; transform: translate(-50%, 6px); }
   to   { opacity: 1; transform: translate(-50%, 0); }
@@ -768,7 +790,7 @@ body:has(.sidebar) .save-bar { left: calc(50% + var(--side-w) / 2); }
   cursor: pointer;
   transition: border-color var(--m-out) var(--m-ease), box-shadow var(--m-out) var(--m-ease);
 }
-.shortcut-recorder:hover { border-color: #aeb8c6; }
+.shortcut-recorder:hover { border-color: var(--line-hover); }
 .shortcut-recorder.is-default { color: var(--muted); }
 .shortcut-recorder.recording {
   border-color: var(--accent);
@@ -777,7 +799,7 @@ body:has(.sidebar) .save-bar { left: calc(50% + var(--side-w) / 2); }
 }
 .shortcut-recorder.invalid {
   border-color: var(--danger);
-  box-shadow: 0 0 0 3px rgb(192 38 45 / 0.18);
+  box-shadow: 0 0 0 3px var(--danger-line);
   color: var(--danger);
   animation: sk-shake 0.32s ease;
 }
@@ -799,7 +821,7 @@ body:has(.sidebar) .save-bar { left: calc(50% + var(--side-w) / 2); }
   cursor: pointer;
   transition: border-color var(--m-out) var(--m-ease), color var(--m-out) var(--m-ease);
 }
-.shortcut-clear:hover { border-color: #aeb8c6; color: var(--ink); }
+.shortcut-clear:hover { border-color: var(--line-hover); color: var(--ink); }
 .shortcut-clear:disabled { opacity: 0.4; cursor: default; }
 .shortcut-clear:disabled:hover { border-color: var(--line-strong); color: var(--muted); }
 
@@ -864,7 +886,7 @@ transit-translation[data-sk-accent="custom"][data-sk-mark="dashed"] { text-decor
   width: 24px;
   height: 24px;
   padding: 0;
-  border: 1px solid rgb(19 25 35 / 0.12);
+  border: 1px solid var(--line-strong);
   border-radius: 50%;
   background: transparent;
   cursor: pointer;
@@ -1017,7 +1039,7 @@ transit-translation[data-sk-accent="custom"][data-sk-mark="dashed"] { text-decor
   min-width: 380px;
   max-width: min(600px, 80vw);
   transform: translateY(-50%);
-  box-shadow: 0 0 0 3px var(--accent-ring), 0 8px 24px rgb(19 25 35 / 0.15);
+  box-shadow: 0 0 0 3px var(--accent-ring), 0 8px 24px rgb(var(--shadow-rgb) / 0.15);
 }
 
 /* ==========================================================================
@@ -1074,7 +1096,7 @@ transit-translation[data-sk-accent="custom"][data-sk-mark="dashed"] { text-decor
 .gran-btn.active {
   background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 1px 2px rgb(19 25 35 / 0.1), 0 0 0 1px rgb(19 25 35 / 0.06);
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / 0.1), 0 0 0 1px rgb(var(--shadow-rgb) / 0.06);
 }
 
 .usage-summary {
@@ -1177,28 +1199,30 @@ transit-translation[data-sk-accent="custom"][data-sk-mark="dashed"] { text-decor
   border-radius: 4px;
   font: 600 11px var(--font-ui);
   white-space: nowrap;
+  color: var(--c, var(--muted));
+  background: color-mix(in srgb, var(--c, var(--muted)) 16%, transparent);
 }
-/* Log 分類標籤是資料顏色, 每類固定一色以便掃讀 */
-.log-cat-translate  { background: #e8f5e9; color: #2e7d32; }
-.log-cat-api        { background: #e3f2fd; color: #1565c0; }
-.log-cat-cache      { background: #fff3e0; color: #e65100; }
-.log-cat-glossary   { background: #f3e5f5; color: #6a1b9a; }
-.log-cat-spa        { background: #e0f7fa; color: #00695c; }
-.log-cat-system     { background: #f5f5f5; color: #616161; }
-.log-cat-inject       { background: #e8eaf6; color: #283593; }
-.log-cat-guard        { background: #fce4ec; color: #ad1457; }
+/* Log 分類標籤是資料顏色, 每類固定一色以便掃讀 (色相來自 theme 的 --hue-*) */
+.log-cat-translate  { --c: var(--hue-green); }
+.log-cat-api        { --c: var(--hue-cyan); }
+.log-cat-cache      { --c: var(--hue-orange); }
+.log-cat-glossary   { --c: var(--hue-purple); }
+.log-cat-spa        { --c: var(--hue-cyan); }
+.log-cat-system     { --c: var(--muted); }
+.log-cat-inject       { --c: var(--hue-purple); }
+.log-cat-guard        { --c: var(--hue-pink); }
 .log-cat-youtube,
-.log-cat-youtube-debug{ background: #ffebee; color: #c62828; }
-.log-cat-drive        { background: #fffde7; color: #f57f17; }
-.log-cat-scan         { background: #ede7f6; color: #4527a0; }
-.log-cat-summary      { background: #e0f2f1; color: #00695c; }
+.log-cat-youtube-debug{ --c: var(--hue-red); }
+.log-cat-drive        { --c: var(--hue-yellow); }
+.log-cat-scan         { --c: var(--hue-pink); }
+.log-cat-summary      { --c: var(--hue-green); }
 .log-cat-update-check,
 .log-cat-exchange-rate,
-.log-cat-host-settings{ background: #eceff1; color: #455a64; }
+.log-cat-host-settings{ --c: var(--muted); }
 
 .log-lvl { font-weight: 600; }
-.log-lvl-info  { color: #1565c0; }
-.log-lvl-warn  { color: #b45309; }
+.log-lvl-info  { color: var(--hue-cyan); }
+.log-lvl-warn  { color: var(--warn); }
 .log-lvl-error { color: var(--danger); }
 .log-msg-text { word-break: break-word; }
 .log-row-error td { background: var(--danger-bg); }
@@ -1231,7 +1255,7 @@ transit-translation[data-sk-accent="custom"][data-sk-mark="dashed"] { text-decor
   word-break: break-all;
 }
 .log-data-detail.open { display: block; }
-.log-search-hit { padding: 0 1px; border-radius: 2px; background: #fff0a0; color: var(--ink); }
+.log-search-hit { padding: 0 1px; border-radius: 2px; background: var(--highlight); color: var(--ink); }
 #log-empty { margin: 0; padding: 24px; text-align: center; font-family: var(--font-ui); }
 
 .log-status { margin-top: 8px; font-size: 13px; color: var(--muted); }

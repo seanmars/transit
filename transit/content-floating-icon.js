@@ -19,6 +19,7 @@
     host = document.createElement('div');
     host.id = 'transit-floating-host';
     host.style.cssText = 'all: initial; position: fixed; z-index: 2147483600; display: none;';
+    globalThis.TransitTheme?.bind(host);
     shadow = host.attachShadow({ mode: 'closed' });
   } catch (_e) {
     return;
@@ -29,7 +30,7 @@
     catch (_e) { return ''; }
   })();
 
-  const CSS = `
+  const CSS = (globalThis.TransitTheme?.css(':host') ?? '') + `
     :host, * { box-sizing: border-box; }
     @media print { :host { display: none !important; } }
     .fab {
@@ -64,9 +65,10 @@
       position: absolute;
       bottom: 0;
       min-width: 168px;
-      background: #ffffff;
+      background: var(--surface);
+      border: 1px solid var(--line);
       border-radius: 12px;
-      box-shadow: 0 8px 28px rgba(0,0,0,.22);
+      box-shadow: 0 8px 28px rgb(var(--shadow-rgb) / .22);
       padding: 6px;
       display: none;
       flex-direction: column;
@@ -87,13 +89,13 @@
       border: none;
       width: 100%;
       text-align: left;
-      color: #1d1d1f;
+      color: var(--ink);
       font: inherit;
       cursor: pointer;
       white-space: nowrap;
     }
-    .menu-item:hover { background: #f0f0f3; }
-    .menu-divider { height: 1px; background: #e5e5ea; margin: 4px 8px; }
+    .menu-item:hover { background: var(--surface-2); }
+    .menu-divider { height: 1px; background: var(--line); margin: 4px 8px; }
     .menu-item.feature .slot.feature-icon { font-size: 13px; line-height: 1; }
     .menu-item.yt-subtitle .slot.yt-icon { font-size: 9px; font-weight: 700; letter-spacing: -.5px; }
     .menu-item .slot {
@@ -101,8 +103,8 @@
       width: 18px;
       height: 18px;
       border-radius: 5px;
-      background: #0071e3;
-      color: #fff;
+      background: var(--accent);
+      color: var(--on-accent);
       font-size: 11px;
       font-weight: 600;
       display: flex;
@@ -322,11 +324,11 @@
     openFeaturePanelIframe();
   }
 
-  const PANEL_CSS = `
+  const PANEL_CSS = (globalThis.TransitTheme?.css(':host') ?? '') + `
     :host, * { box-sizing: border-box; }
     .backdrop {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,.4);
+      background: var(--backdrop);
       display: flex; align-items: center; justify-content: center;
       padding: 16px;
       -webkit-tap-highlight-color: transparent;
@@ -337,8 +339,8 @@
       height: min(86vh, 620px);
       max-height: 86vh;
       border-radius: 16px;
-      background: #fff;
-      box-shadow: 0 18px 56px rgba(0,0,0,.4);
+      background: var(--surface);
+      box-shadow: 0 18px 56px rgb(var(--shadow-rgb) / .4);
       overflow: hidden;
     }
   `;
@@ -361,6 +363,7 @@
       pHost = document.createElement('div');
       pHost.id = 'transit-panel-host';
       pHost.style.cssText = 'all: initial; position: fixed; inset: 0; z-index: 2147483640;';
+      globalThis.TransitTheme?.bind(pHost);
       pShadow = pHost.attachShadow({ mode: 'closed' });
     } catch (_e) { return; }
     const backdrop = document.createElement('div');

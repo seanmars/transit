@@ -1,6 +1,6 @@
 /* ==========================================================================
    Transit 工具列選單 (popup)
-   共用 token 在 lib/ui-tokens.css.
+   共用 token 在 lib/ui-tokens.css, 顏色來自 lib/theme.css.
    ========================================================================== */
 
 @import url("../lib/ui-tokens.css");
@@ -62,7 +62,7 @@ header h1 .page-title-icon { width: 28px; height: 28px; flex-shrink: 0; border-r
   height: 8px;
   margin-left: -4px;
   border-radius: 50%;
-  background: #f0474e;
+  background: var(--danger);
   box-shadow: 0 0 0 2px var(--side-bg);
   align-self: flex-start;
   font-size: 0;
@@ -92,7 +92,7 @@ button.primary {
   padding: 0 12px;
   border: 1px solid var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 14px;
   font-weight: 600;
 }
@@ -114,7 +114,7 @@ button.secondary {
 }
 button.secondary:hover {
   background: var(--surface-2);
-  border-color: #aeb8c6;
+  border-color: var(--line-hover);
   transform: translateY(-1px);
   transition-duration: var(--m-in);
 }
@@ -167,7 +167,7 @@ button.secondary:hover {
   cursor: pointer;
   transition: border-color var(--m-out) var(--m-ease);
 }
-.row select:hover { border-color: #aeb8c6; }
+.row select:hover { border-color: var(--line-hover); }
 .row select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
 
 /* Checkbox 改成開關, 與設定頁同款 */
@@ -191,13 +191,13 @@ button.secondary:hover {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 2px rgb(19 25 35 / 0.25);
+  background: var(--toggle-knob);
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / 0.25);
   transition: transform 180ms var(--m-ease);
 }
 .row input[type="checkbox"]:checked { background: var(--accent); }
 .row input[type="checkbox"]:checked::before { transform: translateX(16px); }
-.row:hover input[type="checkbox"]:not(:checked) { background: #b9c2cf; }
+.row:hover input[type="checkbox"]:not(:checked) { background: var(--toggle-off-hover); }
 
 /* 顯示模式: segmented control */
 .display-mode-toggle {
@@ -228,7 +228,7 @@ button.secondary:hover {
 .mode-btn[aria-checked="true"] {
   background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 1px 2px rgb(19 25 35 / 0.1), 0 0 0 1px rgb(19 25 35 / 0.06);
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / 0.1), 0 0 0 1px rgb(var(--shadow-rgb) / 0.06);
 }
 
 /* 快取與費用 */
