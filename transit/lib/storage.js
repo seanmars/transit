@@ -106,6 +106,7 @@ export const SOURCE_LANG_LABELS_EN = {
 };
 
 export const UI_LANGUAGES = ['auto', 'zh-TW', 'zh-CN', 'en', 'ja', 'ko', 'es', 'fr', 'de'];
+export const THEME_MODES = ['system', 'light', 'dark'];
 
 export const LANG_LABELS = {
   'zh-TW': 'Traditional Chinese (Taiwan conventions)',
@@ -229,6 +230,7 @@ export const DEFAULT_SETTINGS = {
   apiKey: '',
   targetLanguage: detectDefaultTargetLanguage(),
   uiLanguage: 'auto',
+  themeMode: 'system',
   geminiConfig: {
     model: 'gemini-3.1-flash-lite',
     serviceTier: 'DEFAULT',
@@ -405,6 +407,7 @@ export async function getSettings() {
     targetLanguage: target,
     uiLanguage: (typeof saved.uiLanguage === 'string' && UI_LANGUAGES.includes(saved.uiLanguage))
       ? saved.uiLanguage : 'auto',
+    themeMode: THEME_MODES.includes(saved.themeMode) ? saved.themeMode : 'system',
     geminiConfig: { ...DEFAULT_SETTINGS.geminiConfig, ...(saved.geminiConfig || {}) },
     pricing: { ...DEFAULT_SETTINGS.pricing, ...(saved.pricing || {}) },
     domainRules: { ...DEFAULT_SETTINGS.domainRules, ...(saved.domainRules || {}) },

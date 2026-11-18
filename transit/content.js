@@ -2070,7 +2070,7 @@
   const editPreEditHTML = new Map();
   const editUndoOrder = [];
 
-  const EDIT_BAR_CSS = `
+  const EDIT_BAR_CSS = (globalThis.TransitTheme?.css(':host') ?? '') + `
       :host, * { box-sizing: border-box; }
       .bar {
         position: fixed;
@@ -2082,10 +2082,10 @@
         gap: 12px;
         max-width: calc(100vw - 32px);
         padding: 10px 12px 10px 16px;
-        background: rgba(28, 33, 43, .96);
-        color: #e8eaed;
+        background: var(--float-bg);
+        color: var(--float-ink);
         border-radius: 12px;
-        box-shadow: 0 8px 28px rgba(0, 0, 0, .35);
+        box-shadow: 0 8px 28px rgb(var(--shadow-rgb) / .35);
         font: 14px -apple-system, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
         white-space: nowrap;
       }
@@ -2106,11 +2106,11 @@
         user-select: none;
         -webkit-user-select: none;
       }
-      .btn-undo { color: #9aa0a6; }
-      .btn-undo:not(:disabled):hover { color: #ffffff; background: rgba(255, 255, 255, .08); }
+      .btn-undo { color: var(--float-muted); }
+      .btn-undo:not(:disabled):hover { color: var(--float-ink); background: color-mix(in srgb, var(--float-ink) 10%, transparent); }
       .btn-undo:disabled { opacity: .45; cursor: default; }
-      .btn-done { background: #2f6fed; color: #ffffff; }
-      .btn-done:hover { background: #2861d4; }
+      .btn-done { background: var(--accent); color: var(--on-accent); }
+      .btn-done:hover { background: var(--accent-hover); }
   `;
 
   function ensureEditBar() {
@@ -2118,6 +2118,7 @@
     editBarHost = document.createElement('div');
     editBarHost.id = 'transit-edit-bar-host';
     editBarHost.style.cssText = 'all: initial; position: fixed; z-index: 2147483647;';
+    globalThis.TransitTheme?.bind(editBarHost);
     const shadow = editBarHost.attachShadow({ mode: 'closed' });
     try {
       const sheet = new CSSStyleSheet();

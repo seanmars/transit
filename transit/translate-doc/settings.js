@@ -116,11 +116,11 @@ $('td-clear-all-cache-btn').addEventListener('click', async () => {
   try {
     const cleared = await cache.clearDocTranslationCache();
     status.textContent = t('doc.settingsPage.cache.cleared', { n: cleared });
-    status.style.color = '#34c759';
+    status.style.color = 'var(--ok)';
     setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 3000);
   } catch (err) {
     status.textContent = t('doc.settingsPage.cache.failed', { error: (err && err.message) || '' });
-    status.style.color = '#ef4444';
+    status.style.color = 'var(--danger)';
   }
 });
 

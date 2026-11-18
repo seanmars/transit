@@ -69,6 +69,7 @@
         "lib/format-currency.js",
         "lib/domain-utils.js",
         "lib/edit-link-repair.js",
+        "lib/theme.js",
         "content-toast.js",
         "content-detect.js",
         "content-serialize.js",

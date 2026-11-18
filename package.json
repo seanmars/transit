@@ -8,6 +8,7 @@
     "check": "node tools/build/check.mjs",
     "i18n:content": "node tools/build/generate-i18n-content.mjs",
     "i18n:check": "node tools/build/generate-i18n-content.mjs --check",
+    "theme:css": "node tools/build/generate-theme-css.mjs",
     "zh-charsets": "node tools/build/generate-zh-char-sets.mjs",
     "icons": "node tools/build/generate-icons.mjs",
     "release": "bash tools/release/release.sh",

@@ -1,4 +1,4 @@
-import { TARGET_LANGUAGES, UI_LANGUAGES, DOC_ENGINE_IDS, VIDEO_FALLBACK_CHOICES, normalizeTranslateEngines } from '../lib/storage.js';
+import { TARGET_LANGUAGES, UI_LANGUAGES, THEME_MODES, DOC_ENGINE_IDS, VIDEO_FALLBACK_CHOICES, normalizeTranslateEngines } from '../lib/storage.js';
 
 export function sanitizeImport(raw, _t, SC = globalThis.__SKShortcuts) {
   const clean = {};
@@ -25,6 +25,7 @@ export function sanitizeImport(raw, _t, SC = globalThis.__SKShortcuts) {
     hoverTranslateMode:     { type: 'string', oneOf: ['single', 'dual'] },
     targetLanguage:      { type: 'string', oneOf: TARGET_LANGUAGES },
     uiLanguage:          { type: 'string', oneOf: UI_LANGUAGES },
+    themeMode:           { type: 'string', oneOf: THEME_MODES },
     displayMode:         { type: 'string', oneOf: ['single', 'dual'] },
     displayCurrency:     { type: 'string', oneOf: ['USD', 'TWD'] },
     translationMarkStyle:{ type: 'string', oneOf: ['tint', 'bar', 'dashed', 'none'] },
