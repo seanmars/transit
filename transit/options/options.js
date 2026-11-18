@@ -1070,7 +1070,7 @@ function markDirty() {
   if (bar.classList.contains('saved') && !bar.hidden) return;
   showSaveBar('dirty', _t('options.action.dirtyBar'));
 }
-for (const id of ['tab-settings', 'tab-gemini', 'tab-glossary', 'tab-forbidden', 'tab-custom-provider', 'tab-youtube']) {
+for (const id of ['tab-settings', 'tab-gemini', 'tab-glossary', 'tab-forbidden', 'tab-custom-provider', 'tab-video']) {
   const tab = document.getElementById(id);
   tab.addEventListener('input', markDirty);
   tab.addEventListener('change', markDirty);

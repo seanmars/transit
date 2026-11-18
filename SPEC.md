@@ -2,9 +2,9 @@
 
 > 一款專注於隱私的網頁翻譯 Chrome Extension.
 
-- 文件版本: v0.1
+- 文件版本: v0.2
 - 建立日期: 2026-11-07
-- 最後更新: 2026-11-07
+- 最後更新: 2026-11-18
 - 目標平台: Chrome (Manifest V3)
 - 作業系統: macOS 26
 - 目前 Extension 版本: 0.1.5
@@ -38,8 +38,9 @@ Transit 是一款 Chrome 擴充功能, 將英文 (或其他外語) 網頁翻譯�
 |---------|------|------|
 | 網頁翻譯 | ✅ | Option+S 快速鍵; 主要翻譯失敗時自動改用 Failback 翻譯 (預設 Gemini → Google Translate); 單語覆蓋 / 雙語對照雙模式; 漸進分批注入; 還原原文 |
 | 雙語對照模式 | ✅ | 譯文以 wrapper 形式附在原段落後; 4 種視覺標記; 顯示模式同時決定字幕雙語與否 |
-| YouTube 字幕翻譯 | ✅ | 自動偵測字幕即時翻譯; ASR (自動字幕) AI 分句, 譯文字幕統一比語音提前 1 秒出現; 時間視窗批次; 雙語 overlay; 字幕大小與顏色跟隨原生設定; 行動版 `m.youtube.com` 支援; `/watch` 與 `/live/<id>` (直播 / 直播存檔分享連結) 路徑皆支援 |
-| X (Twitter) 影片字幕翻譯 | ✅ | X 自動產生字幕 (auto-generated) 的影片, 開聲音播放時自動翻譯 (時間軸上自動靜音播放不翻); AI 分句後以譯文字幕軌顯示, 外觀同 X 原生字幕; X 的 CC 鈕兼當譯文字幕開關; 雙語跟隨顯示模式; 引擎 / 模型沿用 YouTube 字幕設定; 沒有字幕軌的影片不支援 |
+| 影片翻譯: YouTube | ✅ | 自動偵測字幕即時翻譯; ASR (自動字幕) AI 分句, 譯文字幕統一比語音提前 1 秒出現; 時間視窗批次; 雙語 overlay; 字幕大小與顏色跟隨原生設定; 行動版 `m.youtube.com` 支援; `/watch` 與 `/live/<id>` (直播 / 直播存檔分享連結) 路徑皆支援; 詳見 §18 |
+| 影片翻譯: Google Drive | ✅ | Drive 影片的自動產生字幕, 取得字幕後一次翻譯整部影片; AI 分句; 譯文以 overlay 顯示在播放器上; 雙語跟隨顯示模式; 詳見 §18 |
+| 影片翻譯: X (Twitter) | ✅ | X 自動產生字幕 (auto-generated) 的影片, 開聲音播放時自動翻譯 (時間軸上自動靜音播放不翻); AI 分句後以譯文字幕軌顯示, 外觀同 X 原生字幕; X 的 CC 鈕兼當譯文字幕開關; 雙語跟隨顯示模式; 引擎 / 模型沿用影片翻譯設定; 沒有字幕軌的影片不支援; 詳見 §18 |
 | SPA 支援 | ✅ | 站內導航自動偵測; 動態載入內容補翻; 譯文防覆蓋保護; 續翻模式 |
 | 段落偵測 | ✅ | 結構化 DOM walker; 技術性排除 (code / 表單 / 站底 footer); 尊重頁面宣告的 `translate="no"` / `notranslate` 與 icon 字型; 內容品味判斷交給 system prompt |
 | 佔位符序列化 | ✅ | 行內元素 (連結 / 粗斜體等) 與媒體在譯文中完整保留 |
@@ -47,7 +48,7 @@ Transit 是一款 Chrome 擴充功能, 將英文 (或其他外語) 網頁翻譯�
 | 自動術語擷取 | ✅ | 預翻前擷取全文專有名詞對照表; 長度三級策略; 術語快取 |
 | 固定術語表 | ✅ | 全域 + 網域兩層 (網域可加路徑前綴限定範圍, 路徑規則覆蓋整站; 設定頁清單對含路徑的網域標「(路徑範圍)」); 設定頁編輯; 優先覆蓋 LLM 自動術語 |
 | 翻譯快取 | ✅ | `chrome.storage.local`; SHA-1 key; 版本變更不清快取 |
-| 設定頁 | ✅ | 8 Tab: 一般設定 / YouTube 字幕 / Gemini / 自訂模型 / 術語表 / 禁用詞清單 / 用量紀錄 / Debug; 匯入匯出 |
+| 設定頁 | ✅ | 8 Tab: 一般設定 / 影片翻譯 / Gemini / 自訂模型 / 術語表 / 禁用詞清單 / 用量紀錄 / Debug; 匯入匯出 |
 | Popup 面板 | ✅ | 翻譯/還原; 快取/費用統計; 自動翻譯開關; YouTube 字幕 toggle |
 | Toast 提示 | ✅ | 進度條 + 計時器; 可調透明度與位置; `toastAutoHide` 自動關閉選項 |
 | 懸浮按鈕 | ✅ | 頁面邊緣可拖移「新」icon; 短按翻譯、長按選引擎或功能選單; 可調透明度與大小; 全平台預設開 |
@@ -487,6 +488,7 @@ transit/
 - **API Key** 存 `chrome.storage.local` (key `apiKey`), 不跨裝置同步. 存在 sync 的 Key 會自動遷移至 local
 - manifest `commands` 預設快捷鍵由 Chrome 原生管理不存設定; 翻譯快速鍵的**自訂**鍵位存 `customShortcuts` (key 沿用 `2`, in-page recorder, §10.1)
 - `translateEngines`: 網頁翻譯的主要 / failback 引擎 (engine 為 `gemini` / `google` / `openai-compat`, 只有 gemini 有 model). 兩者相同時視為沒有 failback (§10)
+- `ytSubtitle`: 影片翻譯設定 (YouTube / Google Drive / X 共用; key 名稱沿用舊名)
 - `translateDoc.engine` / `translateDoc.model`: 文件翻譯引擎, 只接受 `gemini` / `openai-compat` (§17.5)
 - **舊版 preset 遷移**: 舊版的 `translatePresets` / `popupButtonSlot` / `autoTranslateSlot` (sync) 與 `translateDocPresetSlot` (local) 在 `onInstalled` 轉成 `translateEngines` (舊 slot 2 → 主要, slot 3 → failback; 與主要相同時改用 slot 1) 與 `translateDoc.engine`, 然後刪除舊 key (`lib/storage.js` `migrateTranslateEnginesIfNeeded`)
 - `maxTranslateUnits`: 單頁翻譯段落數上限, 超過截斷 (0 = 不限制)
@@ -803,3 +805,26 @@ Failback 規則:
 - **不支援場景** (上傳時偵測 + 明確提示): 加密 (密碼保護) docx 擋下; 含未接受追蹤修訂的檔案擋下並提示先在 Word 接受修訂; `.doc` 舊格式與 `.docm` 巨集檔不支援
 - **限制**: 檔案硬上限與 EPUB 相同 (100 MB); 已選字數超過 50 萬字時顯示成本警告; 格式列顯示「Word (DOCX)」
 - **重建不變量**: 未翻 / 失敗段落與所有未動檔案區塊逐位元組保留; 重複下載輸出一致
+
+---
+
+## 18. 影片翻譯
+
+設定頁「影片翻譯」分頁 (舊名「YouTube 字幕」) 的設定套用到所有支援平台. 設定存在 `ytSubtitle` (§8.1). 字幕雙語與否跟隨 `displayMode` (§4.1).
+
+### 18.1 支援的影片平台
+
+| 平台 | 支援的字幕 | 翻譯方式 | 顯示方式 |
+|------|-----------|---------|---------|
+| YouTube (`www.youtube.com` / `m.youtube.com`) | 人工字幕與自動產生字幕 (ASR) | 依播放進度分時間視窗批次翻譯; ASR 可用 AI 分句 (`asrMode`); 支援 streaming 首批與 on-the-fly 即時翻譯 | 字幕 overlay; 大小與顏色跟隨 YouTube 設定 (§4.1) |
+| Google Drive (`drive.google.com/file/*`) | 自動產生字幕 | 取得字幕後一次翻譯整部影片; LLM 引擎一律 AI 分句 | 播放器上的字幕 overlay |
+| X (Twitter) | 自動產生字幕 | 開聲音播放時才翻譯整部影片 (時間軸上自動靜音播放不翻); LLM 引擎一律 AI 分句 | X 原生字幕軌; CC 鈕兼當譯文字幕開關 |
+
+- 三個平台共用: 自動翻譯開關 (`autoTranslate`)、翻譯引擎 (`engine`)、Gemini 模型與計價
+- 只有 YouTube 使用: AI 分句開關、字幕翻譯 Prompt、固定術語表 / 禁用詞套用、分批參數 (`windowSizeS` / `lookaheadS`)、字幕大小
+- 沒有字幕軌的影片不支援
+
+### 18.2 翻譯引擎
+
+- 可選 Gemini (預設)、Google Translate、自訂模型
+- 選 Google Translate 時無法使用 AI 分句, 一律使用原始分句
