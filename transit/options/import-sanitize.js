@@ -204,6 +204,20 @@ export function sanitizeImport(raw, _t, SC = globalThis.__SKShortcuts) {
     if (Object.keys(drClean).length > 0) clean.domainRules = drClean;
   }
 
+  if (raw.blockedSites && typeof raw.blockedSites === 'object') {
+    const bs = raw.blockedSites;
+    const bsClean = {};
+    if ('enabled' in bs) {
+      if (typeof bs.enabled === 'boolean') bsClean.enabled = bs.enabled;
+      else warnings.push(_t('options.import.warningSkipType', { key: 'blockedSites.enabled' }));
+    }
+    if ('list' in bs) {
+      if (typeof bs.list === 'string') bsClean.list = bs.list;
+      else warnings.push(_t('options.import.warningSkipType', { key: 'blockedSites.list' }));
+    }
+    if (Object.keys(bsClean).length > 0) clean.blockedSites = bsClean;
+  }
+
   if (raw.fixedGlossary && typeof raw.fixedGlossary === 'object') {
     const fg = raw.fixedGlossary;
     const fgClean = {};

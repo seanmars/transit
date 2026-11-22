@@ -75,7 +75,28 @@
     });
   }
 
+  // 禁用網站清單: 每行一個網域, `#` 之後是註解. 回傳正規化後的網域陣列 (去掉協定, 路徑, port, 開頭的 `*.`)
+  function parseSiteBlockList(text) {
+    var out = [];
+    String(text == null ? '' : text).split(/\r?\n/).forEach(function (line) {
+      var host = normalizeDomainEntry(line.split('#')[0]).replace(/^\*\./, '').replace(/^\.+/, '');
+      if (host && out.indexOf(host) === -1) out.push(host);
+    });
+    return out;
+  }
+
+  // 網域本身與它的所有子網域都算命中: netflix.com 命中 www.netflix.com; www.netflix.com 不命中 netflix.com
+  function matchSiteBlock(hostname, entries) {
+    if (!hostname || !Array.isArray(entries) || !entries.length) return false;
+    var host = String(hostname).toLowerCase().replace(/\.+$/, '');
+    return entries.some(function (entry) {
+      return !!entry && (host === entry || host.endsWith('.' + entry));
+    });
+  }
+
   var api = {
+    parseSiteBlockList: parseSiteBlockList,
+    matchSiteBlock: matchSiteBlock,
     normalizeDomainEntry: normalizeDomainEntry,
     normalizeScopeEntry: normalizeScopeEntry,
     matchDomain: matchDomain,

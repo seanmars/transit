@@ -112,6 +112,10 @@
       SK.sendLog('info', 'spa', 'SPA nav: superseded by newer navigation during settle, skipping', { staleUrl: newUrl, currentUrl: spaLastUrl });
       return;
     }
+    if (SK.isSiteBlocked?.()) {
+      SK.sendLog('info', 'spa', 'SPA nav: site blocked, skip re-translate', { url: location.href });
+      return;
+    }
 
     if (wasSticky) {
       if (prevSlot != null && typeof SK.handleTranslate === 'function') {

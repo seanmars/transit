@@ -109,9 +109,14 @@ async function refreshTranslateButton() {
     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
     const resp = await browser.tabs.sendMessage(tab.id, { type: 'GET_STATE' });
+    btn.disabled = false;
     if (resp?.translated) {
       btn.textContent = t('popup.action.restore');
       btn.dataset.mode = 'restore';
+    } else if (resp?.siteBlocked) {
+      btn.textContent = t('popup.action.siteBlocked');
+      btn.dataset.mode = 'blocked';
+      btn.disabled = true;
     } else {
       btn.textContent = t('popup.action.translate');
       btn.dataset.mode = 'translate';

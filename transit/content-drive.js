@@ -333,6 +333,10 @@
   }
 
   async function _handleCaptionsMessage(message) {
+    if (await SK.checkSiteBlocked?.()) {
+      SK.sendLog('info', 'drive', 'site blocked — skipping captions');
+      return;
+    }
     if (!_autoTranslateEnabled) {
       SK.sendLog('info', 'drive', 'autoTranslate off — skipping captions');
       return;

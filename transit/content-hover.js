@@ -306,6 +306,7 @@
   }
 
   function canRun() {
+    if (SK.isSiteBlocked?.()) return false;
     if (SK.INSTANCE?.stoodDown) return false;
     if (SK.isInstanceLeader && !SK.isInstanceLeader()) return false;
     return !STATE.translating;
@@ -352,6 +353,7 @@
 
   // 右鍵選單「用 Transit 翻譯選取的文字」: 翻譯選取範圍涵蓋的段落, 顯示方式沿用懸停翻譯
   async function translateSelection() {
+    if (SK.isSiteBlocked?.()) { SK.notifySiteBlocked?.(); return; }
     if (!canRun() || inflight) return;
     const ranges = currentSelectionRanges();
     if (!ranges.length) return;

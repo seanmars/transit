@@ -19,6 +19,7 @@
         <button class="tab-btn" data-tab="model" data-i18n="options.tab.model">模型</button>
         <button class="tab-btn" data-tab="glossary" data-i18n="options.tab.glossary">術語表</button>
         <button class="tab-btn" data-tab="forbidden" data-i18n="options.tab.forbidden">禁用詞清單</button>
+        <button class="tab-btn" data-tab="siteblock" data-i18n="options.tab.siteBlock">禁用網站</button>
         <button class="tab-btn" data-tab="usage" data-i18n="options.tab.usage">用量紀錄</button>
         <button class="tab-btn" data-tab="log" data-i18n="options.tab.log">Debug</button>
       </nav>
@@ -792,6 +793,27 @@
       </div>
     </section>
 
+
+    </div>
+
+    <div id="tab-siteblock" class="tab-panel">
+    <h1 class="panel-title" data-i18n="options.tab.siteBlock">禁用網站</h1>
+
+    <section>
+      <p class="muted" data-i18n="options.siteBlock.intro">在清單中的網站停用 Transit：不顯示懸浮按鈕，不自動翻譯，快速鍵、懸停翻譯、右鍵選單與影片字幕翻譯也不會啟動</p>
+      <label class="checkbox-label">
+        <input type="checkbox" id="blockedSitesEnabled" checked>
+        <div class="checkbox-body">
+        <span data-i18n="options.siteBlock.enable">啟用禁用網站</span>
+        <small class="muted" data-i18n="options.siteBlock.enableHint">總開關；關閉後清單保留，但所有網站都照常運作</small>
+        </div>
+      </label>
+      <label>
+        <span data-i18n="options.siteBlock.listLabel">禁用網站清單（每行一個網域）</span>
+        <textarea id="blockedSitesList" rows="14" spellcheck="false" placeholder="# netflix.com&#10;netflix.com&#10;www.example.com"></textarea>
+      </label>
+      <small class="muted" data-i18n="options.siteBlock.listHint">填 netflix.com 會連同所有子網域（www.netflix.com、help.netflix.com）一起停用；填 www.netflix.com 只停用 www.netflix.com 與它底下的子網域。# 之後的文字是註解</small>
+    </section>
 
     </div>
 

@@ -68,6 +68,7 @@
         "lib/shortcut-utils.js",
         "lib/format-currency.js",
         "lib/domain-utils.js",
+        "content-site-block.js",
         "lib/edit-link-repair.js",
         "lib/theme.js",
         "content-toast.js",
