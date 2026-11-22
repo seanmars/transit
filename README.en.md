@@ -71,6 +71,7 @@ Supports Chrome / Edge / Brave and other Chromium browsers. The Chrome Web Store
     - Press the shortcut while translating → cancel translation
 - **YouTube subtitle translation**: open a video with captions (manual or auto-generated), make sure CC is on, click the toolbar icon → toggle "YouTube subtitle translation" on
 - **Auto-translate sites**: add domains to the "Auto-translate sites" list in settings; pages on those sites translate on load (toast shows the `[Auto]` prefix)
+- **Blocked sites**: on the "Blocked sites" tab in settings, enter one domain per line; Transit is turned off on that site and its subdomains (text after `#` is a comment; a master switch turns the list off)
 - **Custom glossary**: add term mappings in the "Glossary" tab; translations are forced to use your preferred renderings
 - **Glossary consistency**: enable it from the toolbar icon menu or settings page; long-form translations build a glossary first to keep proper nouns consistent
 - **Edit translations**: after translating, click "Edit translations" in the toolbar icon menu to directly edit the translated text on the page. While editing, a floating toolbar at the bottom of the page lets you undo changes paragraph by paragraph or finish editing

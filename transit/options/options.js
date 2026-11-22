@@ -70,6 +70,9 @@ async function load() {
     fillOverrideDiscount(f.discount, f.model);
   }
   $('whitelist').value = (s.domainRules.whitelist || []).join('\n');
+  const blockedSites = { ...DEFAULTS.blockedSites, ...(saved.blockedSites || {}) };
+  $('blockedSitesEnabled').checked = blockedSites.enabled !== false;
+  $('blockedSitesList').value = typeof blockedSites.list === 'string' ? blockedSites.list : '';
   $('debugLog').checked = s.debugLog;
 
   $('maxConcurrentBatches').value = s.maxConcurrentBatches ?? 10;
@@ -705,6 +708,10 @@ async function _saveImpl() {
     domainRules: {
       whitelist: $('whitelist').value.split('\n').map(s => s.trim()).filter(Boolean),
     },
+    blockedSites: {
+      enabled: $('blockedSitesEnabled').checked,
+      list: $('blockedSitesList').value,
+    },
     debugLog: $('debugLog').checked,
     maxRetries: parseUserNum($('maxRetries').value, DEFAULTS.maxRetries),
     maxConcurrentBatches: parseUserNum($('maxConcurrentBatches').value, DEFAULTS.maxConcurrentBatches),
@@ -1095,7 +1102,7 @@ function markDirty() {
   if (bar.classList.contains('saved') && !bar.hidden) return;
   showSaveBar('dirty', _t('options.action.dirtyBar'));
 }
-for (const id of ['tab-settings', 'tab-model', 'tab-glossary', 'tab-forbidden', 'tab-video']) {
+for (const id of ['tab-settings', 'tab-model', 'tab-glossary', 'tab-forbidden', 'tab-siteblock', 'tab-video']) {
   const tab = document.getElementById(id);
   tab.addEventListener('input', markDirty);
   tab.addEventListener('change', markDirty);

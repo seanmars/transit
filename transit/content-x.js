@@ -413,6 +413,7 @@
 
   async function _maybeStart(video) {
     if (!XV.autoTranslate) return;
+    if (await SK.checkSiteBlocked?.()) return;
     if (video.paused || video.muted || video.volume === 0) return;
     const mediaId = mediaIdFromPoster(video.getAttribute('poster'));
     if (!mediaId) return;

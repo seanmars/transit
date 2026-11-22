@@ -2894,6 +2894,11 @@
   SK.translateYouTubeSubtitles = async function translateYouTubeSubtitles({ source = 'manual' } = {}) {
     const YT = SK.YT;
 
+    if (!YT.active && await SK.checkSiteBlocked?.()) {
+      SK.sendLog('info', 'youtube', 'site blocked, skip subtitle translate', { source });
+      if (source !== 'auto') SK.notifySiteBlocked?.();
+      return;
+    }
     if (YT.active) {
       if (source === 'auto') {
         SK.sendLog('info', 'youtube', 'auto-activate skipped (already active)', { rawSegments: YT.rawSegments.length });

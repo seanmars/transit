@@ -4,7 +4,7 @@
 
 - 文件版本: v0.2
 - 建立日期: 2026-11-07
-- 最後更新: 2026-11-18
+- 最後更新: 2026-11-22
 - 目標平台: Chrome (Manifest V3)
 - 作業系統: macOS 26
 - 目前 Extension 版本: 0.1.6
@@ -49,7 +49,7 @@ Transit 是一款 Chrome 擴充功能, 將英文 (或其他外語) 網頁翻譯�
 | 自動術語擷取 | ✅ | 預翻前擷取全文專有名詞對照表; 長度三級策略; 術語快取 |
 | 固定術語表 | ✅ | 全域 + 網域兩層 (網域可加路徑前綴限定範圍, 路徑規則覆蓋整站; 設定頁清單對含路徑的網域標「(路徑範圍)」); 設定頁編輯; 優先覆蓋 LLM 自動術語 |
 | 翻譯快取 | ✅ | `chrome.storage.local`; SHA-1 key; 版本變更不清快取 |
-| 設定頁 | ✅ | 8 Tab: 一般設定 / 影片翻譯 / Gemini / 自訂模型 / 術語表 / 禁用詞清單 / 用量紀錄 / Debug; 匯入匯出 |
+| 設定頁 | ✅ | 9 Tab: 一般設定 / 影片翻譯 / Gemini / 自訂模型 / 術語表 / 禁用詞清單 / 禁用網站 / 用量紀錄 / Debug; 匯入匯出 |
 | Popup 面板 | ✅ | 翻譯/還原; 快取/費用統計; 自動翻譯開關; YouTube 字幕 toggle |
 | Toast 提示 | ✅ | 進度條 + 計時器; 可調透明度與位置; `toastAutoHide` 自動關閉選項 |
 | 懸浮按鈕 | ✅ | 頁面邊緣可拖移「新」icon; 短按翻譯、長按選引擎或功能選單; 可調透明度與大小; 全平台預設開 |
@@ -62,6 +62,7 @@ Transit 是一款 Chrome 擴充功能, 將英文 (或其他外語) 網頁翻譯�
 | 自動語言偵測 | ✅ | 跳過已是目標語言的頁面; target-aware (各 target 跳對應源語言) |
 | 翻譯目標語言 | ✅ | 8 語: zh-TW / zh-CN / en / ja / ko / es / fr / de; 詳見 §3.9 |
 | 自動翻譯網站 | ✅ | 網域白名單 (支援萬用字元); `autoTranslate` 總開關 |
+| 禁用網站 | ✅ | 清單中的網站 (含子網域) 停用 Transit; `#` 註解; 總開關; 詳見 §10.4 |
 | 簡繁本地互轉 | ✅ | 簡繁段落走本地 OpenCC 字典轉換, 免費零 API; `autoConvertZh` 自動模式 |
 | 文件翻譯 (PDF / EPUB / Word / TXT / Markdown / HTML / 字幕檔) | ✅ | 上傳整份翻譯; PDF 保留版面輸出譯文 PDF; EPUB 全書術語表 / 章節選翻 / 預覽編輯 / 雙語譯本; Word (.docx) 譯文寫回原檔格式與版面全保留、可輸出雙語對照; TXT / Markdown / HTML 沿用章節管線, 譯文輸出格式 = 輸入格式; 字幕檔 (SRT / WebVTT / ASS) 每則字幕為翻譯單位、時間軸原樣保留、可輸出雙語字幕; 詳見 §17 |
 
@@ -295,6 +296,7 @@ transit/
 ├── content-shortcuts.js      # 自訂快速鍵 keydown capture 比對 → 本地 dispatch (§10.1)
 ├── content-hover.js          # 懸停翻譯: 修飾鍵 + 游標停留只翻該段; 右鍵選單翻譯選取範圍 (§10.2)
 ├── content-floating-icon.js  # 懸浮翻譯控制按鈕
+├── content-site-block.js     # 禁用網站判斷 (§10.4), 提供其他 content script 檢查
 ├── content.css
 ├── background.js             # Service Worker (ES module)
 ├── LICENSE                   # ELv2
@@ -312,7 +314,7 @@ transit/
 │   ├── cache.js              # 翻譯快取 (LRU + debounced flush)
 │   ├── storage.js            # 設定讀寫、預設值
 │   ├── constants.js          # 批次翻譯數值常數 (content-ns.js 內為鏡像值)
-│   ├── domain-utils.js       # 自動翻譯網站名單的網域正規化 + 比對 (content script 共載)
+│   ├── domain-utils.js       # 自動翻譯網站名單 / 禁用網站清單的網域正規化 + 比對 (content script 共載)
 │   ├── shortcut-utils.js     # 自訂快速鍵 helper (content script 共載)
 │   ├── stream-reuse.js       # streaming 批次 partial-reuse 規劃
 │   ├── logger.js             # 結構化 Log 系統
@@ -412,6 +414,7 @@ transit/
     "model": "gemini-3.1-flash-lite"
   },
   "domainRules": { "whitelist": [] },
+  "blockedSites": { "enabled": true, "list": "" },
   "autoTranslate": false,
   "autoConvertZh": false,
   "debugLog": false,
@@ -579,6 +582,18 @@ Failback 規則:
 - 貼上看起來完整的金鑰 (`AIza` 開頭、30 字元以上) 自動測試一次, 不必另按「測試」; 設定自動儲存
 - Popup 未設 API Key 時狀態列可點, 直接開設定頁
 
+### 10.4 禁用網站
+
+設定頁「禁用網站」分頁用一個文字框編輯清單, 存 `blockedSites` (sync): `enabled` 為總開關 (預設開), `list` 為原始文字 (含註解, 原樣保存).
+
+- 每行一個網域; `#` 之後的文字是註解; 空行忽略. 貼上完整網址時只取網域 (去掉協定、路徑、port), 開頭的 `*.` 忽略
+- 比對規則: 網域本身與它的所有子網域都命中. `netflix.com` 命中 `netflix.com`、`www.netflix.com`、`help.netflix.com`; `www.netflix.com` 只命中 `www.netflix.com` 與它底下的子網域, 不命中 `netflix.com`. 以 label 為邊界, `netflix.com` 不命中 `badnetflix.com`
+- iframe 同時檢查上層頁面的網域: 被禁用網站內嵌的 iframe 一起停用
+- 命中時: 不顯示懸浮按鈕; 不執行載入時的自動翻譯、跨 tab sticky 續翻、簡繁自動轉換與 SPA 導航後的續翻; 快速鍵、工具列「翻譯本頁」、右鍵選單翻譯選取範圍不開始翻譯, 改顯示 `toast.siteBlocked`; 懸停翻譯不啟動; YouTube / Drive / X 影片字幕不翻譯
+- 已翻譯的頁面仍可取消與還原原文; 開啟禁用時不主動還原頁面上已有的譯文
+- 設定變更即時生效, 不必重新整理頁面 (懸浮按鈕即時隱藏 / 顯示)
+- Popup 在命中的網站把主按鈕顯示為「此網站已停用 Transit」並停用
+
 ---
 
 ## 11. 翻譯狀態提示 (Toast)
@@ -626,7 +641,7 @@ Failback 規則:
 
 - Header: icon 圖檔 + 名稱「Transit」+ 版本號 (動態讀取, 連結至 GitHub Releases) + 更新提示 dot
 - 升級歡迎 banner 與更新提示 banner (minor/major 進版觸發)
-- 主按鈕: 「翻譯本頁」/「顯示原文」
+- 主按鈕: 「翻譯本頁」/「顯示原文」; 禁用網站 (§10.4) 顯示「此網站已停用 Transit」並停用
 - 顯示模式 segmented control (單語覆蓋 / 雙語對照, §4.1)
 - 「翻譯成」目標語言 picker (§3.9)
 - 編輯譯文按鈕 (頁面有譯文時顯示, 含只被簡繁自動轉換 / 懸停翻譯處理過的頁面): 進入編輯模式後頁面浮動工具列提供「復原」/「完成」; 編輯中貼上降為純文字; 連結邊界打字自動補回連結內 (`lib/edit-link-repair.js`, 與 EPUB 預覽編輯共用)

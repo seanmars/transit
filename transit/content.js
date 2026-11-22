@@ -975,6 +975,11 @@
   SK.translatePage = async function translatePage(options = {}) {
     const labelPrefix = options.label ? `[${options.label}] ` : '';
 
+    if (SK.isSiteBlocked?.()) {
+      SK.sendLog('info', 'translate', 'site blocked, skip translate', { url: location.href });
+      return;
+    }
+
     if (SK.isEmbeddedPlayerFrame?.(document, window)) {
       SK.sendLog('info', 'translate', 'embedded player frame, skip translate', { url: location.href });
       return;
@@ -1865,6 +1870,10 @@
 
   SK.translatePageGoogle = async function translatePageGoogle(gtOptions = {}) {
     const labelPrefix = gtOptions.label ? `[${gtOptions.label}] ` : '';
+    if (SK.isSiteBlocked?.()) {
+      SK.sendLog('info', 'translate', 'site blocked, skip translate (google)', { url: location.href });
+      return;
+    }
     if (SK.isEmbeddedPlayerFrame?.(document, window)) {
       SK.sendLog('info', 'translate', 'embedded player frame, skip translate (google)', { url: location.href });
       return;
@@ -2350,6 +2359,12 @@
         if (!force) return;
       }
     }
+    // 禁用網站: 仍可取消與還原, 但不開始新的翻譯
+    if (SK.isSiteBlocked?.()) {
+      SK.sendLog('info', 'translate', 'site blocked, translate ignored', { url: location.href });
+      SK.notifySiteBlocked?.();
+      return;
+    }
     const plan = await SK.resolveTranslatePlan();
     runPageWithEngine(plan.engine, { overConverted, fallback: plan.fallback, primaryNotice: plan.primaryNotice });
   }
@@ -2371,6 +2386,7 @@
         translated: injected && !untranslatedPartialKind(),
         injected,
         editing: editModeActive,
+        siteBlocked: !!SK.isSiteBlocked?.(),
       });
       return true;
     }
@@ -2603,6 +2619,10 @@
 
   (async () => {
     try {
+      if (await SK.checkSiteBlocked?.()) {
+        SK.sendLog('info', 'system', 'site blocked, skip auto actions on load', { url: location.href });
+        return;
+      }
       if (SK.isYouTubePage?.()) {
         const saved = await browser.storage.sync.get('ytSubtitle');
         const ytAutoOn = (saved.ytSubtitle?.autoTranslate !== false);

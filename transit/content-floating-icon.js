@@ -141,15 +141,22 @@
   }
 
   let lastEnabled = null;
+  let siteBlocked = !!SK.isSiteBlocked?.();
+  function updateVisibility() {
+    const visible = lastEnabled === true && !siteBlocked;
+    host.style.display = visible ? 'block' : 'none';
+    if (!visible) closeMenu();
+  }
   function applyEnabled(enabled) {
     if (lastEnabled === false && enabled === true) {
       applyPos(null);
       persistPos();
     }
     lastEnabled = enabled;
-    host.style.display = enabled ? 'block' : 'none';
-    if (!enabled) closeMenu();
+    updateVisibility();
   }
+  // 禁用網站不顯示懸浮按鈕; 與使用者的顯示設定分開, 解除禁用時不重設位置
+  SK.onSiteBlockChange?.((b) => { siteBlocked = b; updateVisibility(); });
 
   function applyOpacity(v) {
     if (typeof v === 'number') currentOpacity = Math.max(0.1, Math.min(1, v));
