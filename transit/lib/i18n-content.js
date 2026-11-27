@@ -4,6 +4,7 @@
   // === ZH_TW_DICT_START ===
   const messages_zhTW = {
     'popup.action.translate': '翻譯本頁',
+    'hover.restoreBlock': '關閉這段翻譯',
     'editbar.hint': '點擊虛線框段落可直接編輯譯文',
     'editbar.undo': '復原',
     'editbar.done': '完成',
@@ -93,6 +94,7 @@
   // === ZH_CN_DICT_START ===
   const messages_zhCN = {
     'popup.action.translate': '翻译本页',
+    'hover.restoreBlock': '关闭这段翻译',
     'editbar.hint': '点击虚线框段落可直接编辑译文',
     'editbar.undo': '撤销',
     'editbar.done': '完成',
@@ -182,6 +184,7 @@
   // === EN_DICT_START ===
   const messages_en = {
     'popup.action.translate': 'Translate page',
+    'hover.restoreBlock': 'Close this translation',
     'editbar.hint': 'Click a dashed-outline paragraph to edit its translation',
     'editbar.undo': 'Undo',
     'editbar.done': 'Done',
@@ -271,6 +274,7 @@
   // === JA_DICT_START ===
   const messages_ja = {
     'popup.action.translate': 'このページを翻訳',
+    'hover.restoreBlock': 'この翻訳を閉じる',
     'editbar.hint': '破線枠の段落をクリックすると訳文を編集できます',
     'editbar.undo': '元に戻す',
     'editbar.done': '完了',
@@ -360,6 +364,7 @@
   // === KO_DICT_START ===
   const messages_ko = {
     'popup.action.translate': '이 페이지 번역',
+    'hover.restoreBlock': '이 번역 닫기',
     'editbar.hint': '점선 테두리 단락을 클릭하면 번역문을 편집할 수 있습니다',
     'editbar.undo': '실행 취소',
     'editbar.done': '완료',
@@ -448,6 +453,7 @@
   // === ES_DICT_START ===
   const messages_es = {
     'popup.action.translate': 'Traducir página',
+    'hover.restoreBlock': 'Cerrar esta traducción',
     'editbar.hint': 'Haz clic en un párrafo con borde discontinuo para editar su traducción',
     'editbar.undo': 'Deshacer',
     'editbar.done': 'Listo',
@@ -536,6 +542,7 @@
   // === FR_DICT_START ===
   const messages_fr = {
     'popup.action.translate': 'Traduire la page',
+    'hover.restoreBlock': 'Fermer cette traduction',
     'editbar.hint': 'Cliquez sur un paragraphe en pointillés pour modifier sa traduction',
     'editbar.undo': 'Annuler',
     'editbar.done': 'Terminé',
@@ -624,6 +631,7 @@
   // === DE_DICT_START ===
   const messages_de = {
     'popup.action.translate': 'Seite übersetzen',
+    'hover.restoreBlock': 'Diese Übersetzung schließen',
     'editbar.hint': 'Klicken Sie auf einen gestrichelt umrandeten Absatz, um die Übersetzung zu bearbeiten',
     'editbar.undo': 'Rückgängig',
     'editbar.done': 'Fertig',

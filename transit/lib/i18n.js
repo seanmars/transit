@@ -5,6 +5,7 @@
   const messages_zhTW = {
     'popup.action.translate': '翻譯本頁',
     'contextMenu.translateSelection': '用 Transit 翻譯選取的文字',
+    'hover.restoreBlock': '關閉這段翻譯',
     'popup.action.restore': '顯示原文',
     'popup.action.editDone': '結束編輯',
     'popup.action.editStart': '編輯譯文',
@@ -1008,6 +1009,7 @@
   const messages_zhCN = {
     'popup.action.translate': '翻译本页',
     'contextMenu.translateSelection': '用 Transit 翻译选中的文字',
+    'hover.restoreBlock': '关闭这段翻译',
     'popup.action.restore': '显示原文',
     'popup.action.editDone': '结束编辑',
     'popup.action.editStart': '编辑译文',
@@ -2011,6 +2013,7 @@
   const messages_en = {
     'popup.action.translate': 'Translate page',
     'contextMenu.translateSelection': 'Translate selection with Transit',
+    'hover.restoreBlock': 'Close this translation',
     'popup.action.restore': 'Show original',
     'popup.action.editDone': 'Done editing',
     'popup.action.editStart': 'Edit translation',
@@ -3014,6 +3017,7 @@
   const messages_ja = {
     'popup.action.translate': 'このページを翻訳',
     'contextMenu.translateSelection': '選択したテキストを Transit で翻訳',
+    'hover.restoreBlock': 'この翻訳を閉じる',
     'popup.action.restore': '原文を表示',
     'popup.action.editDone': '編集を終了',
     'popup.action.editStart': '訳文を編集',
@@ -4017,6 +4021,7 @@
   const messages_ko = {
     'popup.action.translate': '이 페이지 번역',
     'contextMenu.translateSelection': '선택한 텍스트를 Transit으로 번역',
+    'hover.restoreBlock': '이 번역 닫기',
     'popup.action.restore': '원문 표시',
     'popup.action.editDone': '편집 종료',
     'popup.action.editStart': '번역문 편집',
@@ -5019,6 +5024,7 @@
   const messages_es = {
     'popup.action.translate': 'Traducir página',
     'contextMenu.translateSelection': 'Traducir la selección con Transit',
+    'hover.restoreBlock': 'Cerrar esta traducción',
     'popup.action.restore': 'Mostrar original',
     'popup.action.editDone': 'Terminar edición',
     'popup.action.editStart': 'Editar traducción',
@@ -6021,6 +6027,7 @@
   const messages_fr = {
     'popup.action.translate': 'Traduire la page',
     'contextMenu.translateSelection': 'Traduire la sélection avec Transit',
+    'hover.restoreBlock': 'Fermer cette traduction',
     'popup.action.restore': 'Afficher l\'original',
     'popup.action.editDone': 'Terminer l\'édition',
     'popup.action.editStart': 'Modifier la traduction',
@@ -7023,6 +7030,7 @@
   const messages_de = {
     'popup.action.translate': 'Seite übersetzen',
     'contextMenu.translateSelection': 'Auswahl mit Transit übersetzen',
+    'hover.restoreBlock': 'Diese Übersetzung schließen',
     'popup.action.restore': 'Original anzeigen',
     'popup.action.editDone': 'Bearbeitung beenden',
     'popup.action.editStart': 'Übersetzung bearbeiten',

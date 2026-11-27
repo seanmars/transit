@@ -1431,6 +1431,39 @@
     }
   };
 
+  SK.restoreTranslatedElement = function restoreTranslatedElement(el) {
+    if (!el) return;
+    const dual = STATE.translationCache?.get(el);
+    if (dual?.wrapper) {
+      try { dual.wrapper.remove(); } catch (_) {}
+    }
+    STATE.translationCache?.delete(el);
+    const nvBackup = STATE.nodeValueMutateBackup?.get(el);
+    if (nvBackup) {
+      for (const { node, originalValue } of nvBackup) {
+        if (node) {
+          try { node.nodeValue = originalValue; } catch (_) {}
+        }
+      }
+      STATE.nodeValueMutateBackup.delete(el);
+    } else if (STATE.originalHTML.has(el)) {
+      const origHTML = STATE.originalHTML.get(el);
+      if (el.innerHTML !== origHTML) el.innerHTML = origHTML;
+    }
+    el.removeAttribute('data-transit-translated');
+    el.removeAttribute('data-transit-dual-source');
+    el.removeAttribute('data-transit-nodevalue-mutated');
+    SK.restoreLocaleStyling(el);
+    const origText = STATE.originalText.get(el);
+    if (origText) STATE.translatedHTMLByText?.delete(origText);
+    STATE.originalHTML.delete(el);
+    STATE.translatedHTML?.delete(el);
+    STATE.originalText.delete(el);
+    STATE.originalLang.delete(el);
+    STATE.originalFontFamily.delete(el);
+    STATE.nvMutateTranslation?.delete?.(el);
+  };
+
   SK.ensureDualWrapperStyle = function ensureDualWrapperStyle() {
     if (document.getElementById('transit-dual-style')) return;
     const tag = SK.TRANSLATION_WRAPPER_TAG;
