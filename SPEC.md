@@ -573,6 +573,8 @@ Failback 規則:
 
 **右鍵選單翻譯選取範圍**: 選取文字後按右鍵選「用 Transit 翻譯選取的文字」(`contextMenus`, contexts `selection`, 選單文字跟隨 `uiLanguage`). background 依 `info.frameId` 只送 `TRANSLATE_SELECTION` 給選取所在的 frame, 由 `content-hover.js` 處理. 翻譯範圍 = 與選取範圍重疊且重疊部分有文字的段落; 只選到半段時翻整段; 三擊選取時終點落在下一段開頭不算選到下一段. 顯示方式、引擎、虛線外框、`hoverTranslated` 狀態 (之後按快速鍵 = 補翻其餘段落) 都與懸停翻譯相同, 不受 `hoverTranslateModifier` 開關影響. 找不到可翻譯段落時顯示 `toast.noContent`. 限制: `window.getSelection()` 看不到 shadow root 內的選取.
 
+**單段關閉**: 懸停或選取翻譯完成後, 滑鼠移到這些段落 (含雙語 wrapper) 上會在段落右上角顯示關閉按鈕 (closed shadow root, `#transit-hover-close-host`, 標籤 `hover.restoreBlock`). 一次懸停或一次選取翻譯的段落算同一組; 游標移到按鈕上時以外框標出整組, 按下只還原這一組 (`SK.restoreTranslatedElement`), 其他段落保持譯文. 最後一組還原後 `hoverTranslated` 清為 false. 整頁已翻譯或翻譯進行中時不顯示按鈕, 改用整頁還原. 捲動時隱藏按鈕.
+
 ### 10.3 首次設定 (onboarding)
 
 目標: 新使用者從安裝到第一次翻譯成功的摩擦最小化, 每一步都讓使用者知道「做對了沒」.
